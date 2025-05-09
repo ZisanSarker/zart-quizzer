@@ -136,7 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen overflow-hidden">
+      <div className="flex min-h-screen w-full overflow-hidden">
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2 px-4 py-2">
@@ -224,8 +224,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </SidebarFooter>
         </Sidebar>
 
-        <div className="flex flex-col flex-1">
-          <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10 dark:bg-background/80">
+        <div className="flex flex-col flex-1 w-full">
+          <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10 dark:bg-background/80 w-full">
             <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
               <div className="flex items-center gap-2 lg:hidden">
                 <SidebarTrigger className="hover:text-primary transition-colors" />
@@ -343,8 +343,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
           </header>
-          <main className="flex-1 overflow-auto">
-            <div className="py-4 md:py-6">
+          <main className="flex-1 flex items-center justify-center w-full overflow-auto">
+            <div className="w-full max-w-7xl px-2 sm:px-4 py-4 md:py-6 mx-auto flex flex-col items-center justify-center">
               <PageTransition>
                 <LayoutWrapper>{children}</LayoutWrapper>
               </PageTransition>

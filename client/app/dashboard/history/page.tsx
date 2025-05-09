@@ -151,41 +151,46 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-6">
-        <Card className="card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Total Quizzes Taken</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{quizHistory.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Average Score</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {Math.round(quizHistory.reduce((acc, item) => acc + item.score, 0) / quizHistory.length)}%
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Topics Covered</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{performanceByTopic.length}</div>
-          </CardContent>
-        </Card>
+      {/* Responsive, centered summary cards */}
+      <div className="mx-auto max-w-screen-md w-full px-2">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-6">
+          <Card className="card-hover w-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Total Quizzes Taken</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{quizHistory.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="card-hover w-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Average Score</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {Math.round(quizHistory.reduce((acc, item) => acc + item.score, 0) / quizHistory.length)}%
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="card-hover w-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Topics Covered</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{performanceByTopic.length}</div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Tabs defaultValue="history">
-        <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-3 mb-6">
-          <TabsTrigger value="history">Quiz History</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center w-full mb-6">
+          <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-3">
+            <TabsTrigger value="history">Quiz History</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="achievements">Achievements</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="history">
           {isLoading ? (
@@ -228,7 +233,7 @@ export default function HistoryPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-6">
                           <div className="flex flex-col items-center">
                             <div
                               className={`flex items-center justify-center w-16 h-16 rounded-full ${getScoreBadgeColor(item.score)} text-white`}
