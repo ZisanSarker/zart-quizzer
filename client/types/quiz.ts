@@ -41,3 +41,26 @@ export interface QuizResult {
   total: number
   result: QuizResultAnswer[]
 }
+
+export interface RecentQuizAttempt {
+  id: string;
+  title: string;
+  score: number;
+  date: string;
+
+  // Additional fields
+  quizId: string;
+  quizTitle: string;
+  totalQuestions: number;
+  correctAnswers: number;
+  timeTaken: string | 'N/A';
+  completedAt: string;
+}
+
+
+export interface RecommendedQuiz {
+  id: string
+  title: string
+  author: string
+  difficulty: "Beginner" | "Intermediate" | "Advanced"
+}

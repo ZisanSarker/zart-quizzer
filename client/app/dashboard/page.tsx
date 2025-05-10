@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
@@ -7,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import DashboardLayout from "@/components/dashboard-layout"
 import { ArrowRight, BarChart3, Brain, CheckCircle, Clock, Plus, Trophy } from "lucide-react"
 import { AnimatedCounter, FadeUp, StaggerChildren, StaggerItem } from "@/components/animations/motion"
+import { getRecentQuizAttempts, getRecommendedQuizzes } from "@/lib/quiz"
+import type { RecentQuizAttempt, RecommendedQuiz } from "@/types/quiz"
 
 export default function DashboardPage() {
-  // Mock data for dashboard stats
   const stats = [
     { title: "Quizzes Created", value: 12, icon: Brain },
     { title: "Quizzes Completed", value: 28, icon: CheckCircle },
@@ -17,12 +19,25 @@ export default function DashboardPage() {
     { title: "Time Spent", value: "8h 24m", icon: Clock, isTime: true },
   ]
 
-  // Mock data for recent quizzes
-  const recentQuizzes = [
-    { id: 1, title: "Mathematics - Algebra Basics", score: "85%", date: "2 days ago" },
-    { id: 2, title: "Science - Quantum Physics", score: "72%", date: "5 days ago" },
-    { id: 3, title: "History - World War II", score: "90%", date: "1 week ago" },
-  ]
+  const [recentQuizzes, setRecentQuizzes] = useState<RecentQuizAttempt[]>([])
+  const [recommendedQuizzes, setRecommendedQuizzes] = useState<RecommendedQuiz[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [recent, recommended] = await Promise.all([
+          getRecentQuizAttempts(),
+          getRecommendedQuizzes(),
+        ])
+        setRecentQuizzes(recent)
+        setRecommendedQuizzes(recommended)
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   return (
     <DashboardLayout>
@@ -88,7 +103,7 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
                           <Trophy className="h-4 w-4 text-primary" />
-                          <span>{quiz.score}</span>
+                          <span>{quiz.score}%</span>
                         </div>
                         <Button variant="ghost" size="icon" className="hover:text-primary transition-colors" asChild>
                           <Link href={`/dashboard/history/${quiz.id}`}>
@@ -116,11 +131,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-3 sm:p-4 md:p-6">
                 <div className="space-y-4">
-                  {[
-                    { id: 1, title: "Computer Science - Algorithms", author: "Jane Smith", difficulty: "Intermediate" },
-                    { id: 2, title: "Geography - European Countries", author: "Mike Johnson", difficulty: "Beginner" },
-                    { id: 3, title: "Literature - Shakespeare's Works", author: "Emily Davis", difficulty: "Advanced" },
-                  ].map((quiz) => (
+                  {recommendedQuizzes.map((quiz) => (
                     <div
                       key={quiz.id}
                       className="flex items-center justify-between p-3 bg-muted rounded-lg transition-all duration-300 hover:bg-primary-50 hover:shadow-sm"

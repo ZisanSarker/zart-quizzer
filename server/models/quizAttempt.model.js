@@ -2,16 +2,18 @@ const mongoose = require('mongoose');
 
 const AnswerSchema = new mongoose.Schema({
   questionId: { type: mongoose.Schema.Types.ObjectId, required: true }, // index of question or use internal _id if stored separately
-  selectedAnswer: { type: String, required: true },
+  selectedAnswer: { type: String, required: true, trim: true },
   isCorrect: { type: Boolean, required: true }
 });
 
 const QuizAttemptSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false }, // optional for guest
-  quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // optional for guest
+  quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true, index: true },
   answers: [AnswerSchema],
   score: { type: Number, required: true },
-  submittedAt: { type: Date, default: Date.now }
+  timeTaken: { type: String, default: '00:00' },
+  submittedAt: { type: Date, default: Date.now },
+  completedAt: {type: String} 
 });
 
 module.exports = mongoose.model('QuizAttempt', QuizAttemptSchema);

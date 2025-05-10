@@ -10,7 +10,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const quizRoutes = require('./routes/quiz.routes');
 //const quizAttemptRoutes = require('./routes/quizAttempt.routes');
-const passport = require('./config/passport')
+const passport = require('./config/passport');
+const authMiddleware = require('./middlewares/auth.middleware');
 require('colors');
 
 // Load environment variables
@@ -58,7 +59,7 @@ app.use(passport.session());
 
 // ───────────── Routes ─────────────
 app.use('/api/auth', authRoutes);
-app.use('/api/quizzes', quizRoutes);
+app.use('/api/quizzes', authMiddleware, quizRoutes);
 
 
 app.get('/', (req, res) => {

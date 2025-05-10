@@ -10,70 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import DashboardLayout from "@/components/dashboard-layout"
 import { Brain, Calendar, Clock, Search, Trophy } from "lucide-react"
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/animations/motion"
+import { getRecentQuizAttempts } from "@/lib/quiz"
+import type { RecentQuizAttempt } from "@/types/quiz"
 
-// Mock data for quiz history
-const quizHistoryMock = [
-  {
-    id: "h1",
-    quizId: "1",
-    quizTitle: "Mathematics - Algebra Basics",
-    score: 85,
-    totalQuestions: 10,
-    correctAnswers: 8.5,
-    timeTaken: "12:45",
-    completedAt: "2023-06-15T14:30:00Z",
-  },
-  {
-    id: "h2",
-    quizId: "2",
-    quizTitle: "Science - Quantum Physics",
-    score: 72,
-    totalQuestions: 15,
-    correctAnswers: 10.8,
-    timeTaken: "18:20",
-    completedAt: "2023-06-10T09:15:00Z",
-  },
-  {
-    id: "h3",
-    quizId: "3",
-    quizTitle: "History - World War II",
-    score: 90,
-    totalQuestions: 20,
-    correctAnswers: 18,
-    timeTaken: "22:10",
-    completedAt: "2023-06-05T16:45:00Z",
-  },
-  {
-    id: "h4",
-    quizId: "5",
-    quizTitle: "Geography - European Countries",
-    score: 78,
-    totalQuestions: 12,
-    correctAnswers: 9.36,
-    timeTaken: "15:30",
-    completedAt: "2023-05-28T11:20:00Z",
-  },
-  {
-    id: "h5",
-    quizId: "1",
-    quizTitle: "Mathematics - Algebra Basics",
-    score: 92,
-    totalQuestions: 10,
-    correctAnswers: 9.2,
-    timeTaken: "11:15",
-    completedAt: "2023-05-20T13:40:00Z",
-  },
-  {
-    id: "h6",
-    quizId: "6",
-    quizTitle: "Literature - Shakespeare's Works",
-    score: 65,
-    totalQuestions: 15,
-    correctAnswers: 9.75,
-    timeTaken: "19:45",
-    completedAt: "2023-05-15T10:30:00Z",
-  },
-]
 
 // Mock data for performance by topic
 const performanceByTopicMock = [
@@ -94,18 +33,25 @@ const achievementsMock = [
 export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-  const [quizHistory, setQuizHistory] = useState(quizHistoryMock)
+  const [quizHistory, setQuizHistory] = useState<RecentQuizAttempt[]>([])
   const [performanceByTopic, setPerformanceByTopic] = useState(performanceByTopicMock)
   const [achievements, setAchievements] = useState(achievementsMock)
 
   useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+    const fetchData = async () => {
+      try {
+        const data = await getRecentQuizAttempts()
+        setQuizHistory(data)
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  
+    fetchData()
   }, [])
+  
 
   // Filter quiz history based on search query
   const filteredHistory = quizHistory.filter((item) => item.quizTitle.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -151,46 +97,41 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      {/* Responsive, centered summary cards */}
-      <div className="mx-auto max-w-screen-md w-full px-2">
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-6">
-          <Card className="card-hover w-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Total Quizzes Taken</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{quizHistory.length}</div>
-            </CardContent>
-          </Card>
-          <Card className="card-hover w-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Average Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {Math.round(quizHistory.reduce((acc, item) => acc + item.score, 0) / quizHistory.length)}%
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="card-hover w-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Topics Covered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{performanceByTopic.length}</div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-6">
+        <Card className="card-hover">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Total Quizzes Taken</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{quizHistory.length}</div>
+          </CardContent>
+        </Card>
+        <Card className="card-hover">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Average Score</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {Math.round(quizHistory.reduce((acc, item) => acc + item.score, 0) / quizHistory.length)}%
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="card-hover">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Topics Covered</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{performanceByTopic.length}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="history">
-        <div className="flex justify-center w-full mb-6">
-          <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-3">
-            <TabsTrigger value="history">Quiz History</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-3 mb-6">
+          <TabsTrigger value="history">Quiz History</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="achievements">Achievements</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="history">
           {isLoading ? (
@@ -233,7 +174,7 @@ export default function HistoryPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4">
                           <div className="flex flex-col items-center">
                             <div
                               className={`flex items-center justify-center w-16 h-16 rounded-full ${getScoreBadgeColor(item.score)} text-white`}

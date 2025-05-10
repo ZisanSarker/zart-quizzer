@@ -1,5 +1,5 @@
 import api from "./api"
-import type { Quiz, QuizSubmission, QuizResult } from "@/types/quiz"
+import type { Quiz, QuizSubmission, QuizResult, RecentQuizAttempt, RecommendedQuiz } from "@/types/quiz"
 
 export interface GenerateQuizData {
   topic: string
@@ -18,9 +18,9 @@ export const generateQuiz = async (data: GenerateQuizData): Promise<GenerateQuiz
   return response.data
 }
 
-// Get all quizzes
-export const getAllQuizzes = async (): Promise<Quiz[]> => {
-  const response = await api.get<Quiz[]>("/quizzes")
+// ✅ Get recent quiz attempts (not all quizzes)
+export const getRecentQuizAttempts = async (): Promise<RecentQuizAttempt[]> => {
+  const response = await api.get<RecentQuizAttempt[]>("/quizzes/recent")
   return response.data
 }
 
@@ -38,7 +38,6 @@ export const submitQuiz = async (data: QuizSubmission): Promise<QuizResult> => {
 
 // Get user's quizzes
 export const getUserQuizzes = async (userId: string): Promise<Quiz[]> => {
-  // This endpoint would need to be implemented on your backend
   const response = await api.get<Quiz[]>(`/quizzes/user/${userId}`)
   return response.data
 }
@@ -52,5 +51,11 @@ export const deleteQuiz = async (quizId: string): Promise<{ message: string }> =
 // Update quiz visibility (public/private)
 export const updateQuizVisibility = async (quizId: string, isPublic: boolean): Promise<{ message: string }> => {
   const response = await api.patch<{ message: string }>(`/quizzes/${quizId}/visibility`, { isPublic })
+  return response.data
+}
+
+// Get recommended quizzes
+export const getRecommendedQuizzes = async (): Promise<RecommendedQuiz[]> => {
+  const response = await api.get<RecommendedQuiz[]>("/quizzes/recommended")
   return response.data
 }
