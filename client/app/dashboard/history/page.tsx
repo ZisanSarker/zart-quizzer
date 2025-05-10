@@ -112,7 +112,14 @@ export default function HistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {Math.round(quizHistory.reduce((acc, item) => acc + item.score, 0) / quizHistory.length)}%
+              {(() => {
+                const validScores = quizHistory
+                  .map(item => Number(item.score))
+                  .filter(score => !isNaN(score) && score >= 0 && score <= 100);
+                return validScores.length > 0
+                  ? Math.round(validScores.reduce((acc, score) => acc + score, 0) / validScores.length)
+                  : 0;
+              })()}%
             </div>
           </CardContent>
         </Card>
