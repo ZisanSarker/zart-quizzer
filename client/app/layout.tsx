@@ -1,8 +1,6 @@
-import type React from "react"
+// app/layout.tsx
 import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
-import { AuthProvider } from "@/contexts/auth-context"
+import { Providers } from "@/components/providers"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -10,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "ZART Quizzer - Create and Practice Quizzes",
   description: "AI-powered quiz generation and practice platform",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -20,15 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            <div className="min-h-screen flex flex-col">
-              {children}
-              <Toaster />
-            </div>
-          </AuthProvider>
-        </ThemeProvider>
+      <body className={inter.className} suppressHydrationWarning>
+        <Providers>
+          <div className="min-h-screen flex flex-col">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   )
