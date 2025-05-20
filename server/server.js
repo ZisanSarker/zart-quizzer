@@ -28,12 +28,26 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(helmet());
 
-app.use(cors(
-  {
-  origin: process.env.CLIENT_URL,
+const allowedOrigins = [
+  'https://zart-quizzer.vercel.app',
+  'https://zart-quizzer-97d078mmx-zisan-sarkers-projects.vercel.app',
+  'http://localhost:3000', // for local dev
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log(`❌ Blocked by CORS: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-}
-));
+}));
+
+
 
 // ───────────── Rate Limiting on Auth Only ─────────────
 const authRateLimiter = rateLimit({
