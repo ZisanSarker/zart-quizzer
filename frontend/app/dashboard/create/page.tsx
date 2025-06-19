@@ -30,7 +30,6 @@ export default function CreateQuizPage() {
   const [isListening, setIsListening] = useState(false)
   const [voiceInput, setVoiceInput] = useState("")
 
-  // Form state
   const [formData, setFormData] = useState({
     topic: "",
     description: "",
@@ -71,7 +70,7 @@ export default function CreateQuizPage() {
         topic: "Mathematics",
         description: "General practice quiz on Mathematics",
         quizType: "multiple-choice",
-        numberOfQuestions: 10,
+        numberOfQuestions: 5,
         difficulty: "medium",
         timeLimit: true,
         isPublic: false,
@@ -89,7 +88,7 @@ export default function CreateQuizPage() {
 
     try {
       // Extract the necessary data for the API
-      const { topic, description, quizType, numberOfQuestions, difficulty } = formData
+      const { topic, description, quizType, numberOfQuestions, difficulty, isPublic } = formData
 
       // Call the API to generate the quiz
       const response = await generateQuiz({
@@ -98,6 +97,7 @@ export default function CreateQuizPage() {
         quizType: quizType as "multiple-choice" | "true-false" | "mixed",
         numberOfQuestions,
         difficulty: difficulty as "easy" | "medium" | "hard",
+        isPublic
       })
       toast({
         title: "Quiz generated successfully",
