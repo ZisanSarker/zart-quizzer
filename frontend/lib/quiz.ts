@@ -7,6 +7,7 @@ export interface GenerateQuizData {
   quizType: "multiple-choice" | "true-false" | "mixed"
   numberOfQuestions?: number
   difficulty?: "easy" | "medium" | "hard"
+  isPublic?: boolean
 }
 
 export interface GenerateQuizResponse {

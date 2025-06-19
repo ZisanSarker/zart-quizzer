@@ -6,9 +6,31 @@ const moment = require('moment');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
-// Helper: Format AI prompt
-const buildPrompt = (topic, difficulty, count) => `
-Generate ${count} ${difficulty} level multiple choice quiz questions on the topic "${topic}". 
+const buildPrompt = (topic, description, difficulty, count, quizType) => {
+  let base = `Generate ${count} ${difficulty} level ${quizType} quiz questions on the topic "${topic}".`;
+  if (description) base += `\nDescription: ${description}`;
+
+  if (quizType === 'true-false') {
+    base += `
+Each question should have:
+- 1 question text
+- 2 options: ["True", "False"]
+- 1 correct answer ("True" or "False")
+- 1 short explanation
+
+Format the output in JSON like this:
+[
+  {
+    "questionText": "...",
+    "options": ["True", "False"],
+    "correctAnswer": "...",
+    "explanation": "..."
+  },
+  ...
+]
+`;
+  } else if (quizType === 'multiple-choice') {
+    base += `
 Each question should have:
 - 1 question text
 - 4 options
@@ -26,32 +48,73 @@ Format the output in JSON like this:
   ...
 ]
 `;
+  } else if (quizType === 'mixed') {
+    base += `
+Generate a mix of both multiple-choice and true/false questions. 
+For multiple-choice: 4 options, for true/false: 2 options ["True", "False"].
+Each question should have:
+- 1 question text
+- options (either 4 for multiple-choice or 2 for true/false)
+- 1 correct answer
+- 1 short explanation
+
+Format the output in JSON like this:
+[
+  {
+    "questionText": "...",
+    "options": ["...", "...", "...", "..."], // or ["True", "False"]
+    "correctAnswer": "...",
+    "explanation": "..."
+  },
+  ...
+]
+`;
+  }
+  return base;
+};
+
 
 exports.generateQuiz = async (req, res) => {
   try {
-    const { topic, difficulty = 'medium', numberOfQuestions = 5 } = req.body;
+    const {
+      topic,
+      description,
+      difficulty = 'medium',
+      numberOfQuestions = 5,
+      quizType = 'multiple-choice',
+      isPublic = false,
+    } = req.body;
 
     const prompt = await QuizPrompt.create({
       topic,
+      description,
       difficulty,
       numberOfQuestions,
+      quizType,
     });
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const result = await model.generateContent(
-      buildPrompt(topic, difficulty, numberOfQuestions)
+      buildPrompt(topic, description, difficulty, numberOfQuestions, quizType)
     );
     const response = await result.response;
     const text = response.text();
 
     let questions;
     try {
-      // Attempt to parse JSON from the AI response
       const start = text.indexOf('[');
       const end = text.lastIndexOf(']');
       const jsonText = text.slice(start, end + 1);
       questions = JSON.parse(jsonText);
+
+      questions = questions.map(q => ({
+        ...q,
+        type:
+          quizType === 'mixed'
+            ? (q.options && q.options.length === 2 ? 'true-false' : 'multiple-choice')
+            : quizType
+      }));
     } catch (jsonErr) {
       return res.status(500).json({
         message: 'Failed to parse Gemini response',
@@ -61,18 +124,20 @@ exports.generateQuiz = async (req, res) => {
 
     const quiz = await Quiz.create({
       topic,
+      description,
+      quizType,
       difficulty,
+      isPublic,
       questions,
       promptRef: prompt._id,
+      createdBy: req.user?._id,
     });
     res.status(201).json({ message: 'Quiz created successfully', quiz });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ message: 'Quiz generation failed', error: err.message });
+    res.status(500).json({ message: 'Quiz generation failed', error: err.message });
   }
-};
+}
 
 exports.getAllQuizzes = async (req, res) => {
   try {
