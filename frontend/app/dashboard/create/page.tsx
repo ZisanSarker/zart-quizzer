@@ -89,15 +89,16 @@ export default function CreateQuizPage() {
 
     try {
       // Extract the necessary data for the API
-      const { topic, difficulty, numberOfQuestions } = formData
+      const { topic, description, quizType, numberOfQuestions, difficulty } = formData
 
       // Call the API to generate the quiz
       const response = await generateQuiz({
         topic,
-        difficulty: difficulty as "easy" | "medium" | "hard",
+        description,
+        quizType: quizType as "multiple-choice" | "true-false" | "mixed",
         numberOfQuestions,
+        difficulty: difficulty as "easy" | "medium" | "hard",
       })
-
       toast({
         title: "Quiz generated successfully",
         description: "Your quiz is ready to be taken or shared.",
