@@ -15,17 +15,6 @@ export default function Home() {
             <Brain className="h-6 w-6 text-primary animate-bounce-small" />
             <span className="gradient-heading">ZART Quizzer</span>
           </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/features" className="text-sm font-medium hover:text-primary transition-colors">
-              Features
-            </Link>
-            <Link href="/pricing" className="text-sm font-medium hover:text-primary transition-colors">
-              Pricing
-            </Link>
-            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
-              About
-            </Link>
-          </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
               <Button variant="ghost" size="sm" className="hover:text-primary transition-colors">
@@ -135,7 +124,7 @@ export default function Home() {
                       ].map((quiz, index) => (
                         <div
                           key={index}
-                          className="p-3 bg-muted rounded-md flex justify-between items-center transition-all duration-300 hover:bg-primary-50 hover:shadow-sm"
+                          className="p-3 bg-muted rounded-md flex justify-between items-center transition-all duration-300 hover:bg-primary-500 hover:shadow-sm"
                         >
                           <span>{quiz}</span>
                           <Lightbulb className="h-4 w-4 text-primary" />

@@ -3,8 +3,10 @@ import type { Quiz, QuizSubmission, QuizResult, RecentQuizAttempt, RecommendedQu
 
 export interface GenerateQuizData {
   topic: string
-  difficulty?: "easy" | "medium" | "hard"
+  description?: string
+  quizType: "multiple-choice" | "true-false" | "mixed"
   numberOfQuestions?: number
+  difficulty?: "easy" | "medium" | "hard"
 }
 
 export interface GenerateQuizResponse {
