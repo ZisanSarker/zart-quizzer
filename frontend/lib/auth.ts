@@ -17,31 +17,26 @@ export interface AuthResponse {
   user: User
 }
 
-// Register a new user
 export const register = async (data: RegisterData): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>("/auth/register", data)
   return response.data
 }
 
-// Login a user
 export const login = async (data: LoginData): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>("/auth/login", data)
   return response.data
 }
 
-// Logout the current user
 export const logout = async (): Promise<{ message: string }> => {
   const response = await api.get<{ message: string }>("/auth/logout")
   return response.data
 }
 
-// Get the current user
 export const getCurrentUser = async (): Promise<{ user: User }> => {
   const response = await api.get<{ user: User }>("/auth/me")
   return response.data
 }
 
-// Refresh the access token
 export const refreshToken = async (): Promise<{ message: string }> => {
   const response = await api.post<{ message: string }>("/auth/refresh-token")
   return response.data

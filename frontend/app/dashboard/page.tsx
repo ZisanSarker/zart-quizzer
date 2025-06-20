@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +11,7 @@ import { ArrowRight, BarChart3, Brain, CheckCircle, Clock, Plus, Trophy } from "
 import { AnimatedCounter, FadeUp, StaggerChildren, StaggerItem } from "@/components/animations/motion"
 import { getRecentQuizAttempts, getRecommendedQuizzes } from "@/lib/quiz"
 import type { RecentQuizAttempt, RecommendedQuiz } from "@/types/quiz"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function DashboardPage() {
   const stats = [
@@ -21,6 +23,15 @@ export default function DashboardPage() {
 
   const [recentQuizzes, setRecentQuizzes] = useState<RecentQuizAttempt[]>([])
   const [recommendedQuizzes, setRecommendedQuizzes] = useState<RecommendedQuiz[]>([])
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
+
+  // Explicitly redirect if not loading and not authenticated (defensive, in addition to middleware)
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/login")
+    }
+  }, [user, isLoading, router])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,8 +47,26 @@ export default function DashboardPage() {
       }
     }
 
-    fetchData()
-  }, [])
+    // Only fetch if authenticated
+    if (user) {
+      fetchData()
+    }
+  }, [user])
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="w-full flex items-center justify-center h-96">
+          <span className="text-lg text-muted-foreground">Loading...</span>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (!user) {
+    // Defensive, in case middleware fails
+    return null
+  }
 
   return (
     <DashboardLayout>
@@ -113,6 +142,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
+                  {recentQuizzes.length === 0 && (
+                    <div className="text-muted-foreground text-center py-8">No recent quizzes yet.</div>
+                  )}
                 </div>
                 <div className="mt-4 text-center">
                   <Button variant="outline" className="transition-all duration-300 hover:border-primary-300" asChild>
@@ -154,6 +186,9 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ))}
+                  {recommendedQuizzes.length === 0 && (
+                    <div className="text-muted-foreground text-center py-8">No recommendations yet.</div>
+                  )}
                 </div>
                 <div className="mt-4 text-center">
                   <Button variant="outline" className="transition-all duration-300 hover:border-primary-300" asChild>

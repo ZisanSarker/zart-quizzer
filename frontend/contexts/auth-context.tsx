@@ -27,29 +27,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Check if user is logged in on initial load
   useEffect(() => {
-  const checkAuth = async () => {
-    try {
-      const { user } = await getCurrentUser()
-      setUser(user)
-    } catch (err: any) {
-      // If not authenticated, try to refresh token
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        try {
-          await refreshToken()
-          const { user } = await getCurrentUser()
-          setUser(user)
-        } catch (refreshErr) {
+    const checkAuth = async () => {
+      try {
+        const { user } = await getCurrentUser()
+        setUser(user)
+      } catch (err: any) {
+        // If not authenticated, try to refresh token
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          try {
+            await refreshToken()
+            const { user } = await getCurrentUser()
+            setUser(user)
+          } catch (refreshErr) {
+            setUser(null)
+          }
+        } else {
           setUser(null)
         }
-      } else {
-        setUser(null)
+      } finally {
+        setIsLoading(false)
       }
-    } finally {
-      setIsLoading(false)
     }
-  }
-  checkAuth()
-}, [])
+    checkAuth()
+  }, [])
+
+  // Redirect logged-in users away from login/register/base
+  useEffect(() => {
+    if (user && typeof window !== "undefined") {
+      const path = window.location.pathname
+      if (path === '/' || path === '/login' || path === '/register') {
+        router.replace('/dashboard')
+      }
+    }
+  }, [user, router])
 
   const handleLogin = async (data: LoginData) => {
     setIsLoading(true)
@@ -57,10 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await login(data)
       setUser(response.user)
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      })
+      toast({ title: "Login successful", description: "Welcome back!" })
       router.push("/dashboard")
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed")
@@ -80,10 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await register(data)
       setUser(response.user)
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created",
-      })
+      toast({ title: "Registration successful", description: "Your account has been created" })
       router.push("/dashboard")
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed")
@@ -102,10 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await logout()
       setUser(null)
-      toast({
-        title: "Logged out",
-        description: "You have been logged out successfully",
-      })
+      toast({ title: "Logged out", description: "You have been logged out successfully" })
       router.push("/login")
     } catch (err: any) {
       setError(err.response?.data?.message || "Logout failed")
