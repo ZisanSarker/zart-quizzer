@@ -9,9 +9,14 @@ export interface QuizQuestion {
 export interface Quiz {
   _id: string
   topic: string
+  description?: string
+  quizType: "multiple-choice" | "true-false" | "mixed"
   difficulty: "easy" | "medium" | "hard"
+  numberOfQuestions?: number
+  timeLimit?: boolean
+  isPublic?: boolean
   questions: QuizQuestion[]
-  promptRef: string
+  promptRef?: string
   createdBy?: string
   createdAt: string
 }
@@ -43,20 +48,17 @@ export interface QuizResult {
 }
 
 export interface RecentQuizAttempt {
-  id: string;
-  title: string;
-  score: number;
-  date: string;
-
-  // Additional fields
-  quizId: string;
-  quizTitle: string;
-  totalQuestions: number;
-  correctAnswers: number;
-  timeTaken: string | 'N/A';
-  completedAt: string;
+  id: string
+  title: string
+  score: number
+  date: string
+  quizId: string
+  quizTitle: string
+  totalQuestions: number
+  correctAnswers: number
+  timeTaken: string | 'N/A'
+  completedAt: string
 }
-
 
 export interface RecommendedQuiz {
   id: string

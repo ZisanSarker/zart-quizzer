@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,11 +12,12 @@ import { useToast } from "@/components/ui/use-toast"
 import DashboardLayout from "@/components/dashboard-layout"
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, Share2 } from "lucide-react"
 import { getQuizById, submitQuiz } from "@/lib/quiz"
-import type { Quiz, QuizAnswer } from "@/types/quiz"
+import type { Quiz, QuizAnswer, QuizResult } from "@/types/quiz"
 import { useAuth } from "@/contexts/auth-context"
 import { FadeIn, ScaleIn } from "@/components/animations/motion"
 
-export default function QuizPreviewPage({ params }: { params: { id: string } }) {
+export default function QuizPreviewPage() {
+  const params = useParams() as { id: string }
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
@@ -26,13 +27,14 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({})
   const [timeLeft, setTimeLeft] = useState(30)
   const [quizCompleted, setQuizCompleted] = useState(false)
-  const [quizResult, setQuizResult] = useState<any>(null)
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null)
 
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
         const quizData = await getQuizById(params.id)
         setQuiz(quizData)
+        if (!quizData.timeLimit) setTimeLeft(0)
       } catch (error) {
         toast({
           title: "Error",
@@ -43,23 +45,20 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
         setLoading(false)
       }
     }
-
     fetchQuiz()
   }, [params.id, toast])
 
-  // Timer countdown
   useEffect(() => {
-    if (quizCompleted || !quiz) return
+    // Only apply timer if timeLimit is enabled
+    if (quizCompleted || !quiz || !quiz.timeLimit) return
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Auto-move to next question when time is up
           if (currentQuestion < quiz.questions.length - 1) {
             setCurrentQuestion(currentQuestion + 1)
             return 30
           } else {
-            // Auto-submit when time is up on last question
             handleFinishQuiz()
             clearInterval(timer)
             return 0
@@ -70,11 +69,11 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
     }, 1000)
 
     return () => clearInterval(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestion, quizCompleted, quiz])
 
   const handleAnswerSelect = (answer: string) => {
     if (!quiz) return
-
     setSelectedAnswers({
       ...selectedAnswers,
       [quiz.questions[currentQuestion]._id]: answer,
@@ -83,10 +82,9 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
 
   const handleNextQuestion = () => {
     if (!quiz) return
-
     if (currentQuestion < quiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
-      setTimeLeft(30)
+      if (quiz.timeLimit) setTimeLeft(30)
     } else {
       handleFinishQuiz()
     }
@@ -95,27 +93,22 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
   const handlePreviousQuestion = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1)
-      setTimeLeft(30)
+      if (quiz && quiz.timeLimit) setTimeLeft(30)
     }
   }
 
   const handleFinishQuiz = async () => {
     if (!quiz) return
-
     try {
-      // Format answers for submission
       const answers: QuizAnswer[] = Object.entries(selectedAnswers).map(([_id, selectedAnswer]) => ({
         _id,
         selectedAnswer,
       }))
-
-      // Submit the quiz
       const result = await submitQuiz({
         quizId: quiz._id,
         userId: user?._id,
         answers,
       })
-
       setQuizResult(result)
       setQuizCompleted(true)
     } catch (error) {
@@ -128,7 +121,6 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
   }
 
   const handleShareQuiz = () => {
-    // Copy the quiz URL to clipboard
     navigator.clipboard.writeText(window.location.href)
     toast({
       title: "Quiz shared",
@@ -189,12 +181,14 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
                     Question {currentQuestion + 1} of {quiz.questions.length}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className={`text-sm font-medium ${timeLeft <= 5 ? "text-red-500 animate-pulse" : ""}`}>
-                    {timeLeft}s
-                  </span>
-                </div>
+                {quiz.timeLimit && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className={`text-sm font-medium ${timeLeft <= 5 ? "text-red-500 animate-pulse" : ""}`}>
+                      {timeLeft}s
+                    </span>
+                  </div>
+                )}
               </div>
               <Progress value={progress} className="h-2" />
               <CardTitle className="mt-4 text-xl">{question.questionText}</CardTitle>
@@ -208,7 +202,7 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
                 {question.options.map((option, index) => (
                   <div
                     key={index}
-                    className="flex items-center space-x-2 rounded-md border p-2 sm:p-3 transition-all duration-200 hover:border-primary-300 hover:bg-primary-50"
+                    className="flex items-center space-x-2 rounded-md border p-2 sm:p-3 transition-all duration-200 hover:border-primary-300 hover:bg-primary-500"
                   >
                     <RadioGroupItem value={option} id={`option-${index}`} className="text-primary border-primary-300" />
                     <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
@@ -245,14 +239,13 @@ export default function QuizPreviewPage({ params }: { params: { id: string } }) 
                 <CardTitle className="gradient-heading">Quiz Completed!</CardTitle>
                 <CardDescription>
                   You scored {quizResult?.score} out of {quizResult?.total} (
-                  {Math.round((quizResult?.score / quizResult?.total) * 100)}%)
+                  {quizResult?.total ? Math.round((quizResult?.score / quizResult?.total) * 100) : 0}%)
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {quizResult?.result.map((result: any, index: number) => {
+                  {quizResult?.result.map((result, index) => {
                     const question = quiz.questions.find((q) => q._id === result.questionId)
-
                     return (
                       <div key={result.questionId} className="space-y-3">
                         <div className="flex items-start gap-2">

@@ -24,6 +24,7 @@ const QuizSchema = new mongoose.Schema({
     default: 'medium',
   },
   isPublic: { type: Boolean, default: false },
+  timeLimit: { type: Boolean, default: true }, 
   questions: [QuestionSchema],
   promptRef: { type: mongoose.Schema.Types.ObjectId, ref: 'QuizPrompt' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

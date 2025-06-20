@@ -83,6 +83,7 @@ exports.generateQuiz = async (req, res) => {
       numberOfQuestions = 5,
       quizType = 'multiple-choice',
       isPublic = false,
+      timeLimit = true
     } = req.body;
 
     const prompt = await QuizPrompt.create({
@@ -128,6 +129,7 @@ exports.generateQuiz = async (req, res) => {
       quizType,
       difficulty,
       isPublic,
+      timeLimit,
       questions,
       promptRef: prompt._id,
       createdBy: req.user?._id,

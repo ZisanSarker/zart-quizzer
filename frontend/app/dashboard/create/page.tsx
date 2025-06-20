@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -59,13 +58,9 @@ export default function CreateQuizPage() {
 
   const handleVoiceCommand = () => {
     setIsListening(true)
-
-    // Simulate voice recognition
     setTimeout(() => {
       setIsListening(false)
       setVoiceInput("Generate a quiz on Mathematics with 10 multiple choice questions for general practice.")
-
-      // Auto-fill form based on voice input
       setFormData({
         topic: "Mathematics",
         description: "General practice quiz on Mathematics",
@@ -75,7 +70,6 @@ export default function CreateQuizPage() {
         timeLimit: true,
         isPublic: false,
       })
-
       toast({
         title: "Voice command recognized",
         description: "Form has been filled based on your voice input.",
@@ -85,26 +79,22 @@ export default function CreateQuizPage() {
 
   const handleGenerateQuiz = async () => {
     setIsGenerating(true)
-
     try {
-      // Extract the necessary data for the API
-      const { topic, description, quizType, numberOfQuestions, difficulty, isPublic } = formData
-
-      // Call the API to generate the quiz
+      const { topic, description, quizType, numberOfQuestions, difficulty, timeLimit, isPublic } = formData
+      // Always pass timeLimit!
       const response = await generateQuiz({
         topic,
         description,
         quizType: quizType as "multiple-choice" | "true-false" | "mixed",
         numberOfQuestions,
         difficulty: difficulty as "easy" | "medium" | "hard",
+        timeLimit,
         isPublic
       })
       toast({
         title: "Quiz generated successfully",
         description: "Your quiz is ready to be taken or shared.",
       })
-
-      // Navigate to the preview page with the quiz ID
       router.push(`/dashboard/quiz/preview/${response.quiz._id}`)
     } catch (error: any) {
       toast({
@@ -122,8 +112,6 @@ export default function CreateQuizPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">Create Quiz</h1>
       </div>
-
-      {/* Centered wrapper for tabs and content */}
       <div className="w-full flex flex-col items-center">
         <Tabs defaultValue="form" className="w-auto max-w-4xl animate-fade-in">
           <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-2 mb-6 bg-muted/80">
@@ -140,7 +128,6 @@ export default function CreateQuizPage() {
               Voice Command
             </TabsTrigger>
           </TabsList>
-
           <TabsContent value="form">
             <FadeIn>
               <Card className="shadow-soft">
@@ -162,7 +149,6 @@ export default function CreateQuizPage() {
                       className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
                     />
                   </FadeUp>
-
                   <FadeUp delay={0.2} className="space-y-2">
                     <Label htmlFor="description">Description (Optional)</Label>
                     <Textarea
@@ -174,7 +160,6 @@ export default function CreateQuizPage() {
                       className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
                     />
                   </FadeUp>
-
                   <FadeUp delay={0.3} className="space-y-2">
                     <Label>Quiz Type</Label>
                     <RadioGroup
@@ -206,7 +191,6 @@ export default function CreateQuizPage() {
                       </div>
                     </RadioGroup>
                   </FadeUp>
-
                   <FadeUp delay={0.4} className="space-y-4">
                     <div className="flex justify-between">
                       <Label>Number of Questions: {formData.numberOfQuestions}</Label>
@@ -220,7 +204,6 @@ export default function CreateQuizPage() {
                       className="[&>span]:bg-primary"
                     />
                   </FadeUp>
-
                   <FadeUp delay={0.5} className="space-y-2">
                     <Label htmlFor="difficulty">Difficulty Level</Label>
                     <Select
@@ -237,7 +220,6 @@ export default function CreateQuizPage() {
                       </SelectContent>
                     </Select>
                   </FadeUp>
-
                   <FadeUp delay={0.6} className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="timeLimit">Time Limit</Label>
@@ -250,7 +232,6 @@ export default function CreateQuizPage() {
                       className="data-[state=checked]:bg-primary"
                     />
                   </FadeUp>
-
                   <FadeUp delay={0.7} className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="isPublic">Make Public</Label>
@@ -286,15 +267,13 @@ export default function CreateQuizPage() {
               </Card>
             </FadeIn>
           </TabsContent>
-
           <TabsContent value="voice">
             <ScaleIn>
               <Card className="shadow-soft">
                 <CardHeader>
                   <CardTitle className="gradient-heading">Voice Command</CardTitle>
                   <CardDescription>
-                    Use your voice to create a quiz. Speak clearly and include the topic, number of questions, and quiz
-                    type.
+                    Use your voice to create a quiz. Speak clearly and include the topic, number of questions, and quiz type.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center justify-center py-10 space-y-6">
@@ -313,7 +292,6 @@ export default function CreateQuizPage() {
                       </div>
                     )}
                   </div>
-
                   <div className="text-center">
                     {isListening ? (
                       <p className="text-lg font-medium">Listening...</p>
@@ -324,14 +302,12 @@ export default function CreateQuizPage() {
                       Example: "Generate a quiz on Mathematics with 10 multiple choice questions for general practice."
                     </p>
                   </div>
-
                   {voiceInput && (
                     <FadeIn className="w-full mt-6">
                       <Label>Recognized Command</Label>
                       <div className="p-4 bg-muted rounded-lg mt-2 border border-primary-100">
                         <p>{voiceInput}</p>
                       </div>
-
                       <GradientButton className="w-full mt-6 gap-2" onClick={handleGenerateQuiz} disabled={isGenerating}>
                         {isGenerating ? (
                           <>
