@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (user && typeof window !== "undefined") {
       const path = window.location.pathname
-      if (path === '/' || path === '/login' || path === '/register') {
+      if (path === '/' || path === '/login' || path === '/register' || path === '/forgot-password' || path === '/oauth-success') {
         router.replace('/dashboard')
       }
     }
