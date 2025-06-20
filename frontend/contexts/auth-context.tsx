@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import type { User } from "@/types/user"
-import { getCurrentUser, login, logout, register, type LoginData, type RegisterData } from "@/lib/auth"
+import { getCurrentUser, login, logout, register, type LoginData, type RegisterData, refreshToken } from "@/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 
@@ -27,20 +27,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Check if user is logged in on initial load
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { user } = await getCurrentUser()
-        setUser(user)
-      } catch (err) {
-        // User is not authenticated, that's okay
-        console.log("User not authenticated")
-      } finally {
-        setIsLoading(false)
+  const checkAuth = async () => {
+    try {
+      const { user } = await getCurrentUser()
+      setUser(user)
+    } catch (err: any) {
+      // If not authenticated, try to refresh token
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        try {
+          await refreshToken()
+          const { user } = await getCurrentUser()
+          setUser(user)
+        } catch (refreshErr) {
+          setUser(null)
+        }
+      } else {
+        setUser(null)
       }
+    } finally {
+      setIsLoading(false)
     }
-
-    checkAuth()
-  }, [])
+  }
+  checkAuth()
+}, [])
 
   const handleLogin = async (data: LoginData) => {
     setIsLoading(true)

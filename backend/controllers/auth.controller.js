@@ -52,7 +52,9 @@ exports.register = async (req, res) => {
 
     res.status(201).json({
       message: 'Registered successfully',
-      user: sanitizeUser(newUser)
+      user: sanitizeUser(newUser),
+      accessToken,
+      refreshToken
     });
   } catch (err) {
     console.error(`Register Error: ${err.message}`.red.bold);
@@ -85,7 +87,9 @@ exports.login = async (req, res) => {
 
     res.status(200).json({
       message: 'Logged in successfully',
-      user: sanitizeUser(user)
+      user: sanitizeUser(user),
+      accessToken,
+      refreshToken
     });
   } catch (err) {
     console.error(`Login Error: ${err.message}`.red.bold);
@@ -187,8 +191,8 @@ exports.handleGoogleCallback = [
 
       console.log(`Logged in via Google: ${user.email}`.blue.bold);
 
-      // Redirect to home or dashboard
-      res.redirect(process.env.FRONTEND_URL || '/');
+      const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      res.redirect(redirectUrl);
     } catch (err) {
       console.error(`Google Auth Error: ${err.message}`.red.bold);
     }
@@ -216,7 +220,8 @@ exports.handleGithubCallback = [
       res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
       console.log(`Logged in via GitHub: ${user.email}`.cyan.bold);
-      res.redirect(process.env.FRONTEND_URL || '/');
+      const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      res.redirect(redirectUrl);
     } catch (err) {
       console.error(`GitHub Auth Error: ${err.message}`.red.bold);
     }
