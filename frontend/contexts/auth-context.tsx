@@ -25,14 +25,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast()
   const router = useRouter()
 
-  // Check if user is logged in on initial load
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const { user } = await getCurrentUser()
         setUser(user)
       } catch (err: any) {
-        // If not authenticated, try to refresh token
         if (err.response?.status === 401 || err.response?.status === 403) {
           try {
             await refreshToken()
@@ -51,7 +49,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth()
   }, [])
 
-  // Redirect logged-in users away from login/register/base
   useEffect(() => {
     if (user && typeof window !== "undefined") {
       const path = window.location.pathname
