@@ -29,10 +29,9 @@ app.use(morgan('dev'));
 app.use(helmet());
 
 app.use(cors({
-  origin: true,
+  origin: "https://zart-quizzer.vercel.app",
   credentials: true
 }));
-
 
 
 
