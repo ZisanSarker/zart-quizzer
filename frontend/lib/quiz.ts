@@ -8,6 +8,7 @@ export interface GenerateQuizData {
   numberOfQuestions?: number
   difficulty?: "easy" | "medium" | "hard"
   isPublic?: boolean
+  timeLimit: boolean
 }
 
 export interface GenerateQuizResponse {

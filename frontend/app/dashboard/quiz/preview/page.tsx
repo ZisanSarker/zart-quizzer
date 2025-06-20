@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -10,73 +10,106 @@ import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/components/ui/use-toast"
 import DashboardLayout from "@/components/dashboard-layout"
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, Share2 } from "lucide-react"
-
-// Mock quiz data
-const quizData = {
-  title: "Mathematics Quiz",
-  description: "Test your knowledge of basic mathematics concepts",
-  questions: [
-    {
-      id: 1,
-      question: "What is the value of π (pi) to two decimal places?",
-      options: ["3.14", "3.16", "3.12", "3.18"],
-      correctAnswer: "3.14",
-      explanation:
-        "Pi (π) is approximately equal to 3.14159..., which rounds to 3.14 when expressed to two decimal places.",
-    },
-    {
-      id: 2,
-      question: "If a triangle has angles measuring 60°, 60°, and 60°, what type of triangle is it?",
-      options: ["Scalene", "Isosceles", "Equilateral", "Right-angled"],
-      correctAnswer: "Equilateral",
-      explanation: "An equilateral triangle has all three angles equal to 60° and all three sides of equal length.",
-    },
-    {
-      id: 3,
-      question: "What is the result of 7² - 3² ?",
-      options: ["40", "16", "4", "10"],
-      correctAnswer: "40",
-      explanation: "7² - 3² = 49 - 9 = 40",
-    },
-    {
-      id: 4,
-      question: "If f(x) = 2x + 3, what is the value of f(4)?",
-      options: ["7", "8", "11", "14"],
-      correctAnswer: "11",
-      explanation: "f(4) = 2(4) + 3 = 8 + 3 = 11",
-    },
-    {
-      id: 5,
-      question: "What is the area of a circle with radius 5 units?",
-      options: ["25π square units", "10π square units", "5π square units", "15π square units"],
-      correctAnswer: "25π square units",
-      explanation: "The area of a circle is πr². With r = 5, the area is π(5)² = 25π square units.",
-    },
-  ],
-}
+import { getQuizById } from "@/lib/quiz"
+import type { Quiz } from "@/types/quiz"
 
 export default function QuizPreviewPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
+  const quizId = searchParams.get("id")
+  const [quiz, setQuiz] = useState<Quiz | null>(null)
+  const [loading, setLoading] = useState(true)
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({})
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({})
   const [timeLeft, setTimeLeft] = useState(30)
   const [quizCompleted, setQuizCompleted] = useState(false)
 
-  const question = quizData.questions[currentQuestion]
-  const progress = ((currentQuestion + 1) / quizData.questions.length) * 100
+  useEffect(() => {
+    if (!quizId) {
+      setLoading(false)
+      return
+    }
+    getQuizById(quizId)
+      .then((quizData) => {
+        setQuiz(quizData)
+        // If quiz does not have time limit, turn off timer
+        if (!quizData.timeLimit) setTimeLeft(0)
+      })
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to load quiz",
+          variant: "destructive",
+        })
+      })
+      .finally(() => setLoading(false))
+  }, [quizId, toast])
+
+  useEffect(() => {
+    // Only run timer if time limit is enabled for this quiz
+    if (quizCompleted || !quiz || !quiz.timeLimit) return
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (currentQuestion < quiz.questions.length - 1) {
+            setCurrentQuestion(currentQuestion + 1)
+            return 30
+          } else {
+            setQuizCompleted(true)
+            clearInterval(timer)
+            return 0
+          }
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [currentQuestion, quizCompleted, quiz])
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-pulse text-center">
+            <h2 className="text-2xl font-bold mb-2">Loading quiz...</h2>
+            <p className="text-muted-foreground">Please wait while we prepare your quiz</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (!quiz) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Quiz not found</h2>
+            <p className="text-muted-foreground mb-4">The quiz you're looking for doesn't exist or has been removed</p>
+            <Button onClick={() => router.push("/dashboard")}>Back to Dashboard</Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  const question = quiz.questions[currentQuestion]
+  const progress = ((currentQuestion + 1) / quiz.questions.length) * 100
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswers({
       ...selectedAnswers,
-      [question.id]: answer,
+      [question._id]: answer,
     })
   }
 
   const handleNextQuestion = () => {
-    if (currentQuestion < quizData.questions.length - 1) {
+    if (currentQuestion < quiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
-      setTimeLeft(30)
+      if (quiz.timeLimit) setTimeLeft(30)
     } else {
       setQuizCompleted(true)
     }
@@ -85,11 +118,12 @@ export default function QuizPreviewPage() {
   const handlePreviousQuestion = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1)
-      setTimeLeft(30)
+      if (quiz.timeLimit) setTimeLeft(30)
     }
   }
 
   const handleShareQuiz = () => {
+    navigator.clipboard.writeText(window.location.href)
     toast({
       title: "Quiz shared",
       description: "Quiz link copied to clipboard",
@@ -98,15 +132,15 @@ export default function QuizPreviewPage() {
 
   const calculateScore = () => {
     let correctCount = 0
-    quizData.questions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctAnswer) {
+    quiz.questions.forEach((q) => {
+      if (selectedAnswers[q._id] === q.correctAnswer) {
         correctCount++
       }
     })
     return {
       score: correctCount,
-      total: quizData.questions.length,
-      percentage: Math.round((correctCount / quizData.questions.length) * 100),
+      total: quiz.questions.length,
+      percentage: Math.round((correctCount / quiz.questions.length) * 100),
     }
   }
 
@@ -129,19 +163,21 @@ export default function QuizPreviewPage() {
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
-                  Question {currentQuestion + 1} of {quizData.questions.length}
+                  Question {currentQuestion + 1} of {quiz.questions.length}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">{timeLeft}s</span>
-              </div>
+              {quiz.timeLimit && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{timeLeft}s</span>
+                </div>
+              )}
             </div>
             <Progress value={progress} className="h-2" />
-            <CardTitle className="mt-4 text-xl">{question.question}</CardTitle>
+            <CardTitle className="mt-4 text-xl">{question.questionText}</CardTitle>
           </CardHeader>
           <CardContent>
-            <RadioGroup value={selectedAnswers[question.id]} onValueChange={handleAnswerSelect} className="space-y-3">
+            <RadioGroup value={selectedAnswers[question._id]} onValueChange={handleAnswerSelect} className="space-y-3">
               {question.options.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2 rounded-md border p-3">
                   <RadioGroupItem value={option} id={`option-${index}`} />
@@ -156,8 +192,8 @@ export default function QuizPreviewPage() {
             <Button variant="outline" onClick={handlePreviousQuestion} disabled={currentQuestion === 0}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
-            <Button onClick={handleNextQuestion} disabled={!selectedAnswers[question.id]}>
-              {currentQuestion < quizData.questions.length - 1 ? (
+            <Button onClick={handleNextQuestion} disabled={!selectedAnswers[question._id]}>
+              {currentQuestion < quiz.questions.length - 1 ? (
                 <>
                   Next <ArrowRight className="ml-2 h-4 w-4" />
                 </>
@@ -181,11 +217,10 @@ export default function QuizPreviewPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {quizData.questions.map((q, index) => {
-                  const isCorrect = selectedAnswers[q.id] === q.correctAnswer
-
+                {quiz.questions.map((q, index) => {
+                  const isCorrect = selectedAnswers[q._id] === q.correctAnswer
                   return (
-                    <div key={q.id} className="space-y-3">
+                    <div key={q._id} className="space-y-3">
                       <div className="flex items-start gap-2">
                         <div
                           className={`rounded-full p-1 ${isCorrect ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
@@ -198,10 +233,10 @@ export default function QuizPreviewPage() {
                         </div>
                         <div>
                           <h3 className="font-medium">
-                            Question {index + 1}: {q.question}
+                            Question {index + 1}: {q.questionText}
                           </h3>
                           <div className="text-sm mt-1">
-                            <span className="font-medium">Your answer:</span> {selectedAnswers[q.id] || "Not answered"}
+                            <span className="font-medium">Your answer:</span> {selectedAnswers[q._id] || "Not answered"}
                           </div>
                           <div className="text-sm mt-1">
                             <span className="font-medium">Correct answer:</span> {q.correctAnswer}
