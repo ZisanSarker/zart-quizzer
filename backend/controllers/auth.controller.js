@@ -8,9 +8,9 @@ require('colors');
 const cookieOptions = (maxAge) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge,
-  path: '/'
+  path: '/',
 });
 
 const sanitizeUser = (user) => {
