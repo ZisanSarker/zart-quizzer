@@ -63,3 +63,8 @@ export const getRecommendedQuizzes = async (): Promise<RecommendedQuiz[]> => {
   const response = await api.get<RecommendedQuiz[]>("/quizzes/recommended")
   return response.data
 }
+
+export const getSavedQuizzes = async (): Promise<Quiz[]> => {
+  const response = await api.get<Quiz[]>("/quizzes/saved");
+  return response.data;
+}

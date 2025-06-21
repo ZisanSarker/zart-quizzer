@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/user.model');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   try {
     // ✅ Case 1: OAuth via Passport.js
     if (req.isAuthenticated && req.isAuthenticated()) {
@@ -21,6 +22,10 @@ const authMiddleware = (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
       req.userId = decoded.userId;
+      // NEW: Fetch the user and attach to req
+      const user = await User.findById(decoded.userId);
+      if (!user) return res.status(401).json({ message: "User not found" });
+      req.user = user;
       return next();
     } catch (tokenError) {
       // Attempt to verify refresh token
@@ -35,6 +40,10 @@ const authMiddleware = (req, res, next) => {
       try {
         const decodedRefresh = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         req.userId = decodedRefresh.userId;
+        // NEW: Fetch the user and attach to req
+        const user = await User.findById(decodedRefresh.userId);
+        if (!user) return res.status(401).json({ message: "User not found" });
+        req.user = user;
 
         // Optionally generate a new access token
         const newAccessToken = jwt.sign(

@@ -89,7 +89,8 @@ export default function CreateQuizPage() {
         numberOfQuestions,
         difficulty: difficulty as "easy" | "medium" | "hard",
         timeLimit,
-        isPublic
+        isPublic,
+        
       })
       toast({
         title: "Quiz generated successfully",

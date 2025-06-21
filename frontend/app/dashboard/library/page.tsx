@@ -22,220 +22,92 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-// Mock data for created quizzes
-const createdQuizzesMock = [
-  {
-    _id: "1",
-    topic: "Mathematics - Algebra Basics",
-    description: "Fundamental concepts of algebra",
-    questions: [
-      {
-        _id: "q1",
-        questionText: "What is the value of x in the equation 2x + 5 = 15?",
-        options: ["5", "10", "7.5", "5.5"],
-        correctAnswer: "5",
-        explanation: "2x + 5 = 15 => 2x = 10 => x = 5",
-      },
-      {
-        _id: "q2",
-        questionText: "Which of the following is a quadratic equation?",
-        options: ["y = 2x + 3", "y = x²", "y = 3/x", "y = √x"],
-        correctAnswer: "y = x²",
-        explanation: "A quadratic equation contains x²",
-      },
-    ],
-    difficulty: "medium",
-    createdAt: "2023-05-15T10:30:00Z",
-    createdBy: "user123",
-    isPublic: true,
-    attempts: 28,
-  },
-  {
-    _id: "2",
-    topic: "Science - Quantum Physics",
-    description: "Introduction to quantum mechanics",
-    questions: [
-      {
-        _id: "q3",
-        questionText: "What is Heisenberg's Uncertainty Principle about?",
-        options: [
-          "The speed of light",
-          "The position and momentum of a particle",
-          "The mass of an electron",
-          "The structure of DNA",
-        ],
-        correctAnswer: "The position and momentum of a particle",
-        explanation:
-          "Heisenberg's Uncertainty Principle states that we cannot simultaneously know the exact position and momentum of a particle.",
-      },
-    ],
-    difficulty: "hard",
-    createdAt: "2023-04-10T14:20:00Z",
-    createdBy: "user123",
-    isPublic: true,
-    attempts: 42,
-  },
-  {
-    _id: "3",
-    topic: "History - World War II",
-    description: "Major events and figures of WWII",
-    questions: [
-      {
-        _id: "q4",
-        questionText: "When did World War II end?",
-        options: ["1943", "1944", "1945", "1946"],
-        correctAnswer: "1945",
-        explanation: "World War II ended in 1945 with the surrender of Japan after the atomic bombings.",
-      },
-    ],
-    difficulty: "medium",
-    createdAt: "2023-03-05T09:15:00Z",
-    createdBy: "user123",
-    isPublic: true,
-    attempts: 56,
-  },
-  {
-    _id: "4",
-    topic: "Computer Science - Data Structures",
-    description: "Common data structures and algorithms",
-    questions: [
-      {
-        _id: "q5",
-        questionText: "Which data structure operates on a LIFO principle?",
-        options: ["Queue", "Stack", "Linked List", "Tree"],
-        correctAnswer: "Stack",
-        explanation: "A stack operates on Last In, First Out (LIFO) principle.",
-      },
-    ],
-    difficulty: "easy",
-    createdAt: "2023-06-20T16:45:00Z",
-    createdBy: "user123",
-    isPublic: false,
-    attempts: 5,
-  },
-]
-
-// Mock data for saved quizzes
-const savedQuizzesMock = [
-  {
-    _id: "5",
-    topic: "Geography - European Countries",
-    description: "Test your knowledge of European geography",
-    questions: [
-      {
-        _id: "q6",
-        questionText: "What is the capital of France?",
-        options: ["London", "Berlin", "Paris", "Madrid"],
-        correctAnswer: "Paris",
-        explanation: "Paris is the capital city of France.",
-      },
-    ],
-    difficulty: "medium",
-    createdAt: "2023-05-05T11:30:00Z",
-    createdBy: "jane_smith",
-    author: "Jane Smith",
-    isPublic: true,
-    attempts: 120,
-  },
-  {
-    _id: "6",
-    topic: "Literature - Shakespeare's Works",
-    description: "Test your knowledge of Shakespeare's famous plays",
-    questions: [
-      {
-        _id: "q7",
-        questionText: "Which play features the character Hamlet?",
-        options: ["Macbeth", "Romeo and Juliet", "Hamlet", "Othello"],
-        correctAnswer: "Hamlet",
-        explanation: "The character Hamlet is the protagonist of Shakespeare's play 'Hamlet'.",
-      },
-    ],
-    difficulty: "hard",
-    createdAt: "2023-04-15T13:20:00Z",
-    createdBy: "mike_johnson",
-    author: "Mike Johnson",
-    isPublic: true,
-    attempts: 85,
-  },
-  {
-    _id: "7",
-    topic: "Biology - Human Anatomy",
-    description: "Learn about the human body systems",
-    questions: [
-      {
-        _id: "q8",
-        questionText: "Which organ is responsible for filtering blood?",
-        options: ["Heart", "Lungs", "Kidneys", "Liver"],
-        correctAnswer: "Kidneys",
-        explanation: "The kidneys filter waste products from the blood and produce urine.",
-      },
-    ],
-    difficulty: "medium",
-    createdAt: "2023-03-10T09:45:00Z",
-    createdBy: "sarah_williams",
-    author: "Sarah Williams",
-    isPublic: true,
-    attempts: 95,
-  },
-]
+import {
+  getUserQuizzes,
+  getSavedQuizzes,
+  deleteQuiz,
+  updateQuizVisibility,
+} from "@/lib/quiz"
 
 export default function LibraryPage() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-  const [createdQuizzes, setCreatedQuizzes] = useState(createdQuizzesMock)
-  const [savedQuizzes, setSavedQuizzes] = useState(savedQuizzesMock)
+  const [createdQuizzes, setCreatedQuizzes] = useState<any[]>([])
+  const [savedQuizzes, setSavedQuizzes] = useState<any[]>([])
   const [quizToDelete, setQuizToDelete] = useState<string | null>(null)
 
+  // Fetch quizzes from API
   useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
+    if (!user) return
+    setIsLoading(true)
+    Promise.all([
+      getUserQuizzes(user._id),
+      getSavedQuizzes(),
+    ])
+      .then(([created, saved]) => {
+        setCreatedQuizzes(created)
+        setSavedQuizzes(saved)
+        setIsLoading(false)
+      })
+      .catch(() => {
+        setCreatedQuizzes([])
+        setSavedQuizzes([])
+        setIsLoading(false)
+        toast({ title: "Error", description: "Failed to load your quizzes" })
+      })
+  }, [user])
 
-    return () => clearTimeout(timer)
-  }, [])
-
-  const handleDeleteQuiz = (quizId: string) => {
-    // Remove the quiz from the state
-    setCreatedQuizzes(createdQuizzes.filter((quiz) => quiz._id !== quizId))
-    setQuizToDelete(null)
-
-    toast({
-      title: "Quiz deleted",
-      description: "The quiz has been deleted successfully",
-    })
+  const handleDeleteQuiz = async (quizId: string) => {
+    try {
+      await deleteQuiz(quizId)
+      setCreatedQuizzes(createdQuizzes.filter((quiz) => quiz._id !== quizId))
+      setQuizToDelete(null)
+      toast({
+        title: "Quiz deleted",
+        description: "The quiz has been deleted successfully",
+      })
+    } catch {
+      toast({
+        title: "Failed to delete",
+        description: "Could not delete the quiz.",
+      })
+    }
   }
 
   const handleShareQuiz = (quizId: string) => {
-    // Copy the quiz URL to clipboard
     const quizUrl = `${window.location.origin}/dashboard/quiz/preview/${quizId}`
     navigator.clipboard.writeText(quizUrl)
-
     toast({
       title: "Link copied",
       description: "Quiz link has been copied to clipboard",
     })
   }
 
-  const handleToggleVisibility = (quizId: string, isCurrentlyPublic: boolean) => {
-    // Update the quiz visibility in the state
-    setCreatedQuizzes(
-      createdQuizzes.map((quiz) => (quiz._id === quizId ? { ...quiz, isPublic: !isCurrentlyPublic } : quiz)),
-    )
-
-    toast({
-      title: "Visibility updated",
-      description: `Quiz is now ${!isCurrentlyPublic ? "public" : "private"}`,
-    })
+  const handleToggleVisibility = async (quizId: string, isCurrentlyPublic: boolean) => {
+    try {
+      await updateQuizVisibility(quizId, !isCurrentlyPublic)
+      setCreatedQuizzes(
+        createdQuizzes.map((quiz) =>
+          quiz._id === quizId ? { ...quiz, isPublic: !isCurrentlyPublic } : quiz,
+        ),
+      )
+      toast({
+        title: "Visibility updated",
+        description: `Quiz is now ${!isCurrentlyPublic ? "public" : "private"}`,
+      })
+    } catch {
+      toast({
+        title: "Failed to update visibility",
+        description: "Could not update quiz visibility.",
+      })
+    }
   }
 
   const handleRemoveSavedQuiz = (quizId: string) => {
-    // Remove the quiz from saved quizzes
     setSavedQuizzes(savedQuizzes.filter((quiz) => quiz._id !== quizId))
-
+    // Optionally call API here to remove from saved list in backend
     toast({
       title: "Quiz removed",
       description: "The quiz has been removed from your saved quizzes",
@@ -244,11 +116,11 @@ export default function LibraryPage() {
 
   // Filter quizzes based on search query
   const filteredCreatedQuizzes = createdQuizzes.filter((quiz) =>
-    quiz.topic.toLowerCase().includes(searchQuery.toLowerCase()),
+    (quiz.topic ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   const filteredSavedQuizzes = savedQuizzes.filter((quiz) =>
-    quiz.topic.toLowerCase().includes(searchQuery.toLowerCase()),
+    (quiz.topic ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   return (
@@ -339,17 +211,21 @@ export default function LibraryPage() {
                       <div className="flex justify-between text-sm">
                         <div className="flex items-center gap-1">
                           <Brain className="h-4 w-4 text-muted-foreground" />
-                          <span>{quiz.questions.length} questions</span>
+                          <span>{quiz.questions?.length || 0} questions</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>{new Date(quiz.createdAt).toLocaleDateString()}</span>
+                          <span>
+                            {quiz.createdAt
+                              ? new Date(quiz.createdAt).toLocaleDateString()
+                              : ""}
+                          </span>
                         </div>
                       </div>
                       <div className="flex justify-between mt-2 text-sm">
                         <div className="flex items-center gap-1">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{quiz.attempts} attempts</span>
+                          <span>{quiz.attempts ?? 0} attempts</span>
                         </div>
                         <div>
                           {quiz.isPublic ? (
@@ -361,7 +237,7 @@ export default function LibraryPage() {
                       </div>
                       <div className="mt-4 flex gap-2">
                         <Button variant="outline" size="sm" className="flex-1" asChild>
-                          <Link href={`/dashboard/quiz/preview/${quiz._id}`}>Preview</Link>
+                          <Link href={`/dashboard/quiz/result/${quiz._id}`}>Preview</Link>
                         </Button>
                         <Button size="sm" className="flex-1" asChild>
                           <Link href={`/dashboard/quiz/practice/${quiz._id}`}>Practice</Link>
@@ -434,17 +310,21 @@ export default function LibraryPage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <CardDescription>By {quiz.author}</CardDescription>
+                      <CardDescription>
+                        By {quiz.author ?? (quiz.createdBy?.name || "Unknown")}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="p-3 sm:p-4 md:p-6">
                       <div className="flex justify-between text-sm">
                         <div className="flex items-center gap-1">
                           <Brain className="h-4 w-4 text-muted-foreground" />
-                          <span>{quiz.questions.length} questions</span>
+                          <span>{quiz.questions?.length || 0} questions</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>Saved {new Date(quiz.createdAt).toLocaleDateString()}</span>
+                          <span>
+                            Saved {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : ""}
+                          </span>
                         </div>
                       </div>
                       <div className="mt-2 text-sm">
