@@ -1,6 +1,7 @@
 const Quiz = require('../models/quiz.model');
 const QuizPrompt = require('../models/quizPrompt.model');
 const QuizAttempt = require('../models/quizAttempt.model');
+const SavedQuiz = require('../models/savedQuiz.model');
 const moment = require('moment');
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -83,7 +84,7 @@ exports.generateQuiz = async (req, res) => {
       numberOfQuestions = 5,
       quizType = 'multiple-choice',
       isPublic = false,
-      timeLimit = true
+      timeLimit = true,
     } = req.body;
 
     const prompt = await QuizPrompt.create({
@@ -93,6 +94,11 @@ exports.generateQuiz = async (req, res) => {
       numberOfQuestions,
       quizType,
     });
+
+    if (!req.user || !req.user._id) {
+      console.log(req.user)
+      return res.status(401).json({ message: "User not authenticated. Cannot create quiz." });
+    }
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
@@ -132,7 +138,7 @@ exports.generateQuiz = async (req, res) => {
       timeLimit,
       questions,
       promptRef: prompt._id,
-      createdBy: req.user?._id,
+      createdBy: req.user._id,
     });
     res.status(201).json({ message: 'Quiz created successfully', quiz });
   } catch (err) {
@@ -256,35 +262,107 @@ exports.getRecentQuizAttempts = async (req, res) => {
 
 exports.getRecommendedQuizzes = async (req, res) => {
   try {
-    // Helper function to map quiz data
-    const mapQuizData = (quiz) => {
-      return {
-        id: quiz._id,
-        title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`, // Use first question's text as title
-        author: quiz.createdBy ? quiz.createdBy.name : 'Unknown', // Assuming createdBy is a reference to a user
-        difficulty:
-          quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1), // Capitalize the difficulty
-      };
+    const userId = req.userId; // Make sure this is set by your auth middleware
+
+    // 1. Find all quizzes the user has attempted
+    const attemptedQuizIds = await QuizAttempt.find({ userId }).distinct('quizId');
+
+    // 2. Find user's most common topics and difficulty
+    const userAttempts = await QuizAttempt.find({ userId }).populate('quizId');
+    let favTopics = [];
+    let favDifficulty = [];
+    if (userAttempts.length > 0) {
+      const topicCount = {};
+      const diffCount = {};
+      userAttempts.forEach(a => {
+        if (a.quizId) {
+          topicCount[a.quizId.topic] = (topicCount[a.quizId.topic] || 0) + 1;
+          diffCount[a.quizId.difficulty] = (diffCount[a.quizId.difficulty] || 0) + 1;
+        }
+      });
+      // Top topic(s) and difficulty
+      favTopics = Object.entries(topicCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([topic]) => topic);
+      favDifficulty = Object.entries(diffCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 1)
+        .map(([diff]) => diff);
+    }
+
+    // 3. Find quizzes the user hasn't tried or created
+    const filter = {
+      _id: { $nin: attemptedQuizIds },
+      createdBy: { $ne: userId },
+      isPublic: true,
     };
 
-    // Fetch the quizzes from the database
-    const quizzes = await Quiz.find()
-      .sort({ createdAt: -1 }) // Or any other logic to get recommendations
-      .limit(10) // Limit to top 10 for recommendation
-      .populate('createdBy', 'name'); // Assuming 'createdBy' is a reference to the User model
+    // 4. Prefer favorite topics/difficulty, fallback to recency
+    let quizzes = await Quiz.find({
+      ...filter,
+      ...(favTopics.length > 0 ? { topic: { $in: favTopics } } : {}),
+      ...(favDifficulty.length > 0 ? { difficulty: { $in: favDifficulty } } : {}),
+    })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('createdBy', 'name');
 
-    // Map quizzes to the desired format
-    const recommendedQuizzes = quizzes.map(mapQuizData);
+    // 5. If not enough, fill with other public quizzes not yet attempted/created
+    if (quizzes.length < 10) {
+      const moreQuizzes = await Quiz.find(filter)
+        .sort({ createdAt: -1 })
+        .limit(10 - quizzes.length)
+        .populate('createdBy', 'name');
+      // To avoid duplicates:
+      const existingIds = new Set(quizzes.map(q => String(q._id)));
+      quizzes = quizzes.concat(moreQuizzes.filter(q => !existingIds.has(String(q._id))));
+    }
 
-    // Return the recommended quizzes
+    // 6. Format for frontend
+    const recommendedQuizzes = quizzes.map(quiz => ({
+      id: quiz._id,
+      title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
+      author: quiz.createdBy ? quiz.createdBy.name : 'Unknown',
+      difficulty: quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1),
+    }));
+
     res.status(200).json(recommendedQuizzes);
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({
-        message: 'Failed to fetch recommended quizzes',
-        error: err.message,
-      });
+    res.status(500).json({
+      message: 'Failed to fetch recommended quizzes',
+      error: err.message,
+    });
+  }
+};
+
+exports.getSavedQuizzes = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const saved = await SavedQuiz.find({ userId }).populate({
+      path: 'quizId',
+      populate: { path: 'createdBy', select: 'name' },
+    });
+    const quizzes = saved
+      .map(item => item.quizId)
+      .filter(Boolean)
+      .map(quiz => ({
+        ...quiz.toObject(),
+        author: quiz.createdBy?.name || 'Unknown'
+      }));
+    res.status(200).json(quizzes);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch saved quizzes' });
+  }
+};
+
+exports.getUserQuizzes = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const quizzes = await Quiz.find({ createdBy: userId });
+    res.status(200).json(quizzes);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch user quizzes' });
   }
 };

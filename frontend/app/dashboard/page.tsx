@@ -122,7 +122,7 @@ export default function DashboardPage() {
                   {recentQuizzes.map((quiz) => (
                     <div
                       key={quiz.id}
-                      className="flex items-center justify-between p-3 bg-muted rounded-lg transition-all duration-300 hover:bg-primary-50 hover:shadow-sm"
+                      className="flex items-center justify-between p-3 bg-muted rounded-lg transition-all duration-300 hover:text-primary-500 hover:outline hover:shadow-sm"
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-full bg-primary-100 p-2">
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                   {recommendedQuizzes.map((quiz) => (
                     <div
                       key={quiz.id}
-                      className="flex items-center justify-between p-3 bg-muted rounded-lg transition-all duration-300 hover:bg-primary-50 hover:shadow-sm"
+                      className="flex items-center justify-between p-3 bg-muted rounded-lg transition-all duration-300 hover:text-primary-500 hover:outline hover:shadow-sm"
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-full bg-primary-100 p-2">
