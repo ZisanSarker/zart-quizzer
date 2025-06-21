@@ -74,7 +74,6 @@ Format the output in JSON like this:
   return base;
 };
 
-
 exports.generateQuiz = async (req, res) => {
   try {
     const {
@@ -96,7 +95,6 @@ exports.generateQuiz = async (req, res) => {
     });
 
     if (!req.user || !req.user._id) {
-      console.log(req.user)
       return res.status(401).json({ message: "User not authenticated. Cannot create quiz." });
     }
 
@@ -142,7 +140,6 @@ exports.generateQuiz = async (req, res) => {
     });
     res.status(201).json({ message: 'Quiz created successfully', quiz });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Quiz generation failed', error: err.message });
   }
 }
@@ -204,10 +201,20 @@ exports.submitQuiz = async (req, res) => {
       score,
       total: quiz.questions.length,
       result: resultAnswers,
+      attemptId: attempt._id,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Failed to submit quiz' });
+  }
+};
+
+exports.getQuizAttemptById = async (req, res) => {
+  try {
+    const attempt = await QuizAttempt.findById(req.params.id).populate('quizId');
+    if (!attempt) return res.status(404).json({ message: 'Result not found' });
+    res.json(attempt);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch result', error: err.message });
   }
 };
 
@@ -253,21 +260,16 @@ exports.getRecentQuizAttempts = async (req, res) => {
 
     res.status(200).json(recentQuizzes);
   } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .json({ message: 'Failed to fetch recent quizzes', error: err.message });
+    res.status(500).json({ message: 'Failed to fetch recent quizzes', error: err.message });
   }
 };
 
 exports.getRecommendedQuizzes = async (req, res) => {
   try {
-    const userId = req.userId; // Make sure this is set by your auth middleware
+    const userId = req.userId;
 
-    // 1. Find all quizzes the user has attempted
     const attemptedQuizIds = await QuizAttempt.find({ userId }).distinct('quizId');
 
-    // 2. Find user's most common topics and difficulty
     const userAttempts = await QuizAttempt.find({ userId }).populate('quizId');
     let favTopics = [];
     let favDifficulty = [];
@@ -280,7 +282,6 @@ exports.getRecommendedQuizzes = async (req, res) => {
           diffCount[a.quizId.difficulty] = (diffCount[a.quizId.difficulty] || 0) + 1;
         }
       });
-      // Top topic(s) and difficulty
       favTopics = Object.entries(topicCount)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 2)
@@ -291,14 +292,12 @@ exports.getRecommendedQuizzes = async (req, res) => {
         .map(([diff]) => diff);
     }
 
-    // 3. Find quizzes the user hasn't tried or created
     const filter = {
       _id: { $nin: attemptedQuizIds },
       createdBy: { $ne: userId },
       isPublic: true,
     };
 
-    // 4. Prefer favorite topics/difficulty, fallback to recency
     let quizzes = await Quiz.find({
       ...filter,
       ...(favTopics.length > 0 ? { topic: { $in: favTopics } } : {}),
@@ -308,18 +307,15 @@ exports.getRecommendedQuizzes = async (req, res) => {
       .limit(10)
       .populate('createdBy', 'name');
 
-    // 5. If not enough, fill with other public quizzes not yet attempted/created
     if (quizzes.length < 10) {
       const moreQuizzes = await Quiz.find(filter)
         .sort({ createdAt: -1 })
         .limit(10 - quizzes.length)
         .populate('createdBy', 'name');
-      // To avoid duplicates:
       const existingIds = new Set(quizzes.map(q => String(q._id)));
       quizzes = quizzes.concat(moreQuizzes.filter(q => !existingIds.has(String(q._id))));
     }
 
-    // 6. Format for frontend
     const recommendedQuizzes = quizzes.map(quiz => ({
       id: quiz._id,
       title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
@@ -329,7 +325,6 @@ exports.getRecommendedQuizzes = async (req, res) => {
 
     res.status(200).json(recommendedQuizzes);
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       message: 'Failed to fetch recommended quizzes',
       error: err.message,
