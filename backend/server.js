@@ -25,9 +25,14 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(helmet());
 
+const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000"];
 app.use(cors({
-  origin: "https://zart-quizzer.vercel.app",
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'), false);
+  },
+  credentials: true,
 }));
 
 const authRateLimiter = rateLimit({

@@ -23,10 +23,10 @@ export default function DashboardPage() {
 
   const [recentQuizzes, setRecentQuizzes] = useState<RecentQuizAttempt[]>([])
   const [recommendedQuizzes, setRecommendedQuizzes] = useState<RecommendedQuiz[]>([])
+  const [quizError, setQuizError] = useState<string | null>(null)
   const { user, isLoading } = useAuth()
   const router = useRouter()
 
-  // Explicitly redirect if not loading and not authenticated (defensive, in addition to middleware)
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace("/login")
@@ -35,6 +35,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setQuizError(null)
       try {
         const [recent, recommended] = await Promise.all([
           getRecentQuizAttempts(),
@@ -42,12 +43,10 @@ export default function DashboardPage() {
         ])
         setRecentQuizzes(recent)
         setRecommendedQuizzes(recommended)
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error)
+      } catch (error: any) {
+        setQuizError("Failed to fetch dashboard data.")
       }
     }
-
-    // Only fetch if authenticated
     if (user) {
       fetchData()
     }
@@ -64,7 +63,7 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    // Defensive, in case middleware fails
+    // Defensive: prevent rendering until redirect happens
     return null
   }
 
@@ -79,7 +78,7 @@ export default function DashboardPage() {
             </Link>
           </GradientButton>
         </div>
-
+        {/* Stats */}
         <StaggerChildren className="w-full grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, i) => (
             <StaggerItem key={i}>
@@ -105,6 +104,11 @@ export default function DashboardPage() {
             </StaggerItem>
           ))}
         </StaggerChildren>
+
+        {/* Error display */}
+        {quizError && (
+          <div className="w-full text-red-500 text-center py-4">{quizError}</div>
+        )}
 
         <div className="w-full grid gap-4 sm:gap-6 mt-6 grid-cols-1 md:grid-cols-2">
           <FadeUp delay={0.3}>

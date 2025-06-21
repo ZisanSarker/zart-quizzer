@@ -80,7 +80,7 @@ exports.login = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user._id);
 
-    res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
+    res.cookie('accessToken', accessToken, cookieOptions(24 * 60 * 60 * 1000));
     res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
     console.log(`Logged in: ${email}`.blue.bold);

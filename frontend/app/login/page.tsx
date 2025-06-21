@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React,{ useEffect, useState } from "react"
 import Link from "next/link"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Input } from "@/components/ui/input"
@@ -13,13 +11,22 @@ import { FadeIn, FadeUp, ScaleIn } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
 import { getGoogleAuthUrl, getGithubAuthUrl } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const { login, isLoading } = useAuth()
+  const { login, isLoading, user } = useAuth()
+  const router = useRouter()
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   })
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/dashboard")
+    }
+  }, [isLoading, user, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
