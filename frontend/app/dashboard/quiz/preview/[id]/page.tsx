@@ -28,6 +28,7 @@ export default function QuizPreviewPage() {
   const [timeLeft, setTimeLeft] = useState(30)
   const [quizCompleted, setQuizCompleted] = useState(false)
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null)
+  const [startTime, setStartTime] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -35,6 +36,7 @@ export default function QuizPreviewPage() {
         const quizData = await getQuizById(params.id)
         setQuiz(quizData)
         if (!quizData.timeLimit) setTimeLeft(0)
+        setStartTime(Date.now())
       } catch (error) {
         toast({
           title: "Error",
@@ -46,6 +48,7 @@ export default function QuizPreviewPage() {
       }
     }
     fetchQuiz()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, toast])
 
   useEffect(() => {
@@ -68,6 +71,7 @@ export default function QuizPreviewPage() {
     }, 1000)
 
     return () => clearInterval(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestion, quizCompleted, quiz])
 
   const handleAnswerSelect = (answer: string) => {
@@ -96,19 +100,23 @@ export default function QuizPreviewPage() {
   }
 
   const handleFinishQuiz = async () => {
-    if (!quiz) return
+    if (!quiz || quizCompleted) return
+    setQuizCompleted(true)
     try {
       const answers: QuizAnswer[] = Object.entries(selectedAnswers).map(([_id, selectedAnswer]) => ({
         _id,
         selectedAnswer,
       }))
+      // Calculate time spent in seconds
+      const timeSpentSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0
+
       const result = await submitQuiz({
         quizId: quiz._id,
         userId: user?._id,
         answers,
+        timeTaken: timeSpentSeconds,
       })
       setQuizResult(result)
-      setQuizCompleted(true)
       const attemptId = result.attemptId
       if (attemptId) {
         router.push(`/dashboard/quiz/result/${attemptId}`)

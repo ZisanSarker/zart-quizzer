@@ -11,7 +11,7 @@ const QuizAttemptSchema = new mongoose.Schema({
   quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true, index: true },
   answers: [AnswerSchema],
   score: { type: Number, required: true },
-  timeTaken: { type: String, default: '00:00' },
+  timeTaken: { type: Number, default: 0 },
   submittedAt: { type: Date, default: Date.now },
   completedAt: { type: String }
 });

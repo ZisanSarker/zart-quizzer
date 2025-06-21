@@ -9,6 +9,7 @@ const session = require('express-session');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const quizRoutes = require('./routes/quiz.routes');
+const statisticsRoutes = require('./routes/statistics.routes');
 const passport = require('./config/passport');
 const authMiddleware = require('./middlewares/auth.middleware');
 require('colors');
@@ -59,6 +60,7 @@ app.use(passport.session());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/quizzes', authMiddleware, quizRoutes);
+app.use('/api/statistics', authMiddleware, statisticsRoutes); // <-- Add this line
 
 app.get('/', (req, res) => {
   res.send('Hello World');
