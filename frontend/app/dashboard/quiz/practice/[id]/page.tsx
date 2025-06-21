@@ -1,39 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
-import { useToast } from "@/components/ui/use-toast"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import DashboardLayout from "@/components/dashboard-layout"
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, Share2 } from "lucide-react"
-import { getQuizById, submitQuiz } from "@/lib/quiz"
-import type { Quiz, QuizAnswer } from "@/types/quiz"
-import { useAuth } from "@/contexts/auth-context"
+import { CheckCircle, XCircle, ArrowLeft, Share2 } from "lucide-react"
+import { getQuizById } from "@/lib/quiz"
+import type { Quiz, QuizQuestion } from "@/types/quiz"
+import { useToast } from "@/components/ui/use-toast"
 import { FadeIn, ScaleIn } from "@/components/animations/motion"
 
-export default function QuizPracticePage({ params }: { params: { id: string } }) {
+export default function QuizPracticeAllPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
-  const { user } = useAuth()
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
-  const [currentQuestion, setCurrentQuestion] = useState(0)
+  // State to store user's selected answer per question
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({})
-  const [timeLeft, setTimeLeft] = useState(30)
-  const [quizCompleted, setQuizCompleted] = useState(false)
-  const [quizResult, setQuizResult] = useState<any>(null)
+  // State to show if user has checked (clicked) an answer for a question
+  const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
-    const fetchQuiz = async () => {
+    async function fetchQuiz() {
       try {
         const quizData = await getQuizById(params.id)
         setQuiz(quizData)
-      } catch (error) {
+      } catch (e) {
         toast({
           title: "Error",
           description: "Failed to load quiz",
@@ -43,92 +38,17 @@ export default function QuizPracticePage({ params }: { params: { id: string } })
         setLoading(false)
       }
     }
-
     fetchQuiz()
   }, [params.id, toast])
 
-  // Timer countdown
-  useEffect(() => {
-    if (quizCompleted || !quiz) return
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          // Auto-move to next question when time is up
-          if (currentQuestion < quiz.questions.length - 1) {
-            setCurrentQuestion(currentQuestion + 1)
-            return 30
-          } else {
-            // Auto-submit when time is up on last question
-            handleFinishQuiz()
-            clearInterval(timer)
-            return 0
-          }
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [currentQuestion, quizCompleted, quiz])
-
-  const handleAnswerSelect = (answer: string) => {
-    if (!quiz) return
-
-    setSelectedAnswers({
-      ...selectedAnswers,
-      [quiz.questions[currentQuestion]._id]: answer,
-    })
-  }
-
-  const handleNextQuestion = () => {
-    if (!quiz) return
-
-    if (currentQuestion < quiz.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-      setTimeLeft(30)
-    } else {
-      handleFinishQuiz()
-    }
-  }
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1)
-      setTimeLeft(30)
-    }
-  }
-
-  const handleFinishQuiz = async () => {
-    if (!quiz) return
-
-    try {
-      // Format answers for submission
-      const answers: QuizAnswer[] = Object.entries(selectedAnswers).map(([_id, selectedAnswer]) => ({
-        _id,
-        selectedAnswer,
-      }))
-
-      // Submit the quiz
-      const result = await submitQuiz({
-        quizId: quiz._id,
-        userId: user?._id,
-        answers,
-      })
-
-      setQuizResult(result)
-      setQuizCompleted(true)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to submit quiz",
-        variant: "destructive",
-      })
-    }
+  const handleOptionClick = (question: QuizQuestion, option: string) => {
+    // Only allow checking once per question
+    if (checkedAnswers[question._id]) return
+    setSelectedAnswers((prev) => ({ ...prev, [question._id]: option }))
+    setCheckedAnswers((prev) => ({ ...prev, [question._id]: true }))
   }
 
   const handleShareQuiz = () => {
-    // Copy the quiz URL to clipboard
     navigator.clipboard.writeText(window.location.href)
     toast({
       title: "Quiz shared",
@@ -163,140 +83,131 @@ export default function QuizPracticePage({ params }: { params: { id: string } })
     )
   }
 
-  const question = quiz.questions[currentQuestion]
-  const progress = ((currentQuestion + 1) / quiz.questions.length) * 100
-
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">
-          {quizCompleted ? "Quiz Results" : quiz.topic}
+          Practice: {quiz.topic}
         </h1>
-        {!quizCompleted && (
-          <Button variant="outline" size="sm" onClick={handleShareQuiz}>
-            <Share2 className="mr-2 h-4 w-4" /> Share Quiz
-          </Button>
-        )}
+        <Button variant="outline" size="sm" onClick={handleShareQuiz}>
+          <Share2 className="mr-2 h-4 w-4" /> Share Quiz
+        </Button>
       </div>
 
-      {!quizCompleted ? (
-        <ScaleIn>
-          <Card className="max-w-3xl mx-auto shadow-soft">
-            <CardHeader>
-              <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    Question {currentQuestion + 1} of {quiz.questions.length}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className={`text-sm font-medium ${timeLeft <= 5 ? "text-red-500 animate-pulse" : ""}`}>
-                    {timeLeft}s
-                  </span>
-                </div>
-              </div>
-              <Progress value={progress} className="h-2" />
-              <CardTitle className="mt-4 text-xl">{question.questionText}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup
-                value={selectedAnswers[question._id]}
-                onValueChange={handleAnswerSelect}
-                className="space-y-3"
-              >
-                {question.options.map((option, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-2 rounded-md border p-3 transition-all duration-200 hover:border-primary-300 hover:bg-primary-50"
-                  >
-                    <RadioGroupItem value={option} id={`option-${index}`} className="text-primary border-primary-300" />
-                    <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={handlePreviousQuestion} disabled={currentQuestion === 0}>
-                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-              </Button>
-              <GradientButton onClick={handleNextQuestion} disabled={!selectedAnswers[question._id]}>
-                {currentQuestion < quiz.questions.length - 1 ? (
-                  <>
-                    Next <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                ) : (
-                  "Finish Quiz"
-                )}
-              </GradientButton>
-            </CardFooter>
-          </Card>
-        </ScaleIn>
-      ) : (
-        <FadeIn>
-          <div className="max-w-3xl mx-auto space-y-6">
-            <Card className="shadow-soft">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <CheckCircle className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="gradient-heading">Quiz Completed!</CardTitle>
-                <CardDescription>
-                  You scored {quizResult?.score} out of {quizResult?.total} (
-                  {Math.round((quizResult?.score / quizResult?.total) * 100)}%)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {quizResult?.result.map((result: any, index: number) => {
-                    const question = quiz.questions.find((q) => q._id === result.questionId)
-
-                    return (
-                      <div key={result.questionId} className="space-y-3">
-                        <div className="flex items-start gap-2">
-                          <div
-                            className={`rounded-full p-1 ${result.isCorrect ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
+      <FadeIn>
+        <div className="space-y-8 max-w-3xl mx-auto">
+          {quiz.questions.map((question, index) => {
+            const userAnswer = selectedAnswers[question._id]
+            const checked = checkedAnswers[question._id]
+            const isCorrect = userAnswer === question.correctAnswer
+            return (
+              <ScaleIn key={question._id} delay={0.07 * index}>
+                <Card
+                  className={`overflow-hidden border-t-4 ${
+                    checked
+                      ? isCorrect
+                        ? "border-t-green-500 bg-green-50 dark:bg-green-950/20"
+                        : "border-t-red-500 bg-red-50 dark:bg-red-950/20"
+                      : "border-t-primary/40"
+                  }`}
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="bg-background">
+                        Question {index + 1}
+                      </Badge>
+                      {checked && (
+                        isCorrect
+                          ? <Badge className="bg-green-500">Correct</Badge>
+                          : <Badge className="bg-red-500">Incorrect</Badge>
+                      )}
+                    </div>
+                    <CardTitle className="text-lg">{question.questionText}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                      {question.options.map((option, optionIdx) => {
+                        const isOptionCorrect = option === question.correctAnswer
+                        const isUserSelected = userAnswer === option
+                        const showError = checked && isUserSelected && !isCorrect
+                        return (
+                          <button
+                            key={optionIdx}
+                            type="button"
+                            className={`
+                              group flex items-start gap-2 p-3 rounded-md border w-full text-left transition-all duration-150
+                              ${checked
+                                ? isOptionCorrect
+                                  ? "bg-green-100 border-green-200 dark:bg-green-950/30 dark:border-green-900/50"
+                                  : showError
+                                    ? "bg-red-100 border-red-200 dark:bg-red-950/30 dark:border-red-900/50"
+                                    : "bg-muted/30 border-muted"
+                                : "hover:border-primary-300 hover:bg-primary-50"
+                              }
+                              ${isUserSelected && !checked ? "ring-2 ring-primary border-primary" : ""}
+                              ${checked ? "cursor-not-allowed" : "cursor-pointer"}
+                            `}
+                            disabled={checked}
+                            onClick={() => handleOptionClick(question, option)}
                           >
-                            {result.isCorrect ? (
-                              <CheckCircle className="h-4 w-4" />
-                            ) : (
-                              <span className="h-4 w-4 flex items-center justify-center text-xs">✕</span>
-                            )}
+                            <span className="flex-shrink-0 mt-0.5">
+                              {checked ? (
+                                isOptionCorrect ? (
+                                  <CheckCircle className="h-5 w-5 text-green-500" />
+                                ) : showError ? (
+                                  <XCircle className="h-5 w-5 text-red-500" />
+                                ) : (
+                                  <div className="h-5 w-5 rounded-full border border-muted-foreground flex items-center justify-center">
+                                    {String.fromCharCode(65 + optionIdx)}
+                                  </div>
+                                )
+                              ) : (
+                                <div className="h-5 w-5 rounded-full border border-muted-foreground flex items-center justify-center">
+                                  {String.fromCharCode(65 + optionIdx)}
+                                </div>
+                              )}
+                            </span>
+                            <span>{option}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {checked && (
+                      <div className="mt-3 text-sm">
+                        {!isCorrect && (
+                          <div className="mb-2">
+                            <span className="font-medium text-red-500">Your answer:</span> {userAnswer}
+                            <br />
+                            <span className="font-medium text-green-500">Correct answer:</span> {question.correctAnswer}
                           </div>
-                          <div>
-                            <h3 className="font-medium">
-                              Question {index + 1}: {question?.questionText}
-                            </h3>
-                            <div className="text-sm mt-1">
-                              <span className="font-medium">Your answer:</span> {result.selectedAnswer}
-                            </div>
-                            <div className="text-sm mt-1">
-                              <span className="font-medium">Correct answer:</span> {result.correctAnswer}
-                            </div>
-                            <div className="text-sm mt-2 p-2 bg-muted rounded-md">
-                              <span className="font-medium">Explanation:</span> {result.explanation}
-                            </div>
-                          </div>
+                        )}
+                        <div className="bg-background p-3 rounded-md">
+                          <span className="font-medium">Explanation:</span> <span className="text-muted-foreground">{question.explanation}</span>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={() => router.push("/dashboard/library")}>
-                  Back to Library
-                </Button>
-                <Button onClick={handleShareQuiz}>
-                  <Share2 className="mr-2 h-4 w-4" /> Share Results
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </FadeIn>
-      )}
+                    )}
+                  </CardContent>
+                </Card>
+              </ScaleIn>
+            )
+          })}
+        </div>
+      </FadeIn>
+
+      <div className="flex justify-between items-center max-w-3xl mx-auto mt-12 mb-6">
+        <Button variant="outline" onClick={() => router.push("/dashboard/library")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Library
+        </Button>
+        <GradientButton onClick={() => {
+          setSelectedAnswers({})
+          setCheckedAnswers({})
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        }}>
+          Reset Practice
+        </GradientButton>
+      </div>
     </DashboardLayout>
   )
 }
