@@ -177,7 +177,7 @@ export default function QuizPreviewPage() {
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">
-          {quizCompleted ? "Quiz Results" : quiz.topic}
+          {quizCompleted ? "Quiz Results is Loading" : quiz.topic}
         </h1>
         {!quizCompleted && (
           <Button variant="outline" size="sm" onClick={handleShareQuiz}>
