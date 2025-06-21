@@ -258,7 +258,7 @@ export default function QuizResultPage() {
             </Link>
           </Button>
           <GradientButton asChild>
-            <Link href={`/dashboard/quiz/practice/${quiz._id}`}>
+            <Link href={`/dashboard/quiz/preview/${quiz._id}`}>
               Retake Quiz
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

@@ -237,7 +237,7 @@ export default function LibraryPage() {
                       </div>
                       <div className="mt-4 flex gap-2">
                         <Button variant="outline" size="sm" className="flex-1" asChild>
-                          <Link href={`/dashboard/quiz/result/${quiz._id}`}>Preview</Link>
+                          <Link href={`/dashboard/quiz/preview/${quiz._id}`}>Preview</Link>
                         </Button>
                         <Button size="sm" className="flex-1" asChild>
                           <Link href={`/dashboard/quiz/practice/${quiz._id}`}>Practice</Link>
