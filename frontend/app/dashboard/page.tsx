@@ -10,20 +10,17 @@ import DashboardLayout from "@/components/dashboard-layout"
 import { ArrowRight, BarChart3, Brain, CheckCircle, Clock, Plus, Trophy } from "lucide-react"
 import { AnimatedCounter, FadeUp, StaggerChildren, StaggerItem } from "@/components/animations/motion"
 import { getRecentQuizAttempts, getRecommendedQuizzes } from "@/lib/quiz"
+import { getMyStats } from "@/lib/stats"
 import type { RecentQuizAttempt, RecommendedQuiz } from "@/types/quiz"
+import type { UserStats } from "@/types/stats"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function DashboardPage() {
-  const stats = [
-    { title: "Quizzes Created", value: 12, icon: Brain },
-    { title: "Quizzes Completed", value: 28, icon: CheckCircle },
-    { title: "Average Score", value: 76, icon: BarChart3, isPercentage: true },
-    { title: "Time Spent", value: "8h 24m", icon: Clock, isTime: true },
-  ]
-
+  const [stats, setStats] = useState<UserStats | null>(null)
   const [recentQuizzes, setRecentQuizzes] = useState<RecentQuizAttempt[]>([])
   const [recommendedQuizzes, setRecommendedQuizzes] = useState<RecommendedQuiz[]>([])
   const [quizError, setQuizError] = useState<string | null>(null)
+  const [statsError, setStatsError] = useState<string | null>(null)
   const { user, isLoading } = useAuth()
   const router = useRouter()
 
@@ -33,6 +30,23 @@ export default function DashboardPage() {
     }
   }, [user, isLoading, router])
 
+  // Fetch stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      setStatsError(null)
+      try {
+        const data = await getMyStats()
+        setStats(data)
+      } catch (error: any) {
+        setStatsError("Failed to fetch statistics.")
+      }
+    }
+    if (user) {
+      fetchStats()
+    }
+  }, [user])
+
+  // Fetch quizzes
   useEffect(() => {
     const fetchData = async () => {
       setQuizError(null)
@@ -63,9 +77,15 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    // Defensive: prevent rendering until redirect happens
     return null
   }
+
+  const statsArray = [
+    { title: "Quizzes Created", value: stats?.quizzesCreated ?? 0, icon: Brain },
+    { title: "Quizzes Completed", value: stats?.quizzesCompleted ?? 0, icon: CheckCircle },
+    { title: "Average Score", value: stats?.averageScore ?? 0, icon: BarChart3, isPercentage: true },
+    { title: "Time Spent", value: stats?.timeSpent ?? "--", icon: Clock, isTime: true },
+  ]
 
   return (
     <DashboardLayout>
@@ -78,9 +98,10 @@ export default function DashboardPage() {
             </Link>
           </GradientButton>
         </div>
+
         {/* Stats */}
         <StaggerChildren className="w-full grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, i) => (
+          {statsArray.map((stat, i) => (
             <StaggerItem key={i}>
               <Card className="card-hover">
                 <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col items-center text-center">
@@ -104,8 +125,12 @@ export default function DashboardPage() {
             </StaggerItem>
           ))}
         </StaggerChildren>
+        {/* Stats error display */}
+        {statsError && (
+          <div className="w-full text-red-500 text-center py-4">{statsError}</div>
+        )}
 
-        {/* Error display */}
+        {/* Quiz Error display */}
         {quizError && (
           <div className="w-full text-red-500 text-center py-4">{quizError}</div>
         )}

@@ -30,6 +30,7 @@ export interface QuizSubmission {
   quizId: string
   userId?: string
   answers: QuizAnswer[]
+  timeTaken?: number
 }
 
 export interface QuizResultAnswer {
@@ -57,7 +58,7 @@ export interface RecentQuizAttempt {
   quizTitle: string
   totalQuestions: number
   correctAnswers: number
-  timeTaken: string | 'N/A'
+  timeTaken: number | string | 'N/A'
   completedAt: string
 }
 
@@ -75,4 +76,5 @@ export interface QuizAttemptResult {
   answers: QuizResultAnswer[]
   score: number
   submittedAt: string
+  timeTaken?: number    // <-- add for consistency in results
 }

@@ -165,7 +165,7 @@ exports.getQuizById = async (req, res) => {
 
 exports.submitQuiz = async (req, res) => {
   try {
-    const { quizId, userId, answers } = req.body;
+    const { quizId, userId, answers, timeTaken } = req.body;
 
     const quiz = await Quiz.findById(quizId);
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
@@ -194,6 +194,7 @@ exports.submitQuiz = async (req, res) => {
       quizId,
       answers: resultAnswers,
       score,
+      timeTaken: typeof timeTaken === "number" ? timeTaken : 0,
     });
 
     res.status(201).json({
@@ -228,6 +229,7 @@ exports.getRecentQuizAttempts = async (req, res) => {
 
     const attempts = await QuizAttempt.find({ userId: req.userId })
       .sort({ submittedAt: -1 })
+      .limit(5) // LIMIT TO 5 ATTEMPTS
       .populate('quizId');
 
     if (attempts.length === 0) {
@@ -258,7 +260,7 @@ exports.getRecentQuizAttempts = async (req, res) => {
         };
       });
 
-    res.status(200).json(recentQuizzes);
+    res.status(200).json(recentQuizzes.slice(0, 5));
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch recent quizzes', error: err.message });
   }
@@ -304,19 +306,20 @@ exports.getRecommendedQuizzes = async (req, res) => {
       ...(favDifficulty.length > 0 ? { difficulty: { $in: favDifficulty } } : {}),
     })
       .sort({ createdAt: -1 })
-      .limit(10)
+      .limit(5) // LIMIT TO 5 QUIZZES
       .populate('createdBy', 'name');
 
-    if (quizzes.length < 10) {
+    if (quizzes.length < 5) {
       const moreQuizzes = await Quiz.find(filter)
         .sort({ createdAt: -1 })
-        .limit(10 - quizzes.length)
+        .limit(5 - quizzes.length)
         .populate('createdBy', 'name');
       const existingIds = new Set(quizzes.map(q => String(q._id)));
       quizzes = quizzes.concat(moreQuizzes.filter(q => !existingIds.has(String(q._id))));
     }
 
-    const recommendedQuizzes = quizzes.map(quiz => ({
+    // Ensure at most 5 returned
+    const recommendedQuizzes = quizzes.slice(0, 5).map(quiz => ({
       id: quiz._id,
       title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
       author: quiz.createdBy ? quiz.createdBy.name : 'Unknown',

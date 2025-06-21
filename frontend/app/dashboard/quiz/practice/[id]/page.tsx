@@ -1,33 +1,36 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import DashboardLayout from "@/components/dashboard-layout"
-import { CheckCircle, XCircle, ArrowLeft, Share2 } from "lucide-react"
-import { getQuizById } from "@/lib/quiz"
-import type { Quiz, QuizQuestion } from "@/types/quiz"
+import { CheckCircle, XCircle, Share2 } from "lucide-react"
+import { getQuizById, submitQuiz } from "@/lib/quiz"
+import type { Quiz, QuizQuestion, QuizAnswer } from "@/types/quiz"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 import { FadeIn, ScaleIn } from "@/components/animations/motion"
 
 export default function QuizPracticeAllPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
-  // State to store user's selected answer per question
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({})
-  // State to show if user has checked (clicked) an answer for a question
   const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({})
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [practiceSubmitted, setPracticeSubmitted] = useState(false)
 
   useEffect(() => {
     async function fetchQuiz() {
       try {
         const quizData = await getQuizById(params.id)
         setQuiz(quizData)
+        setStartTime(Date.now())
       } catch (e) {
         toast({
           title: "Error",
@@ -39,10 +42,10 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
       }
     }
     fetchQuiz()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, toast])
 
   const handleOptionClick = (question: QuizQuestion, option: string) => {
-    // Only allow checking once per question
     if (checkedAnswers[question._id]) return
     setSelectedAnswers((prev) => ({ ...prev, [question._id]: option }))
     setCheckedAnswers((prev) => ({ ...prev, [question._id]: true }))
@@ -54,6 +57,43 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
       title: "Quiz shared",
       description: "Quiz link copied to clipboard",
     })
+  }
+
+  const handleResetPractice = () => {
+    setSelectedAnswers({})
+    setCheckedAnswers({})
+    setStartTime(Date.now())
+    setPracticeSubmitted(false)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const handleFinishPractice = async () => {
+    if (!quiz || practiceSubmitted) return
+    setPracticeSubmitted(true)
+    try {
+      const answers: QuizAnswer[] = Object.entries(selectedAnswers).map(([_id, selectedAnswer]) => ({
+        _id,
+        selectedAnswer,
+      }))
+      const timeSpentSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0
+      await submitQuiz({
+        quizId: quiz._id,
+        userId: user?._id,
+        answers,
+        timeTaken: timeSpentSeconds,
+      })
+      toast({
+        title: "Practice session logged!",
+        description: "Your practice has been saved in your statistics.",
+      })
+      router.push("/dashboard/library")
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit practice stats.",
+        variant: "destructive",
+      })
+    }
   }
 
   if (loading) {
@@ -195,18 +235,17 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         </div>
       </FadeIn>
 
-      <div className="flex justify-between items-center max-w-3xl mx-auto mt-12 mb-6">
-        <Button variant="outline" onClick={() => router.push("/dashboard/library")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Library
-        </Button>
-        <GradientButton onClick={() => {
-          setSelectedAnswers({})
-          setCheckedAnswers({})
-          window.scrollTo({ top: 0, behavior: "smooth" })
-        }}>
+      <div className="flex justify-end items-center max-w-3xl mx-auto mt-12 mb-6 gap-3">
+        <GradientButton onClick={handleResetPractice}>
           Reset Practice
         </GradientButton>
+        <Button
+          variant="default"
+          onClick={handleFinishPractice}
+          disabled={practiceSubmitted}
+        >
+          {practiceSubmitted ? "Practice Saved" : "Finish Practice"}
+        </Button>
       </div>
     </DashboardLayout>
   )
