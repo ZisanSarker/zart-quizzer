@@ -218,9 +218,7 @@ exports.getRecentQuizAttempts = async (req, res) => {
       .populate('quizId');
 
     if (attempts.length === 0) {
-      return res
-        .status(404)
-        .json({ message: 'No quiz attempts found for this user.' });
+      return res.status(200).json([]);
     }
 
     const recentQuizzes = attempts
@@ -234,13 +232,10 @@ exports.getRecentQuizAttempts = async (req, res) => {
         const completedAt = attempt.submittedAt.toISOString();
 
         return {
-          // original fields
           id: attempt._id,
           title: `${quiz.topic} - ${quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}`,
           score: percentage,
           date: moment(attempt.submittedAt).fromNow(),
-
-          // additional fields
           quizId: quiz._id,
           quizTitle: `${quiz.topic} - ${quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}`,
           totalQuestions,
@@ -258,7 +253,6 @@ exports.getRecentQuizAttempts = async (req, res) => {
       .json({ message: 'Failed to fetch recent quizzes', error: err.message });
   }
 };
-
 
 exports.getRecommendedQuizzes = async (req, res) => {
   try {
