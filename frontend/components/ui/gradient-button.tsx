@@ -10,15 +10,16 @@ const gradientButtonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-primary-600 to-primary-400 text-primary-foreground hover:shadow-glow hover:scale-[1.02]",
+          "bg-gradient-to-r from-primary-600 to-primary-400 text-primary-foreground hover:from-primary-700 hover:to-primary-500 hover:shadow-glow hover:scale-[1.02]",
         outline:
-          "border border-primary-200 bg-background hover:bg-gradient-to-r hover:from-primary-50 hover:to-primary-100 hover:text-primary-700 hover:border-primary-300",
-        ghost: "hover:bg-gradient-to-r hover:from-primary-50 hover:to-primary-100 hover:text-primary-700",
+          "border border-primary-200 bg-background text-foreground hover:bg-gradient-to-r hover:from-primary-50 hover:to-primary-100 hover:text-primary-700 hover:border-primary-300",
+        ghost:
+          "text-foreground hover:bg-gradient-to-r hover:from-primary-50 hover:to-primary-100 hover:text-primary-700",
         secondary:
           "bg-gradient-to-r from-secondary to-secondary/80 text-secondary-foreground hover:from-secondary/90 hover:to-secondary/70",
         destructive:
           "bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground hover:from-destructive/90 hover:to-destructive/70",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
       },
       size: {
         default: "h-10 px-4 py-2",

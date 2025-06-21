@@ -202,7 +202,7 @@ export default function QuizPreviewPage() {
                 {question.options.map((option, index) => (
                   <div
                     key={index}
-                    className="flex items-center space-x-2 rounded-md border p-2 sm:p-3 transition-all duration-200 hover:border-primary-300 hover:bg-primary-500"
+                    className="flex items-center space-x-2 rounded-md border p-2 sm:p-3 transition-all duration-200 hover:border-primary-300 hover:text-primary-500"
                   >
                     <RadioGroupItem value={option} id={`option-${index}`} className="text-primary border-primary-300" />
                     <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">

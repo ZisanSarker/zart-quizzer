@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { GradientButton } from "@/components/ui/gradient-button"
@@ -13,15 +12,20 @@ import { FadeIn, FadeUp, ScaleIn } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
 import { getGoogleAuthUrl, getGithubAuthUrl } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function RegisterPage() {
-  const { register, isLoading } = useAuth()
+  const { register, isLoading: authLoading } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
+  const [isLoading, setIsLoading] = useState(false)
   const [passwordError, setPasswordError] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,16 +40,24 @@ export default function RegisterPage() {
         setPasswordError("Password must include a number")
       } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
         setPasswordError("Password must include a special character")
+      } else if (formData.confirmPassword && value !== formData.confirmPassword) {
+        setPasswordError("Passwords do not match")
       } else {
         setPasswordError("")
       }
     }
 
     // Confirm password validation
-    if (name === "confirmPassword" && value !== formData.password) {
-      setPasswordError("Passwords do not match")
-    } else if (name === "confirmPassword" && value === formData.password) {
-      setPasswordError("")
+    if (name === "confirmPassword") {
+      if (value !== formData.password) {
+        setPasswordError("Passwords do not match")
+      } else if (
+        formData.password.length >= 8 &&
+        /\d/.test(formData.password) &&
+        /[!@#$%^&*(),.?":{}|<>]/.test(formData.password)
+      ) {
+        setPasswordError("")
+      }
     }
   }
 
@@ -56,12 +68,35 @@ export default function RegisterPage() {
       setPasswordError("Passwords do not match")
       return
     }
-
     if (passwordError) return
 
+    setIsLoading(true)
     const { username, email, password } = formData
-    await register({ username, email, password })
+    try {
+      await register({ username, email, password })
+      toast({
+        title: "Account created!",
+        description: "Welcome to ZART Quizzer. You can now log in.",
+      })
+      router.push("/dashboard")
+    } catch (err: any) {
+      let message = "Registration failed. Please try again."
+      if (err?.response?.data?.message) {
+        message = err.response.data.message
+      } else if (err?.message) {
+        message = err.message
+      }
+      toast({
+        title: "Registration failed",
+        description: message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
+
+  const loading = isLoading || authLoading
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-b from-primary-50 to-background dark:from-primary-950/30 dark:to-background">
@@ -91,6 +126,7 @@ export default function RegisterPage() {
                   value={formData.username}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
+                  disabled={loading}
                 />
               </FadeUp>
               <FadeUp delay={0.2} className="space-y-2">
@@ -104,6 +140,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
+                  disabled={loading}
                 />
               </FadeUp>
               <FadeUp delay={0.3} className="space-y-2">
@@ -118,6 +155,7 @@ export default function RegisterPage() {
                   className={`transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 ${
                     passwordError && formData.password ? "border-red-500" : ""
                   }`}
+                  disabled={loading}
                 />
                 <p className="text-xs text-muted-foreground">
                   Password must be at least 8 characters, include a number and special character
@@ -135,6 +173,7 @@ export default function RegisterPage() {
                   className={`transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 ${
                     passwordError && formData.confirmPassword ? "border-red-500" : ""
                   }`}
+                  disabled={loading}
                 />
                 {passwordError && <p className="text-xs text-red-500">{passwordError}</p>}
               </FadeUp>
@@ -142,9 +181,9 @@ export default function RegisterPage() {
                 <GradientButton
                   type="submit"
                   className="w-full"
-                  disabled={isLoading || !!passwordError || !formData.password || !formData.confirmPassword}
+                  disabled={loading || !!passwordError || !formData.password || !formData.confirmPassword}
                 >
-                  {isLoading ? (
+                  {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account
                     </>
@@ -167,16 +206,18 @@ export default function RegisterPage() {
             <div className="flex flex-col space-y-2">
               <Button
                 variant="outline"
-                className="w-full transition-all duration-300 hover:bg-primary-50"
+                className="w-full transition-all duration-300"
                 onClick={() => (window.location.href = getGoogleAuthUrl())}
+                disabled={loading}
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Google
               </Button>
               <Button
                 variant="outline"
-                className="w-full transition-all duration-300 hover:bg-primary-50"
+                className="w-full transition-all duration-300"
                 onClick={() => (window.location.href = getGithubAuthUrl())}
+                disabled={loading}
               >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub
