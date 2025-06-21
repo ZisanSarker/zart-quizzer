@@ -124,7 +124,7 @@ export default function Home() {
                       ].map((quiz, index) => (
                         <div
                           key={index}
-                          className="p-3 bg-muted rounded-md flex justify-between items-center transition-all duration-300 hover:bg-primary-500 hover:shadow-sm"
+                          className="p-3 bg-muted rounded-md flex justify-between items-center transition-all duration-300 hover:bg-primary-50 hover:text-primary-500 hover:shadow-sm"
                         >
                           <span>{quiz}</span>
                           <Lightbulb className="h-4 w-4 text-primary" />

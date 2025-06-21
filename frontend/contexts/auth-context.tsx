@@ -11,15 +11,13 @@ import {
   type RegisterData,
   refreshToken
 } from "@/lib/auth"
-import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
 
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
-  login: (data: LoginData) => Promise<void>
-  register: (data: RegisterData) => Promise<void>
+  login: (data: LoginData) => Promise<User>
+  register: (data: RegisterData) => Promise<User>
   logout: () => Promise<void>
   error: string | null
   refreshUser: () => Promise<void>
@@ -31,8 +29,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { toast } = useToast()
-  const router = useRouter()
 
   // Expose a function to manually refresh user (useful for silent refresh or role change)
   const refreshUser = useCallback(async () => {
@@ -72,24 +68,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth()
   }, [])
 
-  // Remove auto-redirect from context.
-  // Let pages (like /login, /dashboard) handle their own redirects for clarity.
-
+  // Page handles toast and redirect. Just throw on error and set state here.
   const handleLogin = async (data: LoginData) => {
     setIsLoading(true)
     setError(null)
     try {
       const response = await login(data)
       setUser(response.user)
-      toast({ title: "Login successful", description: "Welcome back!" })
-      router.push("/dashboard")
+      return response.user
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed")
-      toast({
-        title: "Login failed",
-        description: err.response?.data?.message || "Invalid credentials",
-        variant: "destructive",
-      })
+      setError(err?.response?.data?.message || "Login failed")
+      throw err
     } finally {
       setIsLoading(false)
     }
@@ -101,15 +90,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await register(data)
       setUser(response.user)
-      toast({ title: "Registration successful", description: "Your account has been created" })
-      router.push("/dashboard")
+      return response.user
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed")
-      toast({
-        title: "Registration failed",
-        description: err.response?.data?.message || "Please try again",
-        variant: "destructive",
-      })
+      setError(err?.response?.data?.message || "Registration failed")
+      throw err
     } finally {
       setIsLoading(false)
     }
@@ -120,15 +104,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await logout()
       setUser(null)
-      toast({ title: "Logged out", description: "You have been logged out successfully" })
-      router.push("/login")
     } catch (err: any) {
-      setError(err.response?.data?.message || "Logout failed")
-      toast({
-        title: "Logout failed",
-        description: err.response?.data?.message || "Please try again",
-        variant: "destructive",
-      })
+      setError(err?.response?.data?.message || "Logout failed")
+      throw err
     } finally {
       setIsLoading(false)
     }

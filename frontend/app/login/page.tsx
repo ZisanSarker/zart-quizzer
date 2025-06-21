@@ -1,6 +1,6 @@
 "use client"
 
-import React,{ useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Input } from "@/components/ui/input"
@@ -12,21 +12,24 @@ import { useAuth } from "@/contexts/auth-context"
 import { getGoogleAuthUrl, getGithubAuthUrl } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
-  const { login, isLoading, user } = useAuth()
+  const { login, isLoading: authLoading, user } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!authLoading && user) {
       router.replace("/dashboard")
     }
-  }, [isLoading, user, router])
+  }, [authLoading, user, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -35,8 +38,32 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    await login(formData)
+    setIsLoading(true)
+    try {
+      await login(formData)
+      toast({
+        title: "Logged in successfully",
+        description: "Welcome back! Redirecting...",
+      })
+      router.push("/dashboard")
+    } catch (err: any) {
+      let message = "Failed to log in. Please try again."
+      if (err?.response?.data?.message) {
+        message = err.response.data.message
+      } else if (err?.message) {
+        message = err.message
+      }
+      toast({
+        title: "Login failed",
+        description: message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
+
+  const loading = isLoading || authLoading
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-b from-primary-50 to-background dark:from-primary-950/30 dark:to-background">
@@ -67,6 +94,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
+                  disabled={loading}
                 />
               </FadeUp>
               <FadeUp delay={0.2} className="space-y-2">
@@ -80,15 +108,17 @@ export default function LoginPage() {
                   id="password"
                   name="password"
                   type="password"
+                  placeholder="********"
                   required
                   value={formData.password}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
+                  disabled={loading}
                 />
               </FadeUp>
               <FadeUp delay={0.3}>
-                <GradientButton type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
+                <GradientButton type="submit" className="w-full" disabled={loading}>
+                  {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
                     </>
@@ -111,16 +141,24 @@ export default function LoginPage() {
             <div className="flex flex-col space-y-2">
               <Button
                 variant="outline"
-                className="w-full transition-all duration-300 hover:bg-primary-50"
-                onClick={() => (window.location.href = getGoogleAuthUrl())}
+                className="w-full transition-all duration-300"
+                onClick={() => {
+                  toast({ title: "Redirecting...", description: "Opening Google login." })
+                  window.location.href = getGoogleAuthUrl()
+                }}
+                disabled={loading}
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Google
               </Button>
               <Button
                 variant="outline"
-                className="w-full transition-all duration-300 hover:bg-primary-50"
-                onClick={() => (window.location.href = getGithubAuthUrl())}
+                className="w-full transition-all duration-300"
+                onClick={() => {
+                  toast({ title: "Redirecting...", description: "Opening GitHub login." })
+                  window.location.href = getGithubAuthUrl()
+                }}
+                disabled={loading}
               >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub

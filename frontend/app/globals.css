@@ -121,6 +121,23 @@ body {
     @apply hover:shadow-glow transition-shadow duration-300;
   }
 
+  /* Improved interactive element hover states */
+  .interactive-hover {
+    @apply transition-colors duration-200 hover:bg-primary/10 hover:text-primary;
+  }
+
+  .card-interactive {
+    @apply transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:bg-primary/5;
+  }
+
+  .nav-item-hover {
+    @apply transition-colors duration-200 hover:bg-primary/10 hover:text-primary rounded-md;
+  }
+
+  .menu-item-hover {
+    @apply transition-colors duration-200 hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary;
+  }
+
   .animate-stagger-1 {
     animation-delay: 100ms;
   }
@@ -138,7 +155,7 @@ body {
   }
 }
 
-/* Responsive utilities */
+/* Enhanced responsive utilities with proper hover states */
 .responsive-container {
   width: 100%;
   margin-left: auto;
@@ -161,7 +178,7 @@ body {
   }
 }
 
-/* Responsive typography */
+/* Responsive typography with proper contrast */
 @media (max-width: 640px) {
   h1 {
     font-size: 1.5rem !important;
@@ -182,9 +199,14 @@ body {
   .text-xl {
     font-size: 1.125rem !important;
   }
+
+  /* Ensure hover states work properly on mobile */
+  .card-hover {
+    @apply hover:shadow-md hover:translate-y-0;
+  }
 }
 
-/* Responsive card padding */
+/* Responsive card padding with consistent hover states */
 @media (max-width: 640px) {
   .card-content-responsive {
     padding: 1rem !important;
@@ -201,7 +223,7 @@ body {
   }
 }
 
-/* Improved spacing for mobile */
+/* Improved spacing for mobile with consistent interactions */
 @media (max-width: 640px) {
   .mobile-stack > * + * {
     margin-top: 0.75rem;
@@ -213,5 +235,10 @@ body {
 
   .mobile-gap-reduced {
     gap: 0.5rem !important;
+  }
+
+  /* Ensure interactive elements remain accessible on mobile */
+  .interactive-hover {
+    @apply active:bg-primary/20;
   }
 }
