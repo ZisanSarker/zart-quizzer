@@ -45,6 +45,7 @@ export interface QuizResult {
   score: number
   total: number
   result: QuizResultAnswer[]
+  attemptId?: string
 }
 
 export interface RecentQuizAttempt {
@@ -65,4 +66,13 @@ export interface RecommendedQuiz {
   title: string
   author: string
   difficulty: "Beginner" | "Intermediate" | "Advanced"
+}
+
+export interface QuizAttemptResult {
+  _id: string
+  quizId: Quiz
+  userId: string
+  answers: QuizResultAnswer[]
+  score: number
+  submittedAt: string
 }

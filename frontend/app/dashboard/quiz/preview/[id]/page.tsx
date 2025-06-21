@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
@@ -49,7 +49,6 @@ export default function QuizPreviewPage() {
   }, [params.id, toast])
 
   useEffect(() => {
-    // Only apply timer if timeLimit is enabled
     if (quizCompleted || !quiz || !quiz.timeLimit) return
 
     const timer = setInterval(() => {
@@ -69,7 +68,6 @@ export default function QuizPreviewPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestion, quizCompleted, quiz])
 
   const handleAnswerSelect = (answer: string) => {
@@ -111,6 +109,15 @@ export default function QuizPreviewPage() {
       })
       setQuizResult(result)
       setQuizCompleted(true)
+      const attemptId = result.attemptId
+      if (attemptId) {
+        router.push(`/dashboard/quiz/result/${attemptId}`)
+      } else {
+        toast({
+          title: "Quiz submitted",
+          description: "Quiz completed. Unable to view result history due to missing attempt id.",
+        })
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -228,68 +235,7 @@ export default function QuizPreviewPage() {
             </CardFooter>
           </Card>
         </ScaleIn>
-      ) : (
-        <FadeIn>
-          <div className="w-full max-w-3xl mx-auto space-y-4 sm:space-y-6">
-            <Card className="shadow-soft">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <CheckCircle className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="gradient-heading">Quiz Completed!</CardTitle>
-                <CardDescription>
-                  You scored {quizResult?.score} out of {quizResult?.total} (
-                  {quizResult?.total ? Math.round((quizResult?.score / quizResult?.total) * 100) : 0}%)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {quizResult?.result.map((result, index) => {
-                    const question = quiz.questions.find((q) => q._id === result.questionId)
-                    return (
-                      <div key={result.questionId} className="space-y-3">
-                        <div className="flex items-start gap-2">
-                          <div
-                            className={`rounded-full p-1 ${result.isCorrect ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
-                          >
-                            {result.isCorrect ? (
-                              <CheckCircle className="h-4 w-4" />
-                            ) : (
-                              <span className="h-4 w-4 flex items-center justify-center text-xs">✕</span>
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="font-medium">
-                              Question {index + 1}: {question?.questionText}
-                            </h3>
-                            <div className="text-sm mt-1">
-                              <span className="font-medium">Your answer:</span> {result.selectedAnswer}
-                            </div>
-                            <div className="text-sm mt-1">
-                              <span className="font-medium">Correct answer:</span> {result.correctAnswer}
-                            </div>
-                            <div className="text-sm mt-2 p-2 bg-muted rounded-md">
-                              <span className="font-medium">Explanation:</span> {result.explanation}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={() => router.push("/dashboard")}>
-                  Back to Dashboard
-                </Button>
-                <Button onClick={handleShareQuiz}>
-                  <Share2 className="mr-2 h-4 w-4" /> Share Results
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </FadeIn>
-      )}
+      ) : null}
     </DashboardLayout>
   )
 }

@@ -8,22 +8,18 @@ const {
   getRecentQuizAttempts,
   getRecommendedQuizzes,
   getSavedQuizzes,
-  getUserQuizzes, // <-- ADD THIS
+  getUserQuizzes,
+  getQuizAttemptById,
 } = require('../controllers/quiz.controller');
 
 router.post('/generate', generateQuiz);
-
 router.get('/', getAllQuizzes);
-
-// Route for quizzes created by a specific user
-router.get('/user/:userId', getUserQuizzes); // <-- ADD THIS
-
+router.get('/user/:userId', getUserQuizzes);
 router.post('/submit', submitQuiz);
-
 router.get('/recent', getRecentQuizAttempts);
 router.get('/recommended', getRecommendedQuizzes);
 router.get('/saved', getSavedQuizzes);
-
+router.get('/quiz-attempts/:id', getQuizAttemptById);
 router.get('/:id', getQuizById);
 
 module.exports = router;
