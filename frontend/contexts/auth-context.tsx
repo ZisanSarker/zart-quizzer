@@ -1,8 +1,16 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react"
 import type { User } from "@/types/user"
-import { getCurrentUser, login, logout, register, type LoginData, type RegisterData, refreshToken } from "@/lib/auth"
+import {
+  getCurrentUser,
+  login,
+  logout,
+  register,
+  type LoginData,
+  type RegisterData,
+  refreshToken
+} from "@/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 
@@ -14,6 +22,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>
   logout: () => Promise<void>
   error: string | null
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -25,6 +34,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast()
   const router = useRouter()
 
+  // Expose a function to manually refresh user (useful for silent refresh or role change)
+  const refreshUser = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const { user } = await getCurrentUser()
+      setUser(user)
+    } catch (err: any) {
+      setUser(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Initial check (and refreshToken fallback)
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -36,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             await refreshToken()
             const { user } = await getCurrentUser()
             setUser(user)
-          } catch (refreshErr) {
+          } catch {
             setUser(null)
           }
         } else {
@@ -49,14 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth()
   }, [])
 
-  useEffect(() => {
-    if (user && typeof window !== "undefined") {
-      const path = window.location.pathname
-      if (path === '/' || path === '/login' || path === '/register' || path === '/forgot-password' || path === '/oauth-success') {
-        router.replace('/dashboard')
-      }
-    }
-  }, [user, router])
+  // Remove auto-redirect from context.
+  // Let pages (like /login, /dashboard) handle their own redirects for clarity.
 
   const handleLogin = async (data: LoginData) => {
     setIsLoading(true)
@@ -127,6 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register: handleRegister,
         logout: handleLogout,
         error,
+        refreshUser,
       }}
     >
       {children}
