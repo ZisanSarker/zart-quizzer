@@ -337,7 +337,10 @@ exports.getRecommendedQuizzes = async (req, res) => {
 
 exports.getSavedQuizzes = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
     const saved = await SavedQuiz.find({ userId }).populate({
       path: 'quizId',
       populate: { path: 'createdBy', select: 'name' },
@@ -351,7 +354,8 @@ exports.getSavedQuizzes = async (req, res) => {
       }));
     res.status(200).json(quizzes);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch saved quizzes' });
+    console.error("Failed to fetch saved quizzes", err); // <--- ADD THIS LINE!
+    res.status(500).json({ message: 'Failed to fetch saved quizzes', error: err.message });
   }
 };
 
@@ -362,5 +366,74 @@ exports.getUserQuizzes = async (req, res) => {
     res.status(200).json(quizzes);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch user quizzes' });
+  }
+};
+
+exports.getPublicQuizzes = async (req, res) => {
+  try {
+    const quizzes = await Quiz.find({ isPublic: true })
+      .sort({ createdAt: -1 })
+      .populate({ path: 'createdBy', select: 'name avatar initials _id' });
+
+    // You may want to add tags, attempts, and ratings if you track those
+    const mapped = quizzes.map(q => ({
+      _id: q._id,
+      topic: q.topic,
+      description: q.description,
+      quizType: q.quizType,
+      difficulty: q.difficulty,
+      questions: q.questions,
+      isPublic: q.isPublic,
+      timeLimit: q.timeLimit,
+      createdAt: q.createdAt,
+      // Optional: add tags, attempts, rating if you track these
+      // For now, just use empty/defaults
+      tags: q.tags || [],
+      attempts: q.attempts || 0,
+      rating: q.rating || 0,
+      author: {
+        name: q.createdBy?.name || "Unknown",
+        avatar: q.createdBy?.avatar || "",
+        initials: q.createdBy?.initials || (q.createdBy?.name ? q.createdBy.name.split(" ").map(n => n[0]).join("").toUpperCase() : ""),
+        _id: q.createdBy?._id,
+      }
+    }));
+
+    res.status(200).json(mapped);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch public quizzes', error: err.message });
+  }
+};
+
+exports.saveQuiz = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { quizId } = req.body;
+
+    if (!quizId) return res.status(400).json({ message: 'quizId is required' });
+
+    // Prevent duplicates
+    const exists = await SavedQuiz.findOne({ userId, quizId });
+    if (exists) return res.status(400).json({ message: 'Quiz already saved' });
+
+    await SavedQuiz.create({ userId, quizId });
+    res.status(201).json({ message: 'Quiz saved' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to save quiz', error: err.message });
+  }
+};
+
+// Remove a saved quiz
+exports.unsaveQuiz = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { quizId } = req.body;
+
+    if (!quizId) return res.status(400).json({ message: 'quizId is required' });
+
+    await SavedQuiz.findOneAndDelete({ userId, quizId });
+    res.status(200).json({ message: 'Quiz removed from saved' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to remove saved quiz', error: err.message });
   }
 };

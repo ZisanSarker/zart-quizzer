@@ -1,5 +1,5 @@
 import api from "./api"
-import type { Quiz, QuizSubmission, QuizResult, RecentQuizAttempt, RecommendedQuiz, QuizAttemptResult } from "@/types/quiz"
+import type { Quiz, QuizSubmission, QuizResult, RecentQuizAttempt, RecommendedQuiz, QuizAttemptResult, ExploreQuiz } from "@/types/quiz"
 
 export interface GenerateQuizData {
   topic: string
@@ -65,3 +65,20 @@ export const getQuizResultByAttemptId = async (attemptId: string): Promise<QuizA
   const response = await api.get<QuizAttemptResult>(`/quizzes/quiz-attempts/${attemptId}`);
   return response.data;
 }
+
+export const getExploreQuizzes = async (): Promise<ExploreQuiz[]> => {
+  const response = await api.get<ExploreQuiz[]>("/quizzes/explore");
+  return response.data;
+};
+
+// Save a quiz
+export const saveQuiz = async (quizId: string): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>("/quizzes/save", { quizId });
+  return response.data;
+};
+
+// Unsave a quiz
+export const unsaveQuiz = async (quizId: string): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>("/quizzes/unsave", { quizId });
+  return response.data;
+};
