@@ -13,175 +13,10 @@ import { Brain, Clock, Search, Star, Users } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { FadeIn } from "@/components/animations/motion"
 
-// Mock data for public quizzes
-const publicQuizzesMock = [
-  {
-    id: "1",
-    title: "Mathematics - Calculus Fundamentals",
-    description: "Essential concepts in differential and integral calculus",
-    author: {
-      name: "Jane Smith",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "JS",
-    },
-    questions: [
-      {
-        _id: "q1",
-        questionText: "What is the derivative of f(x) = x²?",
-        options: ["f'(x) = x", "f'(x) = 2x", "f'(x) = 2", "f'(x) = x²"],
-        correctAnswer: "f'(x) = 2x",
-        explanation: "The derivative of x² is 2x using the power rule.",
-      },
-      {
-        _id: "q2",
-        questionText: "What is the integral of f(x) = 2x?",
-        options: ["F(x) = x² + C", "F(x) = x² + 2C", "F(x) = x + C", "F(x) = 2x² + C"],
-        correctAnswer: "F(x) = x² + C",
-        explanation: "The integral of 2x is x² + C.",
-      },
-    ],
-    difficulty: "Advanced",
-    category: "Mathematics",
-    rating: 4.8,
-    attempts: 1245,
-    created: "2023-04-15T10:30:00Z",
-    tags: ["calculus", "mathematics", "college"],
-  },
-  {
-    id: "2",
-    title: "History - Ancient Civilizations",
-    description: "Explore the wonders of ancient Egypt, Greece, and Rome",
-    author: {
-      name: "Michael Brown",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "MB",
-    },
-    questions: [
-      {
-        _id: "q3",
-        questionText: "Which civilization built the Great Pyramids?",
-        options: ["Mesopotamia", "Ancient Egypt", "Ancient Greece", "Roman Empire"],
-        correctAnswer: "Ancient Egypt",
-        explanation: "The Great Pyramids were built by the Ancient Egyptians as tombs for their pharaohs.",
-      },
-    ],
-    difficulty: "Intermediate",
-    category: "History",
-    rating: 4.5,
-    attempts: 876,
-    created: "2023-03-20T14:45:00Z",
-    tags: ["history", "ancient", "civilizations"],
-  },
-  {
-    id: "3",
-    title: "Computer Science - Python Basics",
-    description: "Introduction to Python programming language",
-    author: {
-      name: "David Wilson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "DW",
-    },
-    questions: [
-      {
-        _id: "q4",
-        questionText: "What is the correct way to create a function in Python?",
-        options: ["function myFunc():", "def myFunc():", "create myFunc():", "func myFunc():"],
-        correctAnswer: "def myFunc():",
-        explanation:
-          "In Python, functions are defined using the 'def' keyword followed by the function name and parentheses.",
-      },
-    ],
-    difficulty: "Beginner",
-    category: "Computer Science",
-    rating: 4.9,
-    attempts: 2134,
-    created: "2023-05-10T09:15:00Z",
-    tags: ["python", "programming", "beginner"],
-  },
-  {
-    id: "4",
-    title: "Science - Quantum Physics",
-    description: "Explore the fascinating world of quantum mechanics",
-    author: {
-      name: "Emily Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "EJ",
-    },
-    questions: [
-      {
-        _id: "q5",
-        questionText: "What is the Heisenberg Uncertainty Principle?",
-        options: [
-          "The exact position and momentum of a particle cannot be simultaneously measured",
-          "Energy is always conserved in a closed system",
-          "Light behaves as both a particle and a wave",
-          "Matter can be converted to energy",
-        ],
-        correctAnswer: "The exact position and momentum of a particle cannot be simultaneously measured",
-        explanation:
-          "The Heisenberg Uncertainty Principle states that we cannot simultaneously know the exact position and momentum of a particle.",
-      },
-    ],
-    difficulty: "Advanced",
-    category: "Science",
-    rating: 4.7,
-    attempts: 543,
-    created: "2023-02-25T16:20:00Z",
-    tags: ["physics", "quantum", "science"],
-  },
-  {
-    id: "5",
-    title: "Literature - Shakespeare's Works",
-    description: "Test your knowledge of the Bard's famous plays and sonnets",
-    author: {
-      name: "Robert Chen",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "RC",
-    },
-    questions: [
-      {
-        _id: "q6",
-        questionText: "Which play contains the line 'To be, or not to be'?",
-        options: ["Macbeth", "Romeo and Juliet", "Hamlet", "King Lear"],
-        correctAnswer: "Hamlet",
-        explanation: "'To be, or not to be' is a famous soliloquy from Shakespeare's play Hamlet.",
-      },
-    ],
-    difficulty: "Intermediate",
-    category: "Literature",
-    rating: 4.6,
-    attempts: 789,
-    created: "2023-03-05T11:30:00Z",
-    tags: ["literature", "shakespeare", "plays"],
-  },
-  {
-    id: "6",
-    title: "Geography - World Capitals",
-    description: "Test your knowledge of capital cities around the world",
-    author: {
-      name: "Sarah Williams",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "SW",
-    },
-    questions: [
-      {
-        _id: "q7",
-        questionText: "What is the capital of Australia?",
-        options: ["Sydney", "Melbourne", "Canberra", "Perth"],
-        correctAnswer: "Canberra",
-        explanation: "Canberra is the capital city of Australia, not Sydney or Melbourne as many people think.",
-      },
-    ],
-    difficulty: "Intermediate",
-    category: "Geography",
-    rating: 4.4,
-    attempts: 1567,
-    created: "2023-04-02T13:45:00Z",
-    tags: ["geography", "capitals", "world"],
-  },
-]
+import type { ExploreQuiz } from "@/types/quiz"
+import { getExploreQuizzes, saveQuiz } from "@/lib/quiz"
+import { useAuth } from "@/contexts/auth-context"
 
-// Categories for filtering
 const categories = [
   "All Categories",
   "Mathematics",
@@ -195,41 +30,61 @@ const categories = [
 ]
 
 export default function ExplorePage() {
+  const { user } = useAuth()
   const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All Categories")
   const [selectedDifficulty, setSelectedDifficulty] = useState("All Levels")
   const [isLoading, setIsLoading] = useState(true)
-  const [publicQuizzes, setPublicQuizzes] = useState(publicQuizzesMock)
+  const [publicQuizzes, setPublicQuizzes] = useState<ExploreQuiz[]>([])
+  const [savingQuizId, setSavingQuizId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+    setIsLoading(true)
+    getExploreQuizzes()
+      .then(setPublicQuizzes)
+      .finally(() => setIsLoading(false))
   }, [])
 
   // Filter quizzes based on search query, category, and difficulty
   const filteredQuizzes = publicQuizzes.filter((quiz) => {
     const matchesSearch =
-      quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quiz.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quiz.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      quiz.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (quiz.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (quiz.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())) ?? false)
 
-    const matchesCategory = selectedCategory === "All Categories" || quiz.category === selectedCategory
+    const matchesCategory =
+      selectedCategory === "All Categories" ||
+      quiz.topic === selectedCategory ||
+      quiz.tags?.map(t => t.toLowerCase()).includes(selectedCategory.toLowerCase())
 
-    const matchesDifficulty = selectedDifficulty === "All Levels" || quiz.difficulty === selectedDifficulty
+    const matchesDifficulty =
+      selectedDifficulty === "All Levels" ||
+      quiz.difficulty.toLowerCase() === selectedDifficulty.toLowerCase()
 
     return matchesSearch && matchesCategory && matchesDifficulty
   })
 
-  const handleSaveQuiz = (quizId: string) => {
-    toast({
-      title: "Quiz saved",
-      description: "The quiz has been added to your library",
-    })
+  const handleSaveQuiz = async (quizId: string) => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Please sign in to save quizzes." })
+      return
+    }
+    setSavingQuizId(quizId)
+    try {
+      await saveQuiz(quizId)
+      toast({
+        title: "Quiz saved",
+        description: "The quiz has been added to your library",
+      })
+    } catch (e: any) {
+      toast({
+        title: "Save failed",
+        description: e?.response?.data?.message || "Could not save the quiz.",
+      })
+    } finally {
+      setSavingQuizId(null)
+    }
   }
 
   // Format date to relative time
@@ -392,12 +247,13 @@ export default function ExplorePage() {
                   </div>
                 ) : filteredQuizzes.length > 0 ? (
                   filteredQuizzes
-                    .sort((a, b) => b.attempts - a.attempts)
+                    .sort((a, b) => (b.attempts ?? 0) - (a.attempts ?? 0))
                     .map((quiz) => (
                       <QuizCard
-                        key={quiz.id}
+                        key={quiz._id}
                         quiz={quiz}
                         onSave={handleSaveQuiz}
+                        saving={savingQuizId === quiz._id}
                         formatRelativeTime={formatRelativeTime}
                       />
                     ))
@@ -454,12 +310,13 @@ export default function ExplorePage() {
                   </div>
                 ) : filteredQuizzes.length > 0 ? (
                   filteredQuizzes
-                    .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                     .map((quiz) => (
                       <QuizCard
-                        key={quiz.id}
+                        key={quiz._id}
                         quiz={quiz}
                         onSave={handleSaveQuiz}
+                        saving={savingQuizId === quiz._id}
                         formatRelativeTime={formatRelativeTime}
                       />
                     ))
@@ -516,12 +373,13 @@ export default function ExplorePage() {
                   </div>
                 ) : filteredQuizzes.length > 0 ? (
                   filteredQuizzes
-                    .sort((a, b) => b.rating - a.rating)
+                    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
                     .map((quiz) => (
                       <QuizCard
-                        key={quiz.id}
+                        key={quiz._id}
                         quiz={quiz}
                         onSave={handleSaveQuiz}
+                        saving={savingQuizId === quiz._id}
                         formatRelativeTime={formatRelativeTime}
                       />
                     ))
@@ -573,10 +431,12 @@ export default function ExplorePage() {
 function QuizCard({
   quiz,
   onSave,
+  saving,
   formatRelativeTime,
 }: {
-  quiz: (typeof publicQuizzesMock)[0]
+  quiz: ExploreQuiz
   onSave: (id: string) => void
+  saving: boolean
   formatRelativeTime: (date: string) => string
 }) {
   return (
@@ -586,26 +446,26 @@ function QuizCard({
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div>
-                <Link href={`/dashboard/quiz/practice/${quiz.id}`} className="hover:text-primary transition-colors">
-                  <h3 className="text-xl font-bold hover:underline">{quiz.title}</h3>
+                <Link href={`/dashboard/quiz/practice/${quiz._id}`} className="hover:text-primary transition-colors">
+                  <h3 className="text-xl font-bold hover:underline">{quiz.topic}</h3>
                 </Link>
                 <p className="text-muted-foreground mt-1">{quiz.description}</p>
               </div>
               <Badge
                 variant={
-                  quiz.difficulty === "Beginner"
+                  quiz.difficulty === "easy"
                     ? "outline"
-                    : quiz.difficulty === "Intermediate"
+                    : quiz.difficulty === "medium"
                       ? "secondary"
                       : "default"
                 }
               >
-                {quiz.difficulty}
+                {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
               </Badge>
             </div>
 
             <div className="flex flex-wrap gap-2 mt-3">
-              {quiz.tags.map((tag) => (
+              {(quiz.tags || []).map((tag) => (
                 <Badge key={tag} variant="outline" className="bg-muted/50">
                   {tag}
                 </Badge>
@@ -619,15 +479,15 @@ function QuizCard({
               </div>
               <div className="flex items-center gap-1">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{quiz.attempts} attempts</span>
+                <span className="text-sm">{quiz.attempts ?? 0} attempts</span>
               </div>
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 text-amber-500" />
-                <span className="text-sm">{quiz.rating}</span>
+                <span className="text-sm">{quiz.rating ?? 0}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{formatRelativeTime(quiz.created)}</span>
+                <span className="text-sm">{formatRelativeTime(quiz.createdAt)}</span>
               </div>
             </div>
           </div>
@@ -635,21 +495,26 @@ function QuizCard({
           <div className="flex flex-col justify-between items-end gap-4">
             <div className="flex items-center gap-2">
               <div className="text-sm text-right">
-                <p className="font-medium">{quiz.author.name}</p>
+                <p className="font-medium">{quiz.author?.name}</p>
                 <p className="text-muted-foreground">Author</p>
               </div>
               <Avatar>
-                <AvatarImage src={quiz.author.avatar || "/placeholder.svg"} alt={quiz.author.name} />
-                <AvatarFallback>{quiz.author.initials}</AvatarFallback>
+                <AvatarImage src={quiz.author?.avatar || "/placeholder.svg"} alt={quiz.author?.name} />
+                <AvatarFallback>{quiz.author?.initials || "?"}</AvatarFallback>
               </Avatar>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => onSave(quiz.id)}>
-                Save
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onSave(quiz._id)}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save"}
               </Button>
               <Button asChild>
-                <Link href={`/dashboard/quiz/practice/${quiz.id}`}>Practice</Link>
+                <Link href={`/dashboard/quiz/practice/${quiz._id}`}>Practice</Link>
               </Button>
             </div>
           </div>

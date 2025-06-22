@@ -27,6 +27,7 @@ import {
   getSavedQuizzes,
   deleteQuiz,
   updateQuizVisibility,
+  unsaveQuiz,
 } from "@/lib/quiz"
 
 export default function LibraryPage() {
@@ -37,6 +38,7 @@ export default function LibraryPage() {
   const [createdQuizzes, setCreatedQuizzes] = useState<any[]>([])
   const [savedQuizzes, setSavedQuizzes] = useState<any[]>([])
   const [quizToDelete, setQuizToDelete] = useState<string | null>(null)
+  const [unsavingQuizId, setUnsavingQuizId] = useState<string | null>(null)
 
   // Fetch quizzes from API
   useEffect(() => {
@@ -105,13 +107,23 @@ export default function LibraryPage() {
     }
   }
 
-  const handleRemoveSavedQuiz = (quizId: string) => {
-    setSavedQuizzes(savedQuizzes.filter((quiz) => quiz._id !== quizId))
-    // Optionally call API here to remove from saved list in backend
-    toast({
-      title: "Quiz removed",
-      description: "The quiz has been removed from your saved quizzes",
-    })
+  const handleRemoveSavedQuiz = async (quizId: string) => {
+    setUnsavingQuizId(quizId)
+    try {
+      await unsaveQuiz(quizId)
+      setSavedQuizzes(savedQuizzes.filter((quiz) => quiz._id !== quizId))
+      toast({
+        title: "Quiz removed",
+        description: "The quiz has been removed from your saved quizzes",
+      })
+    } catch {
+      toast({
+        title: "Failed to remove",
+        description: "Could not remove the quiz from saved quizzes.",
+      })
+    } finally {
+      setUnsavingQuizId(null)
+    }
   }
 
   // Filter quizzes based on search query
@@ -304,8 +316,9 @@ export default function LibraryPage() {
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
                               onClick={() => handleRemoveSavedQuiz(quiz._id)}
+                              disabled={unsavingQuizId === quiz._id}
                             >
-                              <Trash2 className="mr-2 h-4 w-4" /> Remove
+                              <Trash2 className="mr-2 h-4 w-4" /> {unsavingQuizId === quiz._id ? "Removing..." : "Remove"}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

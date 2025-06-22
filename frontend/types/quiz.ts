@@ -78,3 +78,31 @@ export interface QuizAttemptResult {
   submittedAt: string
   timeTaken?: number    // <-- add for consistency in results
 }
+
+export interface ExploreQuiz {
+  _id: string
+  topic: string
+  description?: string
+  quizType: "multiple-choice" | "true-false" | "mixed"
+  difficulty: "easy" | "medium" | "hard"
+  questions: {
+    _id: string
+    questionText: string
+    options: string[]
+    correctAnswer: string
+    explanation: string
+    type?: string
+  }[]
+  isPublic?: boolean
+  timeLimit?: boolean
+  createdAt: string
+  attempts?: number
+  rating?: number
+  tags?: string[]
+  author: {
+    name: string
+    avatar?: string
+    initials?: string
+    _id?: string
+  }
+}
