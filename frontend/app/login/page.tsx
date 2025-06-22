@@ -27,7 +27,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace("/dashboard")
+      router.replace("/")
     }
   }, [authLoading, user, router])
 
@@ -45,7 +45,7 @@ export default function LoginPage() {
         title: "Logged in successfully",
         description: "Welcome back! Redirecting...",
       })
-      router.push("/dashboard")
+      router.push("/")
     } catch (err: any) {
       let message = "Failed to log in. Please try again."
       if (err?.response?.data?.message) {

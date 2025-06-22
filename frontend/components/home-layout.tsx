@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -14,21 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { Brain, Home, Plus, Library, History, Settings, LogOut, User, Bell } from "lucide-react"
+import { Brain, Home, Library, LogOut, User, Settings, Bell } from "lucide-react"
 import { PageTransition } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
 import { LayoutWrapper } from "@/components/layout-wrapper"
+import { useState } from "react"
 
 const notificationsMock = [
   {
@@ -68,22 +57,22 @@ const notificationsMock = [
   },
 ]
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function HomeLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [notifications, setNotifications] = useState(notificationsMock)
-  const [mounted, setMounted] = useState(false)
   const { user, logout, isAuthenticated } = useAuth()
-  const router = useRouter()
 
-  useEffect(() => {
-    setMounted(true)
-    if (!isAuthenticated && mounted) {
-      router.push("/login")
-    }
-  }, [isAuthenticated, mounted, router])
+  // Navbar links for authenticated users
+  const navLinks = [
+    { href: "/", label: "Home", icon: Home },
+    { href: "/explore", label: "Explore", icon: Library },
+    { href: "/dashboard", label: "Dashboard", icon: Brain },
+  ]
 
+  // Get unread notifications count
   const unreadNotificationsCount = notifications.filter((notification) => !notification.read).length
 
+  // Mark notification as read
   const markAsRead = (id: string) => {
     setNotifications((prevNotifications) =>
       prevNotifications.map((notification) =>
@@ -92,10 +81,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     )
   }
 
+  // Mark all notifications as read
   const markAllAsRead = () => {
     setNotifications((prevNotifications) => prevNotifications.map((notification) => ({ ...notification, read: true })))
   }
 
+  // Format date to relative time
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -103,6 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
+
     if (diffInMinutes < 60) return `${diffInMinutes} min ago`
     if (diffInHours < 24) return `${diffInHours} hours ago`
     if (diffInDays === 1) return "Yesterday"
@@ -110,8 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return date.toLocaleDateString()
   }
 
-  if (!mounted || !isAuthenticated) return null
-
+  // Get user initials for avatar
   const getInitials = () => {
     if (!user?.username) return "U"
     return user.username
@@ -122,128 +113,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .substring(0, 2)
   }
 
-  // Navbar links for middle nav
-  const navLinks = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/explore", label: "Explore", icon: Library },
-    { href: "/dashboard", label: "Dashboard", icon: Brain },
-  ]
-
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full overflow-hidden">
-        <Sidebar>
-          <SidebarHeader>
-            <Link href="/" className="flex items-center gap-2 px-4 py-2 hover:opacity-80 transition-opacity">
-              <Brain className="h-6 w-6 text-primary animate-bounce-small" />
-              <span className="font-bold text-xl gradient-heading">ZART Quizzer</span>
-            </Link>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/dashboard"}
-                  className="transition-all duration-300 hover:text-primary data-[active=true]:bg-primary-100 data-[active=true]:text-primary-700 dark:data-[active=true]:bg-primary-900/30 dark:data-[active=true]:text-primary-300"
-                >
-                  <Link href="/dashboard">
-                    <Home className="h-5 w-5" />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/dashboard/create"}
-                  className="transition-all duration-300 hover:text-primary data-[active=true]:bg-primary-100 data-[active=true]:text-primary-700 dark:data-[active=true]:bg-primary-900/30 dark:data-[active=true]:text-primary-300"
-                >
-                  <Link href="/dashboard/create">
-                    <Plus className="h-5 w-5" />
-                    <span>Create Quiz</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/dashboard/library"}
-                  className="transition-all duration-300 hover:text-primary data-[active=true]:bg-primary-100 data-[active=true]:text-primary-700 dark:data-[active=true]:bg-primary-900/30 dark:data-[active=true]:text-primary-300"
-                >
-                  <Link href="/dashboard/library">
-                    <Library className="h-5 w-5" />
-                    <span>My Library</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/dashboard/history"}
-                  className="transition-all duration-300 hover:text-primary data-[active=true]:bg-primary-100 data-[active=true]:text-primary-700 dark:data-[active=true]:bg-primary-900/30 dark:data-[active=true]:text-primary-300"
-                >
-                  <Link href="/dashboard/history">
-                    <History className="h-5 w-5" />
-                    <span>History</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/dashboard/settings"}
-                  className="transition-all duration-300 hover:text-primary data-[active=true]:bg-primary-100 data-[active=true]:text-primary-700 dark:data-[active=true]:bg-primary-900/30 dark:data-[active=true]:text-primary-300"
-                >
-                  <Link href="/dashboard/settings">
-                    <Settings className="h-5 w-5" />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-            <div className="p-4">
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2 transition-all duration-300 hover:border-primary-300 hover:text-primary"
-                asChild
-              >
-                <Link href="/explore">
-                  <Library className="h-5 w-5" />
-                  <span>Explore Public Quizzes</span>
-                </Link>
-              </Button>
-            </div>
-          </SidebarFooter>
-        </Sidebar>
+    <div className="flex flex-col min-h-screen w-full">
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10 dark:bg-background/80 w-full">
+        <div className="container flex h-14 sm:h-16 items-center justify-between max-w-7xl mx-auto px-3 sm:px-4">
+          {/* Left: Logo & Name */}
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Brain className="h-6 w-6 text-primary animate-bounce-small" />
+            <span className="font-bold text-xl gradient-heading">ZART Quizzer</span>
+          </Link>
 
-        <div className="flex flex-col flex-1 w-full">
-          <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10 dark:bg-background/80 w-full">
-            <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
-              {/* Center: Navbar */}
-              <nav className="flex-1 flex justify-center">
-                <ul className="flex gap-2 sm:gap-6 items-center">
-                  {navLinks.map(({ href, label, icon: Icon }) => (
-                    <li key={href}>
-                      <Link
-                        href={href}
-                        className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-200
-                          ${pathname === href
-                            ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                            : "hover:bg-primary-50/70 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"}
-                        `}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span>{label}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-              {/* Right: Profile section */}
-              <div className="flex items-center gap-4">
+          {/* Center: Navbar for authenticated users */}
+          {isAuthenticated && (
+            <nav className="flex-1 flex justify-center">
+              <ul className="flex gap-2 sm:gap-6 items-center">
+                {navLinks.map(({ href, label, icon: Icon }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-200
+                        ${pathname === href
+                          ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                          : "hover:bg-primary-50/70 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"}
+                      `}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span>{label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+
+          {/* Right: Profile section or login/signup */}
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -324,19 +231,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      asChild
-                      className="cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"
-                    >
+                    <DropdownMenuItem asChild>
                       <Link href="/dashboard/profile">
                         <User className="mr-2 h-4 w-4" />
                         <span>Profile</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"
-                    >
+                    <DropdownMenuItem asChild>
                       <Link href="/dashboard/settings">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>
@@ -352,18 +253,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </>
+            ) : (
+              <div className="flex gap-2">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm" className="hover:text-primary transition-colors">
+                    Log in
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm" variant="default">
+                    Sign up
+                  </Button>
+                </Link>
               </div>
-            </div>
-          </header>
-          <main className="flex-1 flex items-center justify-center w-full overflow-auto">
-            <div className="w-full max-w-7xl px-2 sm:px-4 py-4 md:py-6 mx-auto flex flex-col items-center justify-center">
-              <PageTransition>
-                <LayoutWrapper>{children}</LayoutWrapper>
-              </PageTransition>
-            </div>
-          </main>
+            )}
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </header>
+
+      {/* Body */}
+      <main className="flex-1 flex flex-col w-full items-center justify-center overflow-auto">
+        <div className="w-full max-w-7xl px-2 sm:px-4 py-4 md:py-6 mx-auto flex flex-col items-center justify-center">
+          <PageTransition>
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </PageTransition>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full py-4 border-t bg-white dark:bg-background text-center text-sm text-muted-foreground">
+        &copy; {new Date().getFullYear()} ZART Quizzer. All rights reserved.
+      </footer>
+    </div>
   )
 }

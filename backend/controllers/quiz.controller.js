@@ -226,15 +226,17 @@ exports.getQuizAttemptById = async (req, res) => {
 
 exports.getRecentQuizAttempts = async (req, res) => {
   try {
-    if (!req.userId) {
+    // Use req.user or req.userId as needed for your auth setup
+    const userId = req.user?._id || req.userId;
+    if (!userId) {
       return res
         .status(400)
         .json({ message: 'User ID not found. Authentication failed.' });
     }
 
-    const attempts = await QuizAttempt.find({ userId: req.userId })
+    // Fetch ALL attempts for this user (no limit)
+    const attempts = await QuizAttempt.find({ userId })
       .sort({ submittedAt: -1 })
-      .limit(5)
       .populate('quizId');
 
     if (attempts.length === 0) {
@@ -264,8 +266,7 @@ exports.getRecentQuizAttempts = async (req, res) => {
           completedAt,
         };
       });
-
-    res.status(200).json(recentQuizzes.slice(0, 5));
+    res.status(200).json(recentQuizzes);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch recent quizzes', error: err.message });
   }
@@ -273,7 +274,8 @@ exports.getRecentQuizAttempts = async (req, res) => {
 
 exports.getRecommendedQuizzes = async (req, res) => {
   try {
-    const userId = req.userId;
+    // Use req.user or req.userId as needed for your auth setup
+    const userId = req.user?._id || req.userId;
 
     const attemptedQuizIds = await QuizAttempt.find({ userId }).distinct('quizId');
 
@@ -304,26 +306,25 @@ exports.getRecommendedQuizzes = async (req, res) => {
       createdBy: { $ne: userId },
       isPublic: true,
     };
-
     let quizzes = await Quiz.find({
       ...filter,
       ...(favTopics.length > 0 ? { topic: { $in: favTopics } } : {}),
       ...(favDifficulty.length > 0 ? { difficulty: { $in: favDifficulty } } : {}),
     })
       .sort({ createdAt: -1 })
-      .limit(5)
       .populate('createdBy', 'name');
 
+    // If not enough, fetch more (again, remove .limit(5 - quizzes.length))
     if (quizzes.length < 5) {
       const moreQuizzes = await Quiz.find(filter)
         .sort({ createdAt: -1 })
-        .limit(5 - quizzes.length)
         .populate('createdBy', 'name');
       const existingIds = new Set(quizzes.map(q => String(q._id)));
       quizzes = quizzes.concat(moreQuizzes.filter(q => !existingIds.has(String(q._id))));
     }
 
-    const recommendedQuizzes = quizzes.slice(0, 5).map(quiz => ({
+    // Remove .slice(0, 5) to send all recommended quizzes
+    const recommendedQuizzes = quizzes.map(quiz => ({
       id: quiz._id,
       title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
       author: quiz.createdBy ? quiz.createdBy.name : 'Unknown',

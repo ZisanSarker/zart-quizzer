@@ -87,6 +87,10 @@ export default function DashboardPage() {
     { title: "Time Spent", value: stats?.timeSpent ?? "--", icon: Clock, isTime: true },
   ]
 
+  // Only show at most 5 recent/recommended quizzes
+  const displayedRecentQuizzes = recentQuizzes.slice(0, 5)
+  const displayedRecommendedQuizzes = recommendedQuizzes.slice(0, 5)
+
   return (
     <DashboardLayout>
       <div className="w-full flex flex-col items-center">
@@ -144,7 +148,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-3 sm:p-4 md:p-6">
                 <div className="space-y-4">
-                  {recentQuizzes.map((quiz) => (
+                  {displayedRecentQuizzes.map((quiz) => (
                     <div
                       key={quiz.id}
                       className="flex items-center justify-between p-3 bg-muted rounded-lg transition-all duration-300 hover:text-primary-500 hover:outline hover:shadow-sm"
@@ -171,7 +175,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
-                  {recentQuizzes.length === 0 && (
+                  {displayedRecentQuizzes.length === 0 && (
                     <div className="text-muted-foreground text-center py-8">No recent quizzes yet.</div>
                   )}
                 </div>
@@ -192,7 +196,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-3 sm:p-4 md:p-6">
                 <div className="space-y-4">
-                  {recommendedQuizzes.map((quiz) => (
+                  {displayedRecommendedQuizzes.map((quiz) => (
                     <div
                       key={quiz.id}
                       className="flex items-center justify-between p-3 bg-muted rounded-lg transition-all duration-300 hover:text-primary-500 hover:outline hover:shadow-sm"
@@ -215,7 +219,7 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ))}
-                  {recommendedQuizzes.length === 0 && (
+                  {displayedRecommendedQuizzes.length === 0 && (
                     <div className="text-muted-foreground text-center py-8">No recommendations yet.</div>
                   )}
                 </div>
