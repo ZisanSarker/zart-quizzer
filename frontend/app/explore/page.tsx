@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,6 +17,22 @@ import type { ExploreQuiz } from "@/types/quiz"
 import { getExploreQuizzes, saveQuiz } from "@/lib/quiz"
 import { useAuth } from "@/contexts/auth-context"
 
+// Maps backend difficulties to UI
+const difficultyMap: Record<string, string> = {
+  easy: "Beginner",
+  medium: "Intermediate",
+  hard: "Advanced",
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+}
+const uiToBackendDifficulty: Record<string, string> = {
+  "Beginner": "easy",
+  "Intermediate": "medium",
+  "Advanced": "hard",
+  "All Levels": "",
+}
+
 const categories = [
   "All Categories",
   "Mathematics",
@@ -27,6 +43,13 @@ const categories = [
   "Geography",
   "Languages",
   "Arts",
+]
+
+const difficulties = [
+  "All Levels",
+  "Beginner",
+  "Intermediate",
+  "Advanced"
 ]
 
 export default function ExplorePage() {
@@ -46,24 +69,29 @@ export default function ExplorePage() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  // Filter quizzes based on search query, category, and difficulty
-  const filteredQuizzes = publicQuizzes.filter((quiz) => {
-    const matchesSearch =
-      quiz.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (quiz.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
-      (quiz.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())) ?? false)
+  // Filtering logic
+  const filteredQuizzes = useMemo(() => {
+    return publicQuizzes.filter((quiz) => {
+      const lowerQuery = searchQuery.trim().toLowerCase()
+      const matchesSearch =
+        quiz.topic.toLowerCase().includes(lowerQuery) ||
+        (quiz.description?.toLowerCase().includes(lowerQuery) ?? false) ||
+        (quiz.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery)) ?? false)
 
-    const matchesCategory =
-      selectedCategory === "All Categories" ||
-      quiz.topic === selectedCategory ||
-      quiz.tags?.map(t => t.toLowerCase()).includes(selectedCategory.toLowerCase())
+      const matchesCategory =
+        selectedCategory === "All Categories" ||
+        quiz.topic === selectedCategory ||
+        (quiz.tags?.map(t => t.toLowerCase()).includes(selectedCategory.toLowerCase()) ?? false)
 
-    const matchesDifficulty =
-      selectedDifficulty === "All Levels" ||
-      quiz.difficulty.toLowerCase() === selectedDifficulty.toLowerCase()
+      const backendDifficulty = (quiz.difficulty || "").toLowerCase()
+      const uiDifficulty = difficultyMap[backendDifficulty] || backendDifficulty
+      const matchesDifficulty =
+        selectedDifficulty === "All Levels" ||
+        uiDifficulty === selectedDifficulty
 
-    return matchesSearch && matchesCategory && matchesDifficulty
-  })
+      return matchesSearch && matchesCategory && matchesDifficulty
+    })
+  }, [publicQuizzes, searchQuery, selectedCategory, selectedDifficulty])
 
   const handleSaveQuiz = async (quizId: string) => {
     if (!user) {
@@ -178,10 +206,11 @@ export default function ExplorePage() {
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Levels">All Levels</SelectItem>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
+                  {difficulties.map((difficulty) => (
+                    <SelectItem key={difficulty} value={difficulty}>
+                      {difficulty}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -247,6 +276,7 @@ export default function ExplorePage() {
                   </div>
                 ) : filteredQuizzes.length > 0 ? (
                   filteredQuizzes
+                    .slice() // to not mutate original
                     .sort((a, b) => (b.attempts ?? 0) - (a.attempts ?? 0))
                     .map((quiz) => (
                       <QuizCard
@@ -310,6 +340,7 @@ export default function ExplorePage() {
                   </div>
                 ) : filteredQuizzes.length > 0 ? (
                   filteredQuizzes
+                    .slice()
                     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                     .map((quiz) => (
                       <QuizCard
@@ -373,6 +404,7 @@ export default function ExplorePage() {
                   </div>
                 ) : filteredQuizzes.length > 0 ? (
                   filteredQuizzes
+                    .slice()
                     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
                     .map((quiz) => (
                       <QuizCard
@@ -439,6 +471,17 @@ function QuizCard({
   saving: boolean
   formatRelativeTime: (date: string) => string
 }) {
+  // Map backend difficulty to UI label
+  const difficultyMap: Record<string, string> = {
+    easy: "Beginner",
+    medium: "Intermediate",
+    hard: "Advanced",
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    advanced: "Advanced",
+  }
+  const uiDifficulty = difficultyMap[(quiz.difficulty || "").toLowerCase()] || quiz.difficulty
+
   return (
     <Card className="card-hover">
       <CardContent className="p-6">
@@ -453,14 +496,14 @@ function QuizCard({
               </div>
               <Badge
                 variant={
-                  quiz.difficulty === "easy"
+                  uiDifficulty === "Beginner"
                     ? "outline"
-                    : quiz.difficulty === "medium"
+                    : uiDifficulty === "Intermediate"
                       ? "secondary"
                       : "default"
                 }
               >
-                {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
+                {uiDifficulty}
               </Badge>
             </div>
 
