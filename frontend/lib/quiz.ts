@@ -1,5 +1,14 @@
 import api from "./api"
-import type { Quiz, QuizSubmission, QuizResult, RecentQuizAttempt, RecommendedQuiz, QuizAttemptResult, ExploreQuiz } from "@/types/quiz"
+import type {
+  Quiz,
+  QuizSubmission,
+  QuizResult,
+  RecentQuizAttempt,
+  RecommendedQuiz,
+  QuizAttemptResult,
+  ExploreQuiz,
+  QuizRatingsResponse,
+} from "@/types/quiz"
 
 export interface GenerateQuizData {
   topic: string
@@ -82,3 +91,15 @@ export const unsaveQuiz = async (quizId: string): Promise<{ message: string }> =
   const response = await api.post<{ message: string }>("/quizzes/unsave", { quizId });
   return response.data;
 };
+
+// --- RATING API ---
+export const rateQuiz = async (quizId: string, rating: number): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>("/quizzes/rate", { quizId, rating });
+  return response.data;
+}
+
+export const getQuizRatings = async (quizId: string, user: boolean = false): Promise<QuizRatingsResponse> => {
+  const url = `/quizzes/${quizId}/ratings${user ? "?user=true" : ""}`;
+  const response = await api.get<QuizRatingsResponse>(url);
+  return response.data;
+}

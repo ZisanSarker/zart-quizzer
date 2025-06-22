@@ -76,7 +76,7 @@ export interface QuizAttemptResult {
   answers: QuizResultAnswer[]
   score: number
   submittedAt: string
-  timeTaken?: number    // <-- add for consistency in results
+  timeTaken?: number
 }
 
 export interface ExploreQuiz {
@@ -105,4 +105,11 @@ export interface ExploreQuiz {
     initials?: string
     _id?: string
   }
+}
+
+// --- Rating types/responses ---
+export interface QuizRatingsResponse {
+  average: number
+  count: number
+  userRating?: number | null
 }
