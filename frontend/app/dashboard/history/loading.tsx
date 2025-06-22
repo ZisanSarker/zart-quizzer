@@ -1,9 +1,8 @@
-import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export default function Loading() {
   return (
-    <DashboardLayout>
+    <>
       <div className="h-8 bg-muted rounded w-48 mb-6 animate-pulse"></div>
 
       <div className="mb-6">
@@ -40,6 +39,6 @@ export default function Loading() {
           </Card>
         ))}
       </div>
-    </DashboardLayout>
+    </>
   )
 }

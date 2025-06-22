@@ -9,7 +9,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/components/ui/use-toast"
-import DashboardLayout from "@/components/dashboard-layout"
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, Share2 } from "lucide-react"
 import { getQuizById, submitQuiz } from "@/lib/quiz"
 import type { Quiz, QuizAnswer, QuizResult } from "@/types/quiz"
@@ -145,28 +144,24 @@ export default function QuizPreviewPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-pulse text-center">
-            <h2 className="text-2xl font-bold mb-2">Loading quiz...</h2>
-            <p className="text-muted-foreground">Please wait while we prepare your quiz</p>
-          </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-center">
+          <h2 className="text-2xl font-bold mb-2">Loading quiz...</h2>
+          <p className="text-muted-foreground">Please wait while we prepare your quiz</p>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   if (!quiz) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">Quiz not found</h2>
-            <p className="text-muted-foreground mb-4">The quiz you're looking for doesn't exist or has been removed</p>
-            <Button onClick={() => router.push("/dashboard")}>Back to Dashboard</Button>
-          </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Quiz not found</h2>
+          <p className="text-muted-foreground mb-4">The quiz you're looking for doesn't exist or has been removed</p>
+          <Button onClick={() => router.push("/dashboard")}>Back to Dashboard</Button>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
@@ -174,7 +169,7 @@ export default function QuizPreviewPage() {
   const progress = ((currentQuestion + 1) / quiz.questions.length) * 100
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">
           {quizCompleted ? "Quiz Results is Loading" : quiz.topic}
@@ -244,6 +239,6 @@ export default function QuizPreviewPage() {
           </Card>
         </ScaleIn>
       ) : null}
-    </DashboardLayout>
+    </>
   )
 }
