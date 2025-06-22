@@ -7,7 +7,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "ZART Quizzer - Create and Practice Quizzes",
   description: "AI-powered quiz generation and practice platform",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
