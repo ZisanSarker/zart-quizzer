@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -7,12 +6,67 @@ import { GradientButton } from "@/components/ui/gradient-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import DashboardLayout from "@/components/dashboard-layout"
-import { CheckCircle, XCircle, Share2 } from "lucide-react"
-import { getQuizById, submitQuiz } from "@/lib/quiz"
+import { CheckCircle, XCircle, Share2, Star } from "lucide-react"
+import { getQuizById, submitQuiz, getQuizRatings, rateQuiz } from "@/lib/quiz"
 import type { Quiz, QuizQuestion, QuizAnswer } from "@/types/quiz"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { FadeIn, ScaleIn } from "@/components/animations/motion"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
+
+function RatingStars({
+  quizId,
+  userId,
+  onRated,
+  initialValue = 0,
+}: {
+  quizId: string
+  userId?: string
+  onRated?: (value: number) => void
+  initialValue?: number
+}) {
+  const [rating, setRating] = useState(initialValue)
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+
+  const handleRate = async (r: number) => {
+    if (!userId) return
+    setLoading(true)
+    setRating(r)
+    try {
+      await rateQuiz(quizId, r)
+      toast({ title: "Thank you for rating!" })
+      if (onRated) onRated(r)
+    } catch {
+      toast({ title: "Failed to rate", variant: "destructive" })
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <div className="flex items-center justify-center gap-2 py-2">
+      {Array.from({ length: 5 }, (_, i) => i + 1).map((i) => (
+        <button
+          key={i}
+          type="button"
+          aria-label={`Rate ${i}`}
+          disabled={loading}
+          onClick={() => handleRate(i)}
+          className={`transition-colors ${i <= rating ? "text-amber-400 scale-110" : "text-muted-foreground scale-100"} hover:scale-125`}
+        >
+          <Star className="h-9 w-9" fill={i <= rating ? "#fbbf24" : "none"} />
+        </button>
+      ))}
+    </div>
+  )
+}
 
 export default function QuizPracticeAllPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -24,13 +78,19 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
   const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({})
   const [startTime, setStartTime] = useState<number | null>(null)
   const [practiceSubmitted, setPracticeSubmitted] = useState(false)
+  const [showRatingModal, setShowRatingModal] = useState(false)
+  const [hasRated, setHasRated] = useState(false)
 
   useEffect(() => {
-    async function fetchQuiz() {
+    async function fetchQuizAndUserRating() {
       try {
         const quizData = await getQuizById(params.id)
         setQuiz(quizData)
         setStartTime(Date.now())
+        if (user && quizData?._id) {
+          const data = await getQuizRatings(quizData._id, true)
+          setHasRated(Boolean(data.userRating))
+        }
       } catch (e) {
         toast({
           title: "Error",
@@ -41,9 +101,9 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         setLoading(false)
       }
     }
-    fetchQuiz()
+    fetchQuizAndUserRating()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id, toast])
+  }, [params.id, toast, user])
 
   const handleOptionClick = (question: QuizQuestion, option: string) => {
     if (checkedAnswers[question._id]) return
@@ -64,6 +124,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
     setCheckedAnswers({})
     setStartTime(Date.now())
     setPracticeSubmitted(false)
+    setShowRatingModal(false)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
@@ -86,7 +147,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         title: "Practice session logged!",
         description: "Your practice has been saved in your statistics.",
       })
-      router.push("/dashboard/library")
+      if (!hasRated && user) setShowRatingModal(true)
     } catch (error) {
       toast({
         title: "Error",
@@ -94,6 +155,15 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         variant: "destructive",
       })
     }
+  }
+
+  const handleModalClose = () => {
+    setShowRatingModal(false)
+  }
+
+  const handleRated = () => {
+    setHasRated(true)
+    setShowRatingModal(false)
   }
 
   if (loading) {
@@ -235,18 +305,42 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         </div>
       </FadeIn>
 
-      <div className="flex justify-end items-center max-w-3xl mx-auto mt-12 mb-6 gap-3">
-        <GradientButton onClick={handleResetPractice}>
-          Reset Practice
-        </GradientButton>
-        <Button
-          variant="default"
-          onClick={handleFinishPractice}
-          disabled={practiceSubmitted}
-        >
-          {practiceSubmitted ? "Practice Saved" : "Finish Practice"}
-        </Button>
+      <div className="flex flex-col items-center max-w-3xl mx-auto mt-12 mb-6 gap-3">
+        <div className="flex justify-end w-full gap-3">
+          <GradientButton onClick={handleResetPractice}>
+            Reset Practice
+          </GradientButton>
+          <Button
+            variant="default"
+            onClick={handleFinishPractice}
+            disabled={practiceSubmitted}
+          >
+            {practiceSubmitted ? "Practice Saved" : "Finish Practice"}
+          </Button>
+        </div>
       </div>
+
+      {/* Rating Modal */}
+      <Dialog open={showRatingModal} onOpenChange={open => { if (!open) setShowRatingModal(false) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">How would you rate this quiz?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-3 my-2">
+            <RatingStars
+              quizId={quiz._id}
+              userId={user?._id}
+              onRated={handleRated}
+            />
+            <span className="text-sm text-muted-foreground">Your feedback helps improve future quizzes!</span>
+          </div>
+          <DialogFooter className="flex justify-center">
+            <DialogClose asChild>
+              <Button variant="ghost" onClick={handleModalClose}>Skip</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   )
 }
