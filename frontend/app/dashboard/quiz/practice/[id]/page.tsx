@@ -80,6 +80,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
   const [practiceSubmitted, setPracticeSubmitted] = useState(false)
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [hasRated, setHasRated] = useState(false)
+  const [pendingRedirect, setPendingRedirect] = useState(false)
 
   useEffect(() => {
     async function fetchQuizAndUserRating() {
@@ -105,6 +106,13 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, toast, user])
 
+  // When redirect is pending and modal is closed, go to dashboard
+  useEffect(() => {
+    if (pendingRedirect && !showRatingModal) {
+      router.push("/dashboard")
+    }
+  }, [pendingRedirect, showRatingModal, router])
+
   const handleOptionClick = (question: QuizQuestion, option: string) => {
     if (checkedAnswers[question._id]) return
     setSelectedAnswers((prev) => ({ ...prev, [question._id]: option }))
@@ -125,6 +133,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
     setStartTime(Date.now())
     setPracticeSubmitted(false)
     setShowRatingModal(false)
+    setPendingRedirect(false)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
@@ -147,7 +156,12 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         title: "Practice session logged!",
         description: "Your practice has been saved in your statistics.",
       })
-      if (!hasRated && user) setShowRatingModal(true)
+      if (!hasRated && user) {
+        setShowRatingModal(true)
+        setPendingRedirect(true)
+      } else {
+        router.push("/dashboard")
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -159,11 +173,19 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
 
   const handleModalClose = () => {
     setShowRatingModal(false)
+    if (pendingRedirect) {
+      // will trigger redirect via useEffect
+      setPendingRedirect(true)
+    }
   }
 
   const handleRated = () => {
     setHasRated(true)
     setShowRatingModal(false)
+    if (pendingRedirect) {
+      // will trigger redirect via useEffect
+      setPendingRedirect(true)
+    }
   }
 
   if (loading) {
@@ -252,7 +274,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
                                   : showError
                                     ? "bg-red-100 border-red-200 dark:bg-red-950/30 dark:border-red-900/50"
                                     : "bg-muted/30 border-muted"
-                                : "hover:border-primary-300 hover:bg-primary-50"
+                                : "hover:border-primary-300 hover:text-primary-500"
                               }
                               ${isUserSelected && !checked ? "ring-2 ring-primary border-primary" : ""}
                               ${checked ? "cursor-not-allowed" : "cursor-pointer"}
