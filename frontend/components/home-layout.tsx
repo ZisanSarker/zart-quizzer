@@ -13,53 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Brain, Home, Library, LogOut, User, Settings, Bell } from "lucide-react"
+import { Brain, Home, Library, LogOut, User, Settings } from "lucide-react"
 import { PageTransition } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import { useState } from "react"
-
-const notificationsMock = [
-  {
-    id: "n1",
-    title: "New quiz available",
-    message: "World History quiz is now available for practice",
-    time: "2023-06-15T14:30:00Z",
-    read: false,
-  },
-  {
-    id: "n2",
-    title: "Quiz completed",
-    message: "Your quiz 'Math Basics' was completed by 5 users",
-    time: "2023-06-14T09:15:00Z",
-    read: false,
-  },
-  {
-    id: "n3",
-    title: "Quiz results",
-    message: "Results are ready for 'Science 101'",
-    time: "2023-06-10T16:45:00Z",
-    read: true,
-  },
-  {
-    id: "n4",
-    title: "New follower",
-    message: "Jane Smith is now following you",
-    time: "2023-06-05T11:20:00Z",
-    read: true,
-  },
-  {
-    id: "n5",
-    title: "Quiz featured",
-    message: "Your quiz 'History Trivia' was featured on the homepage",
-    time: "2023-06-01T13:40:00Z",
-    read: true,
-  },
-]
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const [notifications, setNotifications] = useState(notificationsMock)
   const { user, logout, isAuthenticated } = useAuth()
 
   // Navbar links for authenticated users
@@ -68,39 +28,6 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     { href: "/explore", label: "Explore", icon: Library },
     { href: "/dashboard", label: "Dashboard", icon: Brain },
   ]
-
-  // Get unread notifications count
-  const unreadNotificationsCount = notifications.filter((notification) => !notification.read).length
-
-  // Mark notification as read
-  const markAsRead = (id: string) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification,
-      ),
-    )
-  }
-
-  // Mark all notifications as read
-  const markAllAsRead = () => {
-    setNotifications((prevNotifications) => prevNotifications.map((notification) => ({ ...notification, read: true })))
-  }
-
-  // Format date to relative time
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInMs = now.getTime() - date.getTime()
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
-
-    if (diffInMinutes < 60) return `${diffInMinutes} min ago`
-    if (diffInHours < 24) return `${diffInHours} hours ago`
-    if (diffInDays === 1) return "Yesterday"
-    if (diffInDays < 7) return `${diffInDays} days ago`
-    return date.toLocaleDateString()
-  }
 
   // Get user initials for avatar
   const getInitials = () => {
@@ -151,70 +78,6 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
               <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="relative transition-all duration-300 hover:border-primary-300 hover:text-primary"
-                    >
-                      <Bell className="h-5 w-5" />
-                      {unreadNotificationsCount > 0 && (
-                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground animate-pulse-slow">
-                          {unreadNotificationsCount}
-                        </span>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80">
-                    <div className="flex items-center justify-between px-4 py-2">
-                      <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                      {unreadNotificationsCount > 0 && (
-                        <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-7">
-                          Mark all as read
-                        </Button>
-                      )}
-                    </div>
-                    <DropdownMenuSeparator />
-                    <div className="max-h-[300px] overflow-auto">
-                      {notifications.length > 0 ? (
-                        notifications.map((notification) => (
-                          <DropdownMenuItem
-                            key={notification.id}
-                            className={`p-3 cursor-pointer transition-colors hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300 ${!notification.read ? "bg-primary-50/50" : ""}`}
-                            onClick={() => markAsRead(notification.id)}
-                          >
-                            <div className="flex flex-col gap-1 w-full">
-                              <div className="flex justify-between items-start">
-                                <span className="font-medium">{notification.title}</span>
-                                {!notification.read && (
-                                  <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0"></span>
-                                )}
-                              </div>
-                              <span className="text-sm text-muted-foreground">{notification.message}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {formatRelativeTime(notification.time)}
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center text-muted-foreground">No notifications</div>
-                      )}
-                    </div>
-                    {notifications.length > 0 && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild className="justify-center">
-                          <Link href="/dashboard/notifications" className="text-primary hover:text-primary">
-                            View all notifications
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2 transition-colors hover:text-primary">

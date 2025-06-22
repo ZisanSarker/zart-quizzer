@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import DashboardLayout from "@/components/dashboard-layout";
 import { Brain, Calendar, Clock, Search, Trophy } from "lucide-react";
 import {
   FadeIn,
@@ -171,7 +170,7 @@ export default function HistoryPage() {
   );
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">
           Quiz History
@@ -441,6 +440,6 @@ export default function HistoryPage() {
           </div>
         </TabsContent>
       </Tabs>
-    </DashboardLayout>
+    </>
   );
 }

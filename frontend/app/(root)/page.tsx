@@ -1,7 +1,6 @@
 "use client"
 
 import { useAuth } from "@/contexts/auth-context"
-import HomeLayout from "@/components/home-layout"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
@@ -14,7 +13,7 @@ export default function Home() {
   const { isAuthenticated, user } = useAuth()
 
   return (
-    <HomeLayout>
+    <>
       {isAuthenticated ? (
         <PageContainer>
           <Section>
@@ -191,6 +190,6 @@ export default function Home() {
           </Section>
         </PageContainer>
       )}
-    </HomeLayout>
+    </>
   )
 }

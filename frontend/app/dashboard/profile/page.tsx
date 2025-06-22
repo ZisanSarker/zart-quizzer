@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
-import DashboardLayout from "@/components/dashboard-layout"
 import { Camera, Check, Edit, Loader2, Lock, Mail, User } from "lucide-react"
 import { FadeIn, FadeUp, ScaleIn } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
@@ -162,19 +161,17 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-pulse text-center">
-            <h2 className="text-2xl font-bold mb-2">Loading profile...</h2>
-            <p className="text-muted-foreground">Please wait while we load your profile data</p>
-          </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-center">
+          <h2 className="text-2xl font-bold mb-2">Loading profile...</h2>
+          <p className="text-muted-foreground">Please wait while we load your profile data</p>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">My Profile</h1>
         {!isEditing ? (
@@ -633,6 +630,6 @@ export default function ProfilePage() {
           </FadeUp>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   )
 }

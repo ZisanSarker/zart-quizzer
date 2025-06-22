@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import DashboardLayout from "@/components/dashboard-layout"
 import { CheckCircle, XCircle, Share2, Star } from "lucide-react"
 import { getQuizById, submitQuiz, getQuizRatings, rateQuiz } from "@/lib/quiz"
 import type { Quiz, QuizQuestion, QuizAnswer } from "@/types/quiz"
@@ -190,33 +189,29 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-pulse text-center">
-            <h2 className="text-2xl font-bold mb-2">Loading quiz...</h2>
-            <p className="text-muted-foreground">Please wait while we prepare your quiz</p>
-          </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-center">
+          <h2 className="text-2xl font-bold mb-2">Loading quiz...</h2>
+          <p className="text-muted-foreground">Please wait while we prepare your quiz</p>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   if (!quiz) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">Quiz not found</h2>
-            <p className="text-muted-foreground mb-4">The quiz you're looking for doesn't exist or has been removed</p>
-            <Button onClick={() => router.push("/dashboard")}>Back to Dashboard</Button>
-          </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Quiz not found</h2>
+          <p className="text-muted-foreground mb-4">The quiz you're looking for doesn't exist or has been removed</p>
+          <Button onClick={() => router.push("/dashboard")}>Back to Dashboard</Button>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">
           Practice: {quiz.topic}
@@ -363,6 +358,6 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   )
 }

@@ -15,7 +15,6 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
-import DashboardLayout from "@/components/dashboard-layout"
 import { Loader2, Mic, Sparkles } from "lucide-react"
 import { FadeIn, FadeUp, ScaleIn } from "@/components/animations/motion"
 import { generateQuiz } from "@/lib/quiz"
@@ -90,7 +89,6 @@ export default function CreateQuizPage() {
         difficulty: difficulty as "easy" | "medium" | "hard",
         timeLimit,
         isPublic,
-        
       })
       toast({
         title: "Quiz generated successfully",
@@ -109,7 +107,7 @@ export default function CreateQuizPage() {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">Create Quiz</h1>
       </div>
@@ -330,6 +328,6 @@ export default function CreateQuizPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </>
   )
 }
