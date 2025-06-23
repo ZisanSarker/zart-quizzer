@@ -24,7 +24,7 @@ export default function OAuthSuccessPage() {
       })
       // Redirect after a short delay
       setTimeout(() => {
-        router.replace("/dashboard")
+        router.replace("/")
       }, 1200)
     } else {
       router.replace("/login")

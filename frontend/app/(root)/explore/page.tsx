@@ -17,7 +17,6 @@ import { FadeIn } from "@/components/animations/motion"
 import type { ExploreQuiz } from "@/types/quiz"
 import { getExploreQuizzes, saveQuiz } from "@/lib/quiz"
 
-// Maps backend difficulties to UI
 const difficultyMap: Record<string, string> = {
   easy: "Beginner",
   medium: "Intermediate",
@@ -52,8 +51,10 @@ const difficulties = [
   "Advanced"
 ]
 
+const PAGE_SIZE = 10
+
 export default function ExplorePage() {
-  const { user, isAuthenticated } = useAuth()
+  const { user } = useAuth()
   const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All Categories")
@@ -61,6 +62,8 @@ export default function ExplorePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [publicQuizzes, setPublicQuizzes] = useState<ExploreQuiz[]>([])
   const [savingQuizId, setSavingQuizId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("popular")
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     setIsLoading(true)
@@ -68,6 +71,11 @@ export default function ExplorePage() {
       .then(setPublicQuizzes)
       .finally(() => setIsLoading(false))
   }, [])
+
+  // Reset page when filter/search/tab changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedCategory, selectedDifficulty, activeTab])
 
   // Filtering logic
   const filteredQuizzes = useMemo(() => {
@@ -92,6 +100,47 @@ export default function ExplorePage() {
       return matchesSearch && matchesCategory && matchesDifficulty
     })
   }, [publicQuizzes, searchQuery, selectedCategory, selectedDifficulty])
+
+  // Sorting logic for each tab
+  const sortedQuizzes = useMemo(() => {
+    if (activeTab === "popular") {
+      return filteredQuizzes
+        .slice()
+        .sort((a, b) =>
+          (b.rating ?? 0) - (a.rating ?? 0) !== 0
+            ? (b.rating ?? 0) - (a.rating ?? 0)
+            : (b.attempts ?? 0) - (a.attempts ?? 0)
+        )
+    }
+    if (activeTab === "recent") {
+      return filteredQuizzes
+        .slice()
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    }
+    if (activeTab === "trending") {
+      const DAY_MS = 24 * 60 * 60 * 1000
+      const now = Date.now()
+      const last24h = filteredQuizzes.filter(q =>
+        now - new Date(q.createdAt).getTime() < DAY_MS
+      )
+      return (last24h.length ? last24h : filteredQuizzes)
+        .slice()
+        .sort((a, b) => {
+          const attemptsDiff = (b.attempts ?? 0) - (a.attempts ?? 0)
+          if (attemptsDiff !== 0) return attemptsDiff
+          return (b.rating ?? 0) - (a.rating ?? 0)
+        })
+    }
+    return filteredQuizzes.slice()
+  }, [filteredQuizzes, activeTab])
+
+  // Pagination
+  const totalPages = Math.ceil(sortedQuizzes.length / PAGE_SIZE)
+  const pagedQuizzes = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    const end = start + PAGE_SIZE
+    return sortedQuizzes.slice(start, end)
+  }, [sortedQuizzes, currentPage])
 
   const handleSaveQuiz = async (quizId: string) => {
     if (!user) {
@@ -129,6 +178,31 @@ export default function ExplorePage() {
     if (diffInDays < 365) return `${Math.floor(diffInDays / 30)} months ago`
     return `${Math.floor(diffInDays / 365)} years ago`
   }
+
+  // Pagination controls
+  const Pagination = () => (
+    <div className="flex items-center justify-center gap-4 mt-8">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+        disabled={currentPage === 1}
+      >
+        Prev
+      </Button>
+      <span className="text-sm text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+        disabled={currentPage === totalPages || totalPages === 0}
+      >
+        Next
+      </Button>
+    </div>
+  )
 
   return (
     <main className="flex-1 mx-auto py-8 max-w-6xl">
@@ -207,7 +281,7 @@ export default function ExplorePage() {
         </div>
 
         <div>
-          <Tabs defaultValue="popular">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex justify-between items-center mb-6">
               <TabsList>
                 <TabsTrigger value="popular">Popular</TabsTrigger>
@@ -217,42 +291,13 @@ export default function ExplorePage() {
               <div className="text-sm text-muted-foreground">{filteredQuizzes.length} quizzes found</div>
             </div>
 
+            {/* Popular Tab */}
             <TabsContent value="popular" className="space-y-6">
               {isLoading ? (
-                <div className="space-y-6">
-                  {[1, 2, 3].map((i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col md:flex-row gap-4">
-                          <div className="flex-1">
-                            <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
-                            <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
-                            <div className="flex gap-2 mb-4">
-                              <div className="h-6 w-16 bg-muted rounded"></div>
-                              <div className="h-6 w-16 bg-muted rounded"></div>
-                            </div>
-                            <div className="flex gap-4">
-                              <div className="h-4 w-24 bg-muted rounded"></div>
-                              <div className="h-4 w-24 bg-muted rounded"></div>
-                            </div>
-                          </div>
-                          <div className="flex flex-col justify-between items-end gap-4">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-20 bg-muted rounded"></div>
-                              <div className="h-10 w-10 bg-muted rounded-full"></div>
-                            </div>
-                            <div className="h-10 w-28 bg-muted rounded"></div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : filteredQuizzes.length > 0 ? (
-                filteredQuizzes
-                  .slice() // to not mutate original
-                  .sort((a, b) => (b.attempts ?? 0) - (a.attempts ?? 0))
-                  .map((quiz) => (
+                <SkeletonList />
+              ) : pagedQuizzes.length > 0 ? (
+                <>
+                  {pagedQuizzes.map((quiz) => (
                     <QuizCard
                       key={quiz._id}
                       quiz={quiz}
@@ -260,63 +305,25 @@ export default function ExplorePage() {
                       saving={savingQuizId === quiz._id}
                       formatRelativeTime={formatRelativeTime}
                     />
-                  ))
+                  ))}
+                  <Pagination />
+                </>
               ) : (
-                <FadeIn>
-                  <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                    <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No quizzes found</h3>
-                    <p className="text-muted-foreground mb-6">Try adjusting your filters or search query</p>
-                    <Button
-                      onClick={() => {
-                        setSearchQuery("")
-                        setSelectedCategory("All Categories")
-                        setSelectedDifficulty("All Levels")
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                </FadeIn>
+                <NoQuizzesNotice onClearFilters={() => {
+                  setSearchQuery("")
+                  setSelectedCategory("All Categories")
+                  setSelectedDifficulty("All Levels")
+                }} />
               )}
             </TabsContent>
 
+            {/* Recent Tab */}
             <TabsContent value="recent" className="space-y-6">
               {isLoading ? (
-                <div className="space-y-6">
-                  {[1, 2, 3].map((i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col md:flex-row gap-4">
-                          <div className="flex-1">
-                            <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
-                            <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
-                            <div className="flex gap-2 mb-4">
-                              <div className="h-6 w-16 bg-muted rounded"></div>
-                              <div className="h-6 w-16 bg-muted rounded"></div>
-                            </div>
-                            <div className="flex gap-4">
-                              <div className="h-4 w-24 bg-muted rounded"></div>
-                              <div className="h-4 w-24 bg-muted rounded"></div>
-                            </div>
-                          </div>
-                          <div className="flex flex-col justify-between items-end gap-4">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-20 bg-muted rounded"></div>
-                              <div className="h-10 w-10 bg-muted rounded-full"></div>
-                            </div>
-                            <div className="h-10 w-28 bg-muted rounded"></div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : filteredQuizzes.length > 0 ? (
-                filteredQuizzes
-                  .slice()
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                  .map((quiz) => (
+                <SkeletonList />
+              ) : pagedQuizzes.length > 0 ? (
+                <>
+                  {pagedQuizzes.map((quiz) => (
                     <QuizCard
                       key={quiz._id}
                       quiz={quiz}
@@ -324,63 +331,25 @@ export default function ExplorePage() {
                       saving={savingQuizId === quiz._id}
                       formatRelativeTime={formatRelativeTime}
                     />
-                  ))
+                  ))}
+                  <Pagination />
+                </>
               ) : (
-                <FadeIn>
-                  <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                    <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No quizzes found</h3>
-                    <p className="text-muted-foreground mb-6">Try adjusting your filters or search query</p>
-                    <Button
-                      onClick={() => {
-                        setSearchQuery("")
-                        setSelectedCategory("All Categories")
-                        setSelectedDifficulty("All Levels")
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                </FadeIn>
+                <NoQuizzesNotice onClearFilters={() => {
+                  setSearchQuery("")
+                  setSelectedCategory("All Categories")
+                  setSelectedDifficulty("All Levels")
+                }} />
               )}
             </TabsContent>
 
+            {/* Trending Tab */}
             <TabsContent value="trending" className="space-y-6">
               {isLoading ? (
-                <div className="space-y-6">
-                  {[1, 2, 3].map((i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col md:flex-row gap-4">
-                          <div className="flex-1">
-                            <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
-                            <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
-                            <div className="flex gap-2 mb-4">
-                              <div className="h-6 w-16 bg-muted rounded"></div>
-                              <div className="h-6 w-16 bg-muted rounded"></div>
-                            </div>
-                            <div className="flex gap-4">
-                              <div className="h-4 w-24 bg-muted rounded"></div>
-                              <div className="h-4 w-24 bg-muted rounded"></div>
-                            </div>
-                          </div>
-                          <div className="flex flex-col justify-between items-end gap-4">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-20 bg-muted rounded"></div>
-                              <div className="h-10 w-10 bg-muted rounded-full"></div>
-                            </div>
-                            <div className="h-10 w-28 bg-muted rounded"></div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : filteredQuizzes.length > 0 ? (
-                filteredQuizzes
-                  .slice()
-                  .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-                  .map((quiz) => (
+                <SkeletonList />
+              ) : pagedQuizzes.length > 0 ? (
+                <>
+                  {pagedQuizzes.map((quiz) => (
                     <QuizCard
                       key={quiz._id}
                       quiz={quiz}
@@ -388,24 +357,15 @@ export default function ExplorePage() {
                       saving={savingQuizId === quiz._id}
                       formatRelativeTime={formatRelativeTime}
                     />
-                  ))
+                  ))}
+                  <Pagination />
+                </>
               ) : (
-                <FadeIn>
-                  <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                    <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No quizzes found</h3>
-                    <p className="text-muted-foreground mb-6">Try adjusting your filters or search query</p>
-                    <Button
-                      onClick={() => {
-                        setSearchQuery("")
-                        setSelectedCategory("All Categories")
-                        setSelectedDifficulty("All Levels")
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                </FadeIn>
+                <NoQuizzesNotice onClearFilters={() => {
+                  setSearchQuery("")
+                  setSelectedCategory("All Categories")
+                  setSelectedDifficulty("All Levels")
+                }} />
               )}
             </TabsContent>
           </Tabs>
@@ -518,5 +478,54 @@ function QuizCard({
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+// Helper skeleton loader
+function SkeletonList() {
+  return (
+    <div className="space-y-6">
+      {[1, 2, 3].map((i) => (
+        <Card key={i} className="animate-pulse">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
+                <div className="flex gap-2 mb-4">
+                  <div className="h-6 w-16 bg-muted rounded"></div>
+                  <div className="h-6 w-16 bg-muted rounded"></div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="h-4 w-24 bg-muted rounded"></div>
+                  <div className="h-4 w-24 bg-muted rounded"></div>
+                </div>
+              </div>
+              <div className="flex flex-col justify-between items-end gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-20 bg-muted rounded"></div>
+                  <div className="h-10 w-10 bg-muted rounded-full"></div>
+                </div>
+                <div className="h-10 w-28 bg-muted rounded"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+// Helper for no quizzes
+function NoQuizzesNotice({ onClearFilters }: { onClearFilters: () => void }) {
+  return (
+    <FadeIn>
+      <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
+        <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">No quizzes found</h3>
+        <p className="text-muted-foreground mb-6">Try adjusting your filters or search query</p>
+        <Button onClick={onClearFilters}>Clear Filters</Button>
+      </div>
+    </FadeIn>
   )
 }

@@ -78,7 +78,7 @@ export default function RegisterPage() {
         title: "Account created!",
         description: "Welcome to ZART Quizzer. You can now log in.",
       })
-      router.push("/dashboard")
+      router.push("/")
     } catch (err: any) {
       let message = "Registration failed. Please try again."
       if (err?.response?.data?.message) {
