@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -15,35 +14,10 @@ import { useToast } from "@/components/ui/use-toast"
 import { Camera, Check, Edit, Loader2, Lock, Mail, User } from "lucide-react"
 import { FadeIn, FadeUp, ScaleIn } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
-
-// Mock user profile data
-const userProfileMock = {
-  _id: "user123",
-  username: "JohnDoe",
-  email: "john.doe@example.com",
-  profilePicture: "/placeholder.svg?height=128&width=128",
-  bio: "Quiz enthusiast and lifelong learner. I love creating and taking quizzes on various topics, especially science and history.",
-  location: "New York, USA",
-  website: "https://johndoe.com",
-  joinedDate: "2023-01-15T10:30:00Z",
-  stats: {
-    quizzesCreated: 24,
-    quizzesTaken: 87,
-    averageScore: 82,
-    followers: 45,
-    following: 32,
-  },
-  badges: [
-    { id: "b1", name: "Quiz Master", description: "Created 20+ quizzes", icon: "🏆" },
-    { id: "b2", name: "Perfect Score", description: "Achieved 100% on 5+ quizzes", icon: "🎯" },
-    { id: "b3", name: "Early Adopter", description: "Joined during beta phase", icon: "🚀" },
-  ],
-  socialLinks: {
-    twitter: "johndoe",
-    linkedin: "johndoe",
-    github: "johndoe",
-  },
-}
+import { getProfile, updateProfile } from "@/lib/profile"
+import { getMyStats } from "@/lib/stats"
+import type { Profile } from "@/types/profile"
+import type { UserStats } from "@/types/stats"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -52,7 +26,8 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [profileData, setProfileData] = useState(userProfileMock)
+  const [profileData, setProfileData] = useState<Profile | null>(null)
+  const [stats, setStats] = useState<UserStats | null>(null)
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -65,31 +40,25 @@ export default function ProfilePage() {
   })
 
   useEffect(() => {
-    // Simulate API call to fetch user profile data
-    const fetchUserProfile = async () => {
+    const fetchData = async () => {
       try {
-        // In a real app, this would be an API call
-        // const response = await api.get(`/users/${user?._id}/profile`);
-        // const data = response.data;
-
-        // Using mock data for now
-        const data = userProfileMock
-
-        setProfileData(data)
+        const [{ profile }, userStats] = await Promise.all([getProfile(), getMyStats()])
+        setProfileData(profile)
+        setStats(userStats)
         setFormData({
-          username: data.username,
-          email: data.email,
-          bio: data.bio || "",
-          location: data.location || "",
-          website: data.website || "",
-          twitter: data.socialLinks?.twitter || "",
-          linkedin: data.socialLinks?.linkedin || "",
-          github: data.socialLinks?.github || "",
+          username: profile.userIdObj.username,
+          email: profile.userIdObj.email,
+          bio: profile.bio || "",
+          location: profile.location || "",
+          website: profile.website || "",
+          twitter: profile.socialLinks?.twitter || "",
+          linkedin: profile.socialLinks?.linkedin || "",
+          github: profile.socialLinks?.github || "",
         })
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to load profile data",
+          description: "Failed to load profile/statistics data",
           variant: "destructive",
         })
       } finally {
@@ -97,7 +66,7 @@ export default function ProfilePage() {
       }
     }
 
-    fetchUserProfile()
+    fetchData()
   }, [toast, user])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -107,17 +76,8 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     setIsSaving(true)
-
     try {
-      // Simulate API call to update profile
-      // In a real app, this would be an API call
-      // await api.put(`/users/${user?._id}/profile`, formData);
-
-      // Update local state with form data
-      setProfileData((prev) => ({
-        ...prev,
-        username: formData.username,
-        email: formData.email,
+      const updatePayload = {
         bio: formData.bio,
         location: formData.location,
         website: formData.website,
@@ -126,13 +86,23 @@ export default function ProfilePage() {
           linkedin: formData.linkedin,
           github: formData.github,
         },
-      }))
-
+      }
+      const { profile } = await updateProfile(updatePayload)
+      setProfileData(profile)
+      setFormData({
+        username: profile.userIdObj.username,
+        email: profile.userIdObj.email,
+        bio: profile.bio || "",
+        location: profile.location || "",
+        website: profile.website || "",
+        twitter: profile.socialLinks?.twitter || "",
+        linkedin: profile.socialLinks?.linkedin || "",
+        github: profile.socialLinks?.github || "",
+      })
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully",
       })
-
       setIsEditing(false)
     } catch (error) {
       toast({
@@ -146,20 +116,28 @@ export default function ProfilePage() {
   }
 
   const handleUploadPhoto = () => {
-    // In a real app, this would open a file picker and upload the image
     toast({
       title: "Feature coming soon",
       description: "Profile photo upload will be available soon",
     })
   }
 
-  // Format date to readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
   }
 
-  if (isLoading) {
+  // Helper to get the highest star badge (if any)
+  function getHighestStarBadge(badges: UserStats["badges"]): UserStats["badges"][number] | null {
+    if (!badges || badges.length === 0) return null
+    const starBadges = badges.filter(b => b.id.startsWith("star"))
+    if (starBadges.length === 0) return null
+    return starBadges.reduce((prev, curr) => (
+      parseInt(curr.id.replace("star", "")) > parseInt(prev.id.replace("star", "")) ? curr : prev
+    ))
+  }
+
+  if (isLoading || !profileData || !stats) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-pulse text-center">
@@ -204,9 +182,9 @@ export default function ProfilePage() {
             <CardContent className="p-6 flex flex-col items-center text-center">
               <div className="relative mb-4">
                 <Avatar className="h-32 w-32 border-4 border-primary-100">
-                  <AvatarImage src={profileData.profilePicture || "/placeholder.svg"} alt={profileData.username} />
+                  <AvatarImage src={profileData.userIdObj.profilePicture || "/placeholder.svg"} alt={formData.username} />
                   <AvatarFallback className="text-3xl">
-                    {profileData.username.substring(0, 2).toUpperCase()}
+                    {formData.username.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
@@ -219,24 +197,24 @@ export default function ProfilePage() {
                   </Button>
                 )}
               </div>
-              <h2 className="text-2xl font-bold">{profileData.username}</h2>
-              <p className="text-muted-foreground mt-1">{profileData.email}</p>
+              <h2 className="text-2xl font-bold">{formData.username}</h2>
+              <p className="text-muted-foreground mt-1">{formData.email}</p>
               <div className="flex items-center gap-1 mt-2 text-sm">
                 <span>Member since</span>
-                <span className="font-medium">{formatDate(profileData.joinedDate)}</span>
+                <span className="font-medium">{formatDate(profileData.userIdObj.createdAt)}</span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-4 w-full mt-4 sm:mt-6">
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl font-bold">{profileData.stats.quizzesCreated}</span>
+                  <span className="text-2xl font-bold">{stats.quizzesCreated}</span>
                   <span className="text-xs text-muted-foreground">Created</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl font-bold">{profileData.stats.quizzesTaken}</span>
+                  <span className="text-2xl font-bold">{stats.quizzesCompleted}</span>
                   <span className="text-xs text-muted-foreground">Taken</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl font-bold">{profileData.stats.averageScore}%</span>
+                  <span className="text-2xl font-bold">{stats.averageScore}%</span>
                   <span className="text-xs text-muted-foreground">Avg. Score</span>
                 </div>
               </div>
@@ -244,16 +222,22 @@ export default function ProfilePage() {
               <div className="w-full mt-6">
                 <h3 className="font-medium mb-3">Badges</h3>
                 <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
-                  {profileData.badges.map((badge) => (
-                    <div
-                      key={badge.id}
-                      className="flex flex-col items-center p-3 bg-muted rounded-lg hover:bg-primary-50 transition-colors"
-                      title={badge.description}
-                    >
-                      <span className="text-2xl mb-1">{badge.icon}</span>
-                      <span className="text-xs font-medium">{badge.name}</span>
-                    </div>
-                  ))}
+                  {(() => {
+                    const badge = getHighestStarBadge(stats.badges)
+                    return badge ? (
+                      <div
+                        key={badge.id}
+                        className="flex flex-col items-center p-2 bg-muted rounded-lg animate-bounce-small transition-colors cursor-pointer"
+                        title={badge.description}
+                        style={{ minWidth: 56 }}
+                      >
+                        <span className="text-[15px] mb-1">{badge.icon}</span>
+                        <span className="text-[10px] font-medium">{badge.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">No badges yet</span>
+                    )
+                  })()}
                 </div>
               </div>
             </CardContent>
@@ -363,85 +347,31 @@ export default function ProfilePage() {
                   <CardContent>
                     <div className="space-y-6">
                       <div>
-                        <h3 className="font-medium mb-3">Performance by Category</h3>
-                        <div className="space-y-4">
-                          {[
-                            { category: "Mathematics", score: 92, quizzes: 12 },
-                            { category: "Science", score: 85, quizzes: 8 },
-                            { category: "History", score: 78, quizzes: 6 },
-                            { category: "Literature", score: 88, quizzes: 4 },
-                          ].map((item) => (
-                            <div key={item.category} className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <div className="font-medium">{item.category}</div>
-                                <div className="text-sm text-muted-foreground">{item.quizzes} quizzes</div>
+                        <h3 className="font-medium mb-3">Points & Badges</h3>
+                        <div className="flex gap-4 items-center">
+                          <span className="font-bold text-lg">Points: {stats.points}</span>
+                          <span className="text-muted-foreground">{stats.timeSpent} spent</span>
+                        </div>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {(() => {
+                            const badge = getHighestStarBadge(stats.badges)
+                            return badge ? (
+                              <div
+                                key={badge.id}
+                                className="flex items-center px-2 py-1 bg-muted rounded-lg hover:bg-primary-300 transition-colors cursor-pointer"
+                                title={badge.description}
+                                style={{ minWidth: 56 }}
+                              >
+                                <span className="text-xl mr-2">{badge.icon}</span>
+                                <span className="text-xs font-medium">{badge.name}</span>
                               </div>
-                              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-primary" style={{ width: `${item.score}%` }}></div>
-                              </div>
-                              <div className="text-sm text-right">{item.score}% average</div>
-                            </div>
-                          ))}
+                            ) : (
+                              <span className="text-muted-foreground">No badges yet</span>
+                            )
+                          })()}
                         </div>
                       </div>
-
-                      <div>
-                        <h3 className="font-medium mb-3">Activity Timeline</h3>
-                        <div className="space-y-3">
-                          {[
-                            {
-                              action: "Completed Quiz",
-                              quiz: "Mathematics - Calculus Fundamentals",
-                              date: "2023-06-15T14:30:00Z",
-                              score: 85,
-                            },
-                            {
-                              action: "Created Quiz",
-                              quiz: "History - Ancient Civilizations",
-                              date: "2023-06-10T09:15:00Z",
-                            },
-                            {
-                              action: "Completed Quiz",
-                              quiz: "Science - Quantum Physics",
-                              date: "2023-06-05T16:45:00Z",
-                              score: 72,
-                            },
-                            {
-                              action: "Earned Badge",
-                              badge: "Quiz Master",
-                              date: "2023-06-01T11:20:00Z",
-                            },
-                          ].map((item, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                            >
-                              <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
-                              <div>
-                                <div className="font-medium">
-                                  {item.action}{" "}
-                                  {item.quiz && <span className="font-normal text-muted-foreground">{item.quiz}</span>}
-                                  {item.badge && (
-                                    <span className="font-normal text-muted-foreground">{item.badge}</span>
-                                  )}
-                                  {item.score !== undefined && (
-                                    <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs">
-                                      {item.score}%
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {new Date(item.date).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  })}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      {/* You may add more detailed stats by category or activity here if available */}
                     </div>
                   </CardContent>
                 </Card>
@@ -467,8 +397,8 @@ export default function ProfilePage() {
                             id="username"
                             name="username"
                             value={formData.username}
-                            onChange={handleInputChange}
-                            className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
+                            disabled
+                            className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 bg-muted cursor-not-allowed"
                           />
                         </div>
                         <div className="space-y-2">
@@ -481,8 +411,8 @@ export default function ProfilePage() {
                             name="email"
                             type="email"
                             value={formData.email}
-                            onChange={handleInputChange}
-                            className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
+                            disabled
+                            className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 bg-muted cursor-not-allowed"
                           />
                         </div>
                       </div>
