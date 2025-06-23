@@ -10,6 +10,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const quizRoutes = require('./routes/quiz.routes');
 const statisticsRoutes = require('./routes/statistics.routes');
+const profileRoutes = require('./routes/profile.routes');
 const passport = require('./config/passport');
 const authMiddleware = require('./middlewares/auth.middleware');
 require('colors');
@@ -19,7 +20,7 @@ connectDB();
 
 const app = express();
 
-app.set('trust proxy', 1); // <<-- REQUIRED for production cookie/session auth!
+app.set('trust proxy', 1);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -60,7 +61,8 @@ app.use(passport.session());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/quizzes', authMiddleware, quizRoutes);
-app.use('/api/statistics', authMiddleware, statisticsRoutes); // <-- Add this line
+app.use('/api/statistics', authMiddleware, statisticsRoutes);
+app.use('/api/profile', authMiddleware, profileRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World');
