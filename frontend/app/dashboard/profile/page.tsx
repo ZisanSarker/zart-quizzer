@@ -11,13 +11,27 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
-import { Camera, Check, Edit, Loader2, Lock, Mail, User } from "lucide-react"
+import { Camera, Check, Loader2, Lock, Mail, User } from "lucide-react"
 import { FadeIn, FadeUp, ScaleIn } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
-import { getProfile, updateProfile } from "@/lib/profile"
+import { getProfile, updateProfile, UpdateProfilePayload } from "@/lib/profile"
 import { getMyStats } from "@/lib/stats"
 import type { Profile } from "@/types/profile"
 import type { UserStats } from "@/types/stats"
+
+function getQuizLevel(points: number) {
+  if (points >= 50) return { text: "🌟 Ultimate Genius" }
+  if (points >= 45) return { text: "👑 Quiz Virtuoso" }
+  if (points >= 40) return { text: "💡 Insight Master" }
+  if (points >= 35) return { text: "🦉 Smart Strategist" }
+  if (points >= 30) return { text: "🚀 Knowledge Seeker" }
+  if (points >= 25) return { text: "🧩 Problem Solver" }
+  if (points >= 20) return { text: "🧠 Sharp Thinker" }
+  if (points >= 15) return { text: "🎯 Focused Challenger" }
+  if (points >= 10) return { text: "📘 Learning Apprentice" }
+  if (points >= 5) return { text: "🔍 Curious Explorer" }
+  return { text: "🐣 Quiz Newbie" }
+}
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -25,10 +39,19 @@ export default function ProfilePage() {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
+  const [tab, setTab] = useState<"about" | "stats" | "edit">("about")
   const [profileData, setProfileData] = useState<Profile | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    username: string
+    email: string
+    bio: string
+    location: string
+    website: string
+    twitter: string
+    linkedin: string
+    github: string
+  }>({
     username: "",
     email: "",
     bio: "",
@@ -65,7 +88,6 @@ export default function ProfilePage() {
         setIsLoading(false)
       }
     }
-
     fetchData()
   }, [toast, user])
 
@@ -77,7 +99,8 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     setIsSaving(true)
     try {
-      const updatePayload = {
+      const updatePayload: UpdateProfilePayload = {
+        username: formData.username,
         bio: formData.bio,
         location: formData.location,
         website: formData.website,
@@ -103,11 +126,11 @@ export default function ProfilePage() {
         title: "Profile updated",
         description: "Your profile has been updated successfully",
       })
-      setIsEditing(false)
-    } catch (error) {
+      setTab("about")
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: error?.response?.data?.message || "Failed to update profile",
         variant: "destructive",
       })
     } finally {
@@ -127,7 +150,6 @@ export default function ProfilePage() {
     return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
   }
 
-  // Helper to get the highest star badge (if any)
   function getHighestStarBadge(badges: UserStats["badges"]): UserStats["badges"][number] | null {
     if (!badges || badges.length === 0) return null
     const starBadges = badges.filter(b => b.id.startsWith("star"))
@@ -148,32 +170,12 @@ export default function ProfilePage() {
     )
   }
 
+  const level = getQuizLevel(stats.points)
+
   return (
     <>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">My Profile</h1>
-        {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)}>
-            <Edit className="mr-2 h-4 w-4" /> Edit Profile
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(false)}>
-              Cancel
-            </Button>
-            <GradientButton onClick={handleSaveProfile} disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
-                </>
-              ) : (
-                <>
-                  <Check className="mr-2 h-4 w-4" /> Save Changes
-                </>
-              )}
-            </GradientButton>
-          </div>
-        )}
       </div>
 
       <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-[1fr_2fr]">
@@ -187,7 +189,7 @@ export default function ProfilePage() {
                     {formData.username.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                {isEditing && (
+                {tab === "edit" && (
                   <Button
                     size="icon"
                     className="absolute bottom-0 right-0 rounded-full bg-primary text-white hover:bg-primary/90"
@@ -227,7 +229,7 @@ export default function ProfilePage() {
                     return badge ? (
                       <div
                         key={badge.id}
-                        className="flex flex-col items-center p-2 bg-muted rounded-lg animate-bounce-small transition-colors cursor-pointer"
+                        className="flex flex-col items-center p-2 bg-muted rounded-lg transition-colors cursor-pointer animate-bounce-small"
                         title={badge.description}
                         style={{ minWidth: 56 }}
                       >
@@ -245,15 +247,15 @@ export default function ProfilePage() {
         </FadeIn>
 
         <div className="space-y-6">
-          <Tabs defaultValue={isEditing ? "edit" : "about"}>
+          <Tabs value={tab} onValueChange={(value) => setTab(value as "about" | "stats" | "edit")}>
             <TabsList className="mb-4">
-              <TabsTrigger value="about" disabled={isEditing}>
+              <TabsTrigger value="about">
                 About
               </TabsTrigger>
-              <TabsTrigger value="stats" disabled={isEditing}>
+              <TabsTrigger value="stats">
                 Statistics
               </TabsTrigger>
-              <TabsTrigger value="edit" disabled={!isEditing}>
+              <TabsTrigger value="edit">
                 Edit Profile
               </TabsTrigger>
             </TabsList>
@@ -300,7 +302,7 @@ export default function ProfilePage() {
                             href={`https://twitter.com/${profileData.socialLinks.twitter}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1 bg-muted rounded-full text-sm hover:bg-primary-50 transition-colors"
+                            className="px-3 py-1 bg-muted rounded-full text-sm hover:outline hover:text-primary-500 transition-colors"
                           >
                             Twitter
                           </a>
@@ -310,7 +312,7 @@ export default function ProfilePage() {
                             href={`https://linkedin.com/in/${profileData.socialLinks.linkedin}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1 bg-muted rounded-full text-sm hover:bg-primary-50 transition-colors"
+                            className="px-3 py-1 bg-muted rounded-full text-sm hover:outline hover:text-primary-500 transition-colors"
                           >
                             LinkedIn
                           </a>
@@ -320,7 +322,7 @@ export default function ProfilePage() {
                             href={`https://github.com/${profileData.socialLinks.github}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1 bg-muted rounded-full text-sm hover:bg-primary-50 transition-colors"
+                            className="px-3 py-1 bg-muted rounded-full text-sm hover:outline hover:text-primary-500 transition-colors"
                           >
                             GitHub
                           </a>
@@ -341,8 +343,17 @@ export default function ProfilePage() {
               <ScaleIn>
                 <Card className="card-hover">
                   <CardHeader>
-                    <CardTitle>Quiz Statistics</CardTitle>
-                    <CardDescription>Your performance and activity on QuizGenius</CardDescription>
+                    <CardTitle>Your performance and activity on</CardTitle>
+                    <CardDescription>
+                      <span
+                        className={`font-extrabold text-xl animate-pulse text-primary-500`}
+                        style={{
+                          display: "inline-block",
+                        }}
+                      >
+                        {level.text}
+                      </span>
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
@@ -371,7 +382,6 @@ export default function ProfilePage() {
                           })()}
                         </div>
                       </div>
-                      {/* You may add more detailed stats by category or activity here if available */}
                     </div>
                   </CardContent>
                 </Card>
@@ -397,8 +407,8 @@ export default function ProfilePage() {
                             id="username"
                             name="username"
                             value={formData.username}
-                            disabled
-                            className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 bg-muted cursor-not-allowed"
+                            onChange={handleInputChange}
+                            className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
                           />
                         </div>
                         <div className="space-y-2">
@@ -504,7 +514,7 @@ export default function ProfilePage() {
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end">
-                    <Button variant="outline" onClick={() => setIsEditing(false)} className="mr-2">
+                    <Button variant="outline" onClick={() => setTab("about")} className="mr-2">
                       Cancel
                     </Button>
                     <GradientButton onClick={handleSaveProfile} disabled={isSaving}>

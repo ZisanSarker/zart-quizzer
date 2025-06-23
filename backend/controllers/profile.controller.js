@@ -1,5 +1,6 @@
 const Profile = require('../models/profile.model');
-const UserStats = require('../models/statistics.model'); // Your stats model
+const User = require('../models/user.model');
+const UserStats = require('../models/statistics.model');
 
 // GET /api/profile/me
 exports.getMyProfile = async (req, res) => {
@@ -11,13 +12,11 @@ exports.getMyProfile = async (req, res) => {
       'username email profilePicture createdAt'
     );
 
-    // Auto-create profile if not found
     if (!profile) {
       profile = await Profile.create({ userId });
       profile = await profile.populate('userId', 'username email profilePicture createdAt');
     }
 
-    // Get user statistics (if any)
     const statsDoc = await UserStats.findOne({ userId });
     const stats = statsDoc
       ? {
@@ -76,6 +75,16 @@ exports.updateMyProfile = async (req, res) => {
         updateData[field] = req.body[field];
       }
     });
+
+    // Handle username update
+    if (req.body.username !== undefined && req.body.username.trim() !== "") {
+      // Check uniqueness
+      const existingUser = await User.findOne({ username: req.body.username, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+      await User.findByIdAndUpdate(userId, { username: req.body.username });
+    }
 
     const profile = await Profile.findOneAndUpdate(
       { userId },
