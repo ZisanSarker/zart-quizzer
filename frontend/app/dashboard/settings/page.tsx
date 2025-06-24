@@ -1,8 +1,7 @@
 "use client"
 
-import type React from "react"
+import React, { useState, useEffect } from "react"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -84,10 +83,8 @@ export default function SettingsPage() {
         // In a real app, this would be an API call
         // const response = await api.get(`/users/${user?._id}/settings`);
         // const data = response.data;
-
         // Using mock data for now
         const data = settingsMock
-
         setSettings(data)
       } catch (error) {
         toast({
@@ -99,7 +96,6 @@ export default function SettingsPage() {
         setIsLoading(false)
       }
     }
-
     fetchSettings()
   }, [toast, user])
 
@@ -135,27 +131,28 @@ export default function SettingsPage() {
         setPasswordError("Password must include a number")
       } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
         setPasswordError("Password must include a special character")
+      } else if (passwordData.confirmPassword && value !== passwordData.confirmPassword) {
+        setPasswordError("Passwords do not match")
       } else {
         setPasswordError("")
       }
     }
 
     // Confirm password validation
-    if (name === "confirmPassword" && value !== passwordData.newPassword) {
-      setPasswordError("Passwords do not match")
-    } else if (name === "confirmPassword" && value === passwordData.newPassword) {
-      setPasswordError("")
+    if (name === "confirmPassword") {
+      if (value !== passwordData.newPassword) {
+        setPasswordError("Passwords do not match")
+      } else if (value === passwordData.newPassword && passwordError.startsWith("Passwords do not match")) {
+        setPasswordError("")
+      }
     }
   }
 
   const handleSaveSettings = async () => {
     setIsSaving(true)
-
     try {
       // Simulate API call to update settings
-      // In a real app, this would be an API call
       // await api.put(`/users/${user?._id}/settings`, settings);
-
       toast({
         title: "Settings saved",
         description: "Your settings have been updated successfully",
@@ -173,19 +170,14 @@ export default function SettingsPage() {
 
   const handleChangePassword = async () => {
     if (passwordError) return
-
     setIsSaving(true)
-
     try {
       // Simulate API call to change password
-      // In a real app, this would be an API call
       // await api.put(`/users/${user?._id}/password`, passwordData);
-
       toast({
         title: "Password changed",
         description: "Your password has been updated successfully",
       })
-
       setShowPasswordDialog(false)
       setPasswordData({
         currentPassword: "",
@@ -206,14 +198,11 @@ export default function SettingsPage() {
   const handleDeleteAccount = async () => {
     try {
       // Simulate API call to delete account
-      // In a real app, this would be an API call
       // await api.delete(`/users/${user?._id}`);
-
       toast({
         title: "Account deleted",
         description: "Your account has been deleted successfully",
       })
-
       // In a real app, this would log the user out and redirect to the home page
     } catch (error) {
       toast({
@@ -288,10 +277,258 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* ...rest of the content (same as your input, unchanged) ... */}
-
-        {/* The rest of the component is unchanged except DashboardLayout is removed. */}
-        {/* ...all tabs, dialogs, and handlers remain inside the fragment... */}
+        <TabsContent value="account">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Settings</CardTitle>
+              <CardDescription>Update your account information and security settings.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-1/2 space-y-4">
+                  <Label>Email Address</Label>
+                  <Input
+                    type="email"
+                    value={settings.account.email}
+                    disabled
+                  />
+                  {settings.account.emailVerified ? (
+                    <span className="text-xs text-green-600 flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Verified
+                    </span>
+                  ) : (
+                    <span className="text-xs text-red-600 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" /> Not verified
+                    </span>
+                  )}
+                </div>
+                <div className="w-full md:w-1/2 space-y-4">
+                  <Label htmlFor="twoFactorEnabled" className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" /> Two-Factor Authentication
+                  </Label>
+                  <Switch
+                    id="twoFactorEnabled"
+                    checked={settings.account.twoFactorEnabled}
+                    onCheckedChange={checked =>
+                      handleSwitchChange("account", "twoFactorEnabled", checked)
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPasswordDialog(true)}
+                  className="mt-2"
+                >
+                  <Key className="h-4 w-4 mr-2" /> Change Password
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+              <CardDescription>Choose which events trigger notifications.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(settings.notifications).map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between">
+                  <Label className="capitalize">{key.replace(/([A-Z])/g, " $1")}</Label>
+                  <Switch
+                    checked={value}
+                    onCheckedChange={checked =>
+                      handleSwitchChange("notifications", key, checked)
+                    }
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="appearance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>Customize the look and feel of your experience.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Theme</Label>
+                  <Select
+                    value={settings.appearance.theme}
+                    onValueChange={value =>
+                      handleSelectChange("appearance", "theme", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="light">
+                        <Sun className="inline h-4 w-4 mr-1" /> Light
+                      </SelectItem>
+                      <SelectItem value="dark">
+                        <Moon className="inline h-4 w-4 mr-1" /> Dark
+                      </SelectItem>
+                      <SelectItem value="system">
+                        <Loader2 className="inline h-4 w-4 mr-1" /> System
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Color Scheme</Label>
+                  <Select
+                    value={settings.appearance.colorScheme}
+                    onValueChange={value =>
+                      handleSelectChange("appearance", "colorScheme", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="purple">Purple</SelectItem>
+                      <SelectItem value="blue">Blue</SelectItem>
+                      <SelectItem value="green">Green</SelectItem>
+                      <SelectItem value="orange">Orange</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Font Size</Label>
+                  <Select
+                    value={settings.appearance.fontSize}
+                    onValueChange={value =>
+                      handleSelectChange("appearance", "fontSize", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Large</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Reduced Motion</Label>
+                  <Switch
+                    checked={settings.appearance.reducedMotion}
+                    onCheckedChange={checked =>
+                      handleSwitchChange("appearance", "reducedMotion", checked)
+                    }
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="privacy">
+          <Card>
+            <CardHeader>
+              <CardTitle>Privacy Settings</CardTitle>
+              <CardDescription>Control who can see your profile and activity.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Profile Visibility</Label>
+                  <Select
+                    value={settings.privacy.profileVisibility}
+                    onValueChange={value =>
+                      handleSelectChange("privacy", "profileVisibility", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="followers">Followers Only</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Show Activity Status</Label>
+                  <Switch
+                    checked={settings.privacy.showActivityStatus}
+                    onCheckedChange={checked =>
+                      handleSwitchChange("privacy", "showActivityStatus", checked)
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Allow Tagging</Label>
+                  <Switch
+                    checked={settings.privacy.allowTagging}
+                    onCheckedChange={checked =>
+                      handleSwitchChange("privacy", "allowTagging", checked)
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Show Quiz History</Label>
+                  <Switch
+                    checked={settings.privacy.showQuizHistory}
+                    onCheckedChange={checked =>
+                      handleSwitchChange("privacy", "showQuizHistory", checked)
+                    }
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security</CardTitle>
+              <CardDescription>Review your account's security information.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label>Last Password Change</Label>
+                <div className="text-muted-foreground mb-2">{formatDate(settings.security.lastPasswordChange)}</div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPasswordDialog(true)}
+                >
+                  <Key className="h-4 w-4 mr-2" /> Change Password
+                </Button>
+              </div>
+              <div>
+                <Label>Login History</Label>
+                <ul className="divide-y divide-border">
+                  {settings.security.loginHistory.map((login, idx) => (
+                    <li key={idx} className="py-2 flex flex-col md:flex-row md:items-center md:justify-between">
+                      <span className="font-mono text-xs">{login.device}</span>
+                      <span className="text-xs text-muted-foreground">{login.location}</span>
+                      <span className="text-xs">{formatDate(login.time)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" /> Delete Account
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Change Password Dialog */}
@@ -366,8 +603,7 @@ export default function SettingsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your account and remove your data from our
-              servers.
+              This action cannot be undone. This will permanently delete your account and remove your data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
