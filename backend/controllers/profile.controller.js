@@ -78,11 +78,6 @@ exports.updateMyProfile = async (req, res) => {
 
     // Handle username update
     if (req.body.username !== undefined && req.body.username.trim() !== "") {
-      // Check uniqueness
-      const existingUser = await User.findOne({ username: req.body.username, _id: { $ne: userId } });
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already taken" });
-      }
       await User.findByIdAndUpdate(userId, { username: req.body.username });
     }
 
