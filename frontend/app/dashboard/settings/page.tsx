@@ -38,7 +38,9 @@ import {
   User,
 } from "lucide-react";
 import { FadeIn } from "@/components/animations/motion";
+import { deleteAccount } from "@/lib/user";
 import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +51,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { logout } from "@/lib/auth";
 
 // Mock settings data
 const settingsMock = {
@@ -100,7 +103,8 @@ const settingsMock = {
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState(settingsMock);
@@ -248,13 +252,12 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     try {
-      // Simulate API call to delete account
-      // await api.delete(`/users/${user?._id}`);
+      await deleteAccount();
       toast({
         title: "Account deleted",
         description: "Your account has been deleted successfully",
       });
-      // In a real app, this would log the user out and redirect to the home page
+      router.push("/");
     } catch (error) {
       toast({
         title: "Error",
