@@ -38,7 +38,7 @@ import {
   User,
 } from "lucide-react";
 import { FadeIn } from "@/components/animations/motion";
-import { deleteAccount } from "@/lib/user";
+import { deleteAccount, changePassword } from "@/lib/user";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import {
@@ -225,13 +225,16 @@ export default function SettingsPage() {
 
   const handleChangePassword = async () => {
     if (passwordError) return;
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
     setIsSaving(true);
     try {
-      // Simulate API call to change password
-      // await api.put(`/users/${user?._id}/password`, passwordData);
+      const response = await changePassword(passwordData);
       toast({
         title: "Password changed",
-        description: "Your password has been updated successfully",
+        description: response.message,
       });
       setShowPasswordDialog(false);
       setPasswordData({
@@ -239,10 +242,11 @@ export default function SettingsPage() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to change password",
+        description:
+          error.response?.data?.message || "Failed to change password",
         variant: "destructive",
       });
     } finally {
