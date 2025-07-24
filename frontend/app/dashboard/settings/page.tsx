@@ -329,14 +329,14 @@ export default function SettingsPage() {
             <Shield className="h-4 w-4" />
             <span className="hidden md:inline">Security</span>
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
+          {/* <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             <span className="hidden md:inline">Appearance</span>
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2">
+          </TabsTrigger> */}
+          {/* <TabsTrigger value="privacy" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             <span className="hidden md:inline">Privacy</span>
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="account">
@@ -567,9 +567,23 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label>Last Password Change</Label>
+                {/* <Label>Last Password Change</Label>
                 <div className="text-muted-foreground mb-2">
                   {formatDate(settings.security.lastPasswordChange)}
+                </div> */}
+
+                <div className="w-full md:w-1/2 space-y-4 pb-6">
+                  <Label>Email Address</Label>
+                  <Input type="email" value={settings.account.email} disabled />
+                  {settings.account.emailVerified ? (
+                    <span className="text-xs text-green-600 flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Verified
+                    </span>
+                  ) : (
+                    <span className="text-xs text-red-600 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" /> Not verified
+                    </span>
+                  )}
                 </div>
                 <Button
                   variant="outline"
