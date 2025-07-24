@@ -11,6 +11,7 @@ const authRoutes = require('./routes/auth.routes');
 const quizRoutes = require('./routes/quiz.routes');
 const statisticsRoutes = require('./routes/statistics.routes');
 const profileRoutes = require('./routes/profile.routes');
+const settingsRoutes = require('./routes/settings.routes');
 const passport = require('./config/passport');
 const authMiddleware = require('./middlewares/auth.middleware');
 require('colors');
@@ -27,15 +28,17 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(helmet());
 
-const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000"];
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'), false);
-  },
-  credentials: true,
-}));
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000'];
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+    credentials: true,
+  })
+);
 
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -63,6 +66,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/quizzes', authMiddleware, quizRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
 app.use('/api/profile', authMiddleware, profileRoutes);
+app.use('/api/settings', authMiddleware, settingsRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World');
