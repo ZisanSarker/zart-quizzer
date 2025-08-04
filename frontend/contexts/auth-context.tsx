@@ -76,7 +76,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [isInitialized, hasAttemptedRefresh])
 
   const handleLogin = async (data: LoginData) => {
-    setIsLoading(true)
     setError(null)
     setHasAttemptedRefresh(false)
     try {
@@ -86,13 +85,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err: any) {
       setError(err?.response?.data?.message || "Login failed")
       throw err
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const handleRegister = async (data: RegisterData) => {
-    setIsLoading(true)
     setError(null)
     setHasAttemptedRefresh(false)
     try {
@@ -102,13 +98,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err: any) {
       setError(err?.response?.data?.message || "Registration failed")
       throw err
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const handleLogout = async () => {
-    setIsLoading(true)
     try {
       await logout()
       setUser(null)
@@ -116,8 +109,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err: any) {
       setError(err?.response?.data?.message || "Logout failed")
       throw err
-    } finally {
-      setIsLoading(false)
     }
   }
 
