@@ -3,6 +3,7 @@ const User = require('../../models/user.model');
 
 module.exports = (passport) => {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BASE_URL } = process.env;
+  
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !BASE_URL) {
     console.error('Missing Google OAuth environment variables');
     process.exit(1);

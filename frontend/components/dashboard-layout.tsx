@@ -27,18 +27,34 @@ import { useEffect, useState } from "react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    if (!isAuthenticated && mounted) {
-      router.push("/login")
-    }
-  }, [isAuthenticated, mounted, router])
+  }, [])
 
-  if (!mounted || !isAuthenticated) return null
+  useEffect(() => {
+    if (mounted && !isLoading && !isAuthenticated) {
+      const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/auth/')
+      if (!isAuthPage) {
+        router.push("/login")
+      }
+    }
+  }, [isAuthenticated, isLoading, mounted, router, pathname])
+
+  if (!mounted || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   const getInitials = () => {
     if (!user?.username) return "U"
@@ -50,14 +66,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .substring(0, 2)
   }
 
-  // Navbar links for authenticated users
   const navLinks = [
     { href: "/", label: "Home", icon: Home },
     { href: "/explore", label: "Explore", icon: Library },
     { href: "/dashboard", label: "Dashboard", icon: Brain },
   ]
 
-  // Sidebar links
   const sidebarLinks = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/dashboard/create", label: "Create Quiz", icon: Plus },
@@ -69,16 +83,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider>
       <div className="flex flex-col min-h-screen w-full">
-        {/* Header */}
         <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-20 dark:bg-background/80 w-full">
           <div className="container flex h-14 sm:h-16 items-center justify-between max-w-7xl mx-auto px-3 sm:px-4">
-            {/* Left: Logo & Name */}
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <Brain className="h-6 w-6 text-primary animate-bounce-small" />
               <span className="font-bold text-xl gradient-heading">ZART Quizzer</span>
             </Link>
 
-            {/* Center: Navbar for authenticated users */}
             {isAuthenticated && (
               <nav className="flex-1 flex justify-center">
                 <ul className="flex gap-2 sm:gap-6 items-center">
@@ -101,7 +112,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </nav>
             )}
 
-            {/* Right: Profile section */}
             <div className="flex items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -145,9 +155,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {/* Sidebar & Main: placed below header */}
         <div className="flex flex-1 w-full min-h-0">
-          {/* Sidebar */}
           <Sidebar className="border-t-0">
             <SidebarContent>
               <ul className="flex flex-1 flex-col justify-center items-start gap-1 h-full pl-2">
@@ -184,7 +192,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarFooter>
           </Sidebar>
 
-          {/* Main */}
           <main className="flex-1 flex flex-col w-full items-center justify-center overflow-auto">
             <div className="w-full max-w-7xl px-2 sm:px-4 py-4 md:py-6 mx-auto flex flex-col items-center justify-center">
               <PageTransition>
@@ -194,7 +201,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
 
-        {/* Footer */}
         <footer className="w-full py-4 border-t bg-white dark:bg-background text-center text-sm text-muted-foreground">
           &copy; {new Date().getFullYear()} ZART Quizzer. All rights reserved.
         </footer>

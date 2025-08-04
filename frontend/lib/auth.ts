@@ -17,6 +17,23 @@ export interface AuthResponse {
   user: User
 }
 
+let currentUserPromise: Promise<{ user: User }> | null = null
+
+const getCurrentUserWithCache = async (): Promise<{ user: User }> => {
+  if (currentUserPromise) {
+    return currentUserPromise
+  }
+  
+  currentUserPromise = api.get<{ user: User }>("/auth/me").then(response => response.data)
+  
+  try {
+    const result = await currentUserPromise
+    return result
+  } finally {
+    currentUserPromise = null
+  }
+}
+
 export const register = async (data: RegisterData): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>("/auth/register", data)
   return response.data
@@ -33,8 +50,7 @@ export const logout = async (): Promise<{ message: string }> => {
 }
 
 export const getCurrentUser = async (): Promise<{ user: User }> => {
-  const response = await api.get<{ user: User }>("/auth/me")
-  return response.data
+  return getCurrentUserWithCache()
 }
 
 export const refreshToken = async (): Promise<{ message: string }> => {
@@ -42,15 +58,10 @@ export const refreshToken = async (): Promise<{ message: string }> => {
   return response.data
 }
 
-// OAuth URLs
 export const getGoogleAuthUrl = (): string => {
   return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/google`
 }
 
 export const getGithubAuthUrl = (): string => {
   return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/github`
-}
-
-export const getFacebookAuthUrl = (): string => {
-  return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/facebook`
 }

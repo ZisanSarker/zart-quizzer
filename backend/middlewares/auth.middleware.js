@@ -3,13 +3,11 @@ const User = require('../models/user.model');
 
 const authMiddleware = async (req, res, next) => {
   try {
-    // ✅ Case 1: OAuth via Passport.js
     if (req.isAuthenticated && req.isAuthenticated()) {
       req.userId = req.user._id || req.user.id;
       return next();
     }
 
-    // ✅ Case 2: JWT
     const accessToken = req.cookies.accessToken;
     const authHeader = req.headers.authorization;
     const headerToken = authHeader?.split(' ')[1];
@@ -22,13 +20,11 @@ const authMiddleware = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
       req.userId = decoded.userId;
-      // NEW: Fetch the user and attach to req
       const user = await User.findById(decoded.userId);
       if (!user) return res.status(401).json({ message: "User not found" });
       req.user = user;
       return next();
     } catch (tokenError) {
-      // Attempt to verify refresh token
       const refreshTokenCookie = req.cookies.refreshToken;
       const refreshTokenHeader = authHeader?.split(' ')[2];
       const refreshToken = refreshTokenHeader || refreshTokenCookie;
@@ -40,12 +36,10 @@ const authMiddleware = async (req, res, next) => {
       try {
         const decodedRefresh = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         req.userId = decodedRefresh.userId;
-        // NEW: Fetch the user and attach to req
         const user = await User.findById(decodedRefresh.userId);
         if (!user) return res.status(401).json({ message: "User not found" });
         req.user = user;
 
-        // Optionally generate a new access token
         const newAccessToken = jwt.sign(
           { userId: req.userId },
           process.env.JWT_ACCESS_SECRET,

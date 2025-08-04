@@ -29,28 +29,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [hasAttemptedRefresh, setHasAttemptedRefresh] = useState(false)
 
-  // Expose a function to manually refresh user (useful for silent refresh or role change)
   const refreshUser = useCallback(async () => {
-    setIsLoading(true)
+    if (isLoading) return
     try {
       const { user } = await getCurrentUser()
       setUser(user)
     } catch (err: any) {
       setUser(null)
-    } finally {
-      setIsLoading(false)
     }
-  }, [])
+  }, [isLoading])
 
-  // Initial check (and refreshToken fallback)
   useEffect(() => {
     const checkAuth = async () => {
+      if (isInitialized) return
+      
       try {
         const { user } = await getCurrentUser()
         setUser(user)
       } catch (err: any) {
-        if (err.response?.status === 401 || err.response?.status === 403) {
+        if ((err.response?.status === 401 || err.response?.status === 403) && !hasAttemptedRefresh) {
+          setHasAttemptedRefresh(true)
           try {
             await refreshToken()
             const { user } = await getCurrentUser()
@@ -63,15 +64,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } finally {
         setIsLoading(false)
+        setIsInitialized(true)
       }
     }
-    checkAuth()
-  }, [])
+    
+    const timer = setTimeout(() => {
+      checkAuth()
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [isInitialized, hasAttemptedRefresh])
 
-  // Page handles toast and redirect. Just throw on error and set state here.
   const handleLogin = async (data: LoginData) => {
     setIsLoading(true)
     setError(null)
+    setHasAttemptedRefresh(false)
     try {
       const response = await login(data)
       setUser(response.user)
@@ -87,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handleRegister = async (data: RegisterData) => {
     setIsLoading(true)
     setError(null)
+    setHasAttemptedRefresh(false)
     try {
       const response = await register(data)
       setUser(response.user)
@@ -104,6 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await logout()
       setUser(null)
+      setHasAttemptedRefresh(false)
     } catch (err: any) {
       setError(err?.response?.data?.message || "Logout failed")
       throw err

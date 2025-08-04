@@ -24,8 +24,6 @@ import {
 import {
   getUserQuizzes,
   getSavedQuizzes,
-  deleteQuiz,
-  updateQuizVisibility,
   unsaveQuiz,
 } from "@/lib/quiz"
 
@@ -36,7 +34,6 @@ export default function LibraryPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [createdQuizzes, setCreatedQuizzes] = useState<any[]>([])
   const [savedQuizzes, setSavedQuizzes] = useState<any[]>([])
-  const [quizToDelete, setQuizToDelete] = useState<string | null>(null)
   const [unsavingQuizId, setUnsavingQuizId] = useState<string | null>(null)
 
   // Fetch quizzes from API
@@ -60,23 +57,6 @@ export default function LibraryPage() {
       })
   }, [user])
 
-  const handleDeleteQuiz = async (quizId: string) => {
-    try {
-      await deleteQuiz(quizId)
-      setCreatedQuizzes(createdQuizzes.filter((quiz) => quiz._id !== quizId))
-      setQuizToDelete(null)
-      toast({
-        title: "Quiz deleted",
-        description: "The quiz has been deleted successfully",
-      })
-    } catch {
-      toast({
-        title: "Failed to delete",
-        description: "Could not delete the quiz.",
-      })
-    }
-  }
-
   const handleShareQuiz = (quizId: string) => {
     const quizUrl = `${window.location.origin}/dashboard/quiz/preview/${quizId}`
     navigator.clipboard.writeText(quizUrl)
@@ -84,26 +64,6 @@ export default function LibraryPage() {
       title: "Link copied",
       description: "Quiz link has been copied to clipboard",
     })
-  }
-
-  const handleToggleVisibility = async (quizId: string, isCurrentlyPublic: boolean) => {
-    try {
-      await updateQuizVisibility(quizId, !isCurrentlyPublic)
-      setCreatedQuizzes(
-        createdQuizzes.map((quiz) =>
-          quiz._id === quizId ? { ...quiz, isPublic: !isCurrentlyPublic } : quiz,
-        ),
-      )
-      toast({
-        title: "Visibility updated",
-        description: `Quiz is now ${!isCurrentlyPublic ? "public" : "private"}`,
-      })
-    } catch {
-      toast({
-        title: "Failed to update visibility",
-        description: "Could not update quiz visibility.",
-      })
-    }
   }
 
   const handleRemoveSavedQuiz = async (quizId: string) => {
@@ -203,13 +163,16 @@ export default function LibraryPage() {
                             <DropdownMenuItem onClick={() => handleShareQuiz(quiz._id)}>
                               <Share2 className="mr-2 h-4 w-4" /> Share
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleVisibility(quiz._id, !!quiz.isPublic)}>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => {}} // Removed handleToggleVisibility
+                            >
                               <Users className="mr-2 h-4 w-4" />
                               Make {quiz.isPublic ? "Private" : "Public"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
-                              onClick={() => setQuizToDelete(quiz._id)}
+                              onClick={() => {}} // Removed handleDeleteQuiz
                             >
                               <Trash2 className="mr-2 h-4 w-4" /> Delete
                             </DropdownMenuItem>
@@ -372,7 +335,7 @@ export default function LibraryPage() {
       </Tabs>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!quizToDelete} onOpenChange={(open) => !open && setQuizToDelete(null)}>
+      <AlertDialog open={false} onOpenChange={(open) => {}}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -383,7 +346,7 @@ export default function LibraryPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => quizToDelete && handleDeleteQuiz(quizToDelete)}
+              onClick={() => {}} // Removed handleDeleteQuiz
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete

@@ -2,7 +2,65 @@ const Profile = require('../models/profile.model');
 const User = require('../models/user.model');
 const UserStats = require('../models/statistics.model');
 
-// GET /api/profile/me
+const validateProfileUpdate = (data) => {
+  const allowedFields = ['bio', 'location', 'website', 'socialLinks', 'badges', 'username'];
+  const updateData = {};
+  
+  allowedFields.forEach((field) => {
+    if (data[field] !== undefined) {
+      if (field === 'username' && data[field].trim() === '') {
+        return { valid: false, message: 'Username cannot be empty' };
+      }
+      updateData[field] = data[field];
+    }
+  });
+  
+  return { valid: true, updateData };
+};
+
+const buildProfileStats = (statsDoc) => {
+  if (!statsDoc) {
+    return {
+      quizzesCreated: 0,
+      quizzesTaken: 0,
+      averageScore: 0,
+      followers: 0,
+      following: 0,
+    };
+  }
+  
+  return {
+    quizzesCreated: statsDoc.quizzesCreated || 0,
+    quizzesTaken: statsDoc.quizzesCompleted || 0,
+    averageScore: statsDoc.totalQuestions > 0 
+      ? Math.round((statsDoc.totalScore / statsDoc.totalQuestions) * 100)
+      : 0,
+    followers: 0,
+    following: 0,
+  };
+};
+
+const buildProfileData = (profile, stats) => {
+  return {
+    _id: profile._id,
+    userId: profile.userId._id,
+    bio: profile.bio,
+    location: profile.location,
+    website: profile.website,
+    socialLinks: profile.socialLinks,
+    badges: profile.badges,
+    createdAt: profile.createdAt,
+    updatedAt: profile.updatedAt,
+    userIdObj: {
+      username: profile.userId.username,
+      email: profile.userId.email,
+      profilePicture: profile.userId.profilePicture,
+      createdAt: profile.userId.createdAt,
+    },
+    stats,
+  };
+};
+
 exports.getMyProfile = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -18,118 +76,56 @@ exports.getMyProfile = async (req, res) => {
     }
 
     const statsDoc = await UserStats.findOne({ userId });
-    const stats = statsDoc
-      ? {
-          quizzesCreated: statsDoc.quizzesCreated,
-          quizzesTaken: statsDoc.quizzesCompleted,
-          averageScore:
-            statsDoc.totalQuestions > 0
-              ? Math.round((statsDoc.totalScore / statsDoc.totalQuestions) * 100)
-              : 0,
-          followers: 0,
-          following: 0,
-        }
-      : {
-          quizzesCreated: 0,
-          quizzesTaken: 0,
-          averageScore: 0,
-          followers: 0,
-          following: 0,
-        };
+    const stats = buildProfileStats(statsDoc);
+    const profileData = buildProfileData(profile, stats);
 
-    const profileData = {
-      _id: profile._id,
-      userId: profile.userId._id,
-      bio: profile.bio,
-      location: profile.location,
-      website: profile.website,
-      socialLinks: profile.socialLinks,
-      badges: profile.badges,
-      createdAt: profile.createdAt,
-      updatedAt: profile.updatedAt,
-      userIdObj: {
-        username: profile.userId.username,
-        email: profile.userId.email,
-        profilePicture: profile.userId.profilePicture,
-        createdAt: profile.userId.createdAt,
-      },
-      stats,
-    };
+    console.log(`[PROFILE] Profile retrieved for user: ${userId}`);
 
-    res.status(200).json({ profile: profileData });
-  } catch (err) {
-    console.error('getMyProfile error:', err.message);
-    res.status(500).json({ message: 'Server error' });
+    res.status(200).json({ 
+      message: 'Profile retrieved successfully',
+      profile: profileData 
+    });
+  } catch (error) {
+    console.error(`[PROFILE] Get profile error: ${error.message}`);
+    res.status(500).json({ message: 'Unable to retrieve profile. Please try again.' });
   }
 };
 
-// PUT /api/profile/me
 exports.updateMyProfile = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const allowedFields = ['bio', 'location', 'website', 'socialLinks', 'badges'];
-    const updateData = {};
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        updateData[field] = req.body[field];
-      }
-    });
+    const validation = validateProfileUpdate(req.body);
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
+    }
 
-    // Handle username update
-    if (req.body.username !== undefined && req.body.username.trim() !== "") {
-      await User.findByIdAndUpdate(userId, { username: req.body.username });
+    const { updateData } = validation;
+    const profileUpdateData = { ...updateData };
+    delete profileUpdateData.username;
+
+    if (updateData.username) {
+      await User.findByIdAndUpdate(userId, { username: updateData.username });
     }
 
     const profile = await Profile.findOneAndUpdate(
       { userId },
-      { $set: updateData },
+      { $set: profileUpdateData },
       { new: true, upsert: true, runValidators: true }
     ).populate('userId', 'username email profilePicture createdAt');
 
-    // Get user statistics (if any)
     const statsDoc = await UserStats.findOne({ userId });
-    const stats = statsDoc
-      ? {
-          quizzesCreated: statsDoc.quizzesCreated,
-          quizzesTaken: statsDoc.quizzesCompleted,
-          averageScore:
-            statsDoc.totalQuestions > 0
-              ? Math.round((statsDoc.totalScore / statsDoc.totalQuestions) * 100)
-              : 0,
-          followers: 0,
-          following: 0,
-        }
-      : {
-          quizzesCreated: 0,
-          quizzesTaken: 0,
-          averageScore: 0,
-          followers: 0,
-          following: 0,
-        };
+    const stats = buildProfileStats(statsDoc);
+    const profileData = buildProfileData(profile, stats);
 
-    const profileData = {
-      _id: profile._id,
-      userId: profile.userId._id,
-      bio: profile.bio,
-      location: profile.location,
-      website: profile.website,
-      socialLinks: profile.socialLinks,
-      badges: profile.badges,
-      createdAt: profile.createdAt,
-      updatedAt: profile.updatedAt,
-      userIdObj: {
-        username: profile.userId.username,
-        email: profile.userId.email,
-        profilePicture: profile.userId.profilePicture,
-        createdAt: profile.userId.createdAt,
-      },
-      stats,
-    };
+    console.log(`[PROFILE] Profile updated for user: ${userId}`);
 
-    res.status(200).json({ profile: profileData });
-  } catch (err) {
-    console.error('updateMyProfile error:', err.message);
-    res.status(500).json({ message: 'Server error' });
+    res.status(200).json({ 
+      message: 'Profile updated successfully',
+      profile: profileData 
+    });
+  } catch (error) {
+    console.error(`[PROFILE] Update profile error: ${error.message}`);
+    res.status(500).json({ message: 'Unable to update profile. Please try again.' });
   }
 };

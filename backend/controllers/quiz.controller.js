@@ -8,6 +8,31 @@ const moment = require('moment');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
+const getMultipleQuizRatings = async (quizIds) => {
+  const ratings = await QuizRating.find({ quizId: { $in: quizIds } });
+  const ratingMap = {};
+  
+  quizIds.forEach(quizId => {
+    ratingMap[quizId] = 0;
+  });
+  
+  const ratingsByQuiz = {};
+  ratings.forEach(rating => {
+    if (!ratingsByQuiz[rating.quizId]) {
+      ratingsByQuiz[rating.quizId] = [];
+    }
+    ratingsByQuiz[rating.quizId].push(rating.rating);
+  });
+  
+  Object.keys(ratingsByQuiz).forEach(quizId => {
+    const quizRatings = ratingsByQuiz[quizId];
+    const average = quizRatings.reduce((sum, rating) => sum + rating, 0) / quizRatings.length;
+    ratingMap[quizId] = Number(average.toFixed(2));
+  });
+  
+  return ratingMap;
+};
+
 const buildPrompt = (topic, description, difficulty, count, quizType) => {
   let base = `Generate ${count} ${difficulty} level ${quizType} quiz questions on the topic "${topic}".`;
   if (description) base += `\nDescription: ${description}`;
@@ -64,7 +89,7 @@ Format the output in JSON like this:
 [
   {
     "questionText": "...",
-    "options": ["...", "...", "...", "..."], // or ["True", "False"]
+    "options": ["...", "...", "...", "..."],
     "correctAnswer": "...",
     "explanation": "..."
   },
@@ -148,7 +173,16 @@ exports.generateQuiz = async (req, res) => {
 exports.getAllQuizzes = async (req, res) => {
   try {
     const quizzes = await Quiz.find().sort({ createdAt: -1 });
-    res.status(200).json(quizzes);
+    
+    const quizIds = quizzes.map(quiz => quiz._id);
+    const ratingsMap = await getMultipleQuizRatings(quizIds);
+    
+    const quizzesWithRatings = quizzes.map(quiz => ({
+      ...quiz.toObject(),
+      averageRating: ratingsMap[quiz._id] || 0
+    }));
+    
+    res.status(200).json(quizzesWithRatings);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch quizzes' });
   }
@@ -158,7 +192,16 @@ exports.getQuizById = async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
-    res.status(200).json(quiz);
+    
+    const ratings = await QuizRating.find({ quizId: quiz._id });
+    const averageRating = ratings.length === 0 ? 0 : Number((ratings.reduce((sum, rating) => sum + rating.rating, 0) / ratings.length).toFixed(2));
+    
+    const quizWithRating = {
+      ...quiz.toObject(),
+      averageRating
+    };
+    
+    res.status(200).json(quizWithRating);
   } catch (err) {
     res.status(500).json({ message: 'Error retrieving quiz' });
   }
@@ -189,10 +232,6 @@ exports.submitQuiz = async (req, res) => {
         explanation: question.explanation,
       });
     }
-
-    // Only allow one attempt per user per quiz for "attempts" count
-    // (But allow as many attempts as user wants for stats/history)
-    // We'll count attempts as unique user/quiz pairs in getPublicQuizzes
 
     const attempt = await QuizAttempt.create({
       userId,
@@ -226,15 +265,14 @@ exports.getQuizAttemptById = async (req, res) => {
 
 exports.getRecentQuizAttempts = async (req, res) => {
   try {
-    // Use req.user or req.userId as needed for your auth setup
     const userId = req.user?._id || req.userId;
+    
     if (!userId) {
       return res
         .status(400)
         .json({ message: 'User ID not found. Authentication failed.' });
     }
 
-    // Fetch ALL attempts for this user (no limit)
     const attempts = await QuizAttempt.find({ userId })
       .sort({ submittedAt: -1 })
       .populate('quizId');
@@ -266,6 +304,7 @@ exports.getRecentQuizAttempts = async (req, res) => {
           completedAt,
         };
       });
+    
     res.status(200).json(recentQuizzes);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch recent quizzes', error: err.message });
@@ -274,62 +313,41 @@ exports.getRecentQuizAttempts = async (req, res) => {
 
 exports.getRecommendedQuizzes = async (req, res) => {
   try {
-    // Use req.user or req.userId as needed for your auth setup
     const userId = req.user?._id || req.userId;
 
-    const attemptedQuizIds = await QuizAttempt.find({ userId }).distinct('quizId');
-
-    const userAttempts = await QuizAttempt.find({ userId }).populate('quizId');
-    let favTopics = [];
-    let favDifficulty = [];
-    if (userAttempts.length > 0) {
-      const topicCount = {};
-      const diffCount = {};
-      userAttempts.forEach(a => {
-        if (a.quizId) {
-          topicCount[a.quizId.topic] = (topicCount[a.quizId.topic] || 0) + 1;
-          diffCount[a.quizId.difficulty] = (diffCount[a.quizId.difficulty] || 0) + 1;
-        }
-      });
-      favTopics = Object.entries(topicCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 2)
-        .map(([topic]) => topic);
-      favDifficulty = Object.entries(diffCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 1)
-        .map(([diff]) => diff);
-    }
-
+    // Get all public quizzes that are not created by the current user
     const filter = {
-      _id: { $nin: attemptedQuizIds },
       createdBy: { $ne: userId },
       isPublic: true,
     };
-    let quizzes = await Quiz.find({
-      ...filter,
-      ...(favTopics.length > 0 ? { topic: { $in: favTopics } } : {}),
-      ...(favDifficulty.length > 0 ? { difficulty: { $in: favDifficulty } } : {}),
-    })
-      .sort({ createdAt: -1 })
-      .populate('createdBy', 'name');
 
-    // If not enough, fetch more (again, remove .limit(5 - quizzes.length))
-    if (quizzes.length < 5) {
-      const moreQuizzes = await Quiz.find(filter)
-        .sort({ createdAt: -1 })
-        .populate('createdBy', 'name');
-      const existingIds = new Set(quizzes.map(q => String(q._id)));
-      quizzes = quizzes.concat(moreQuizzes.filter(q => !existingIds.has(String(q._id))));
-    }
+    // Get all public quizzes first
+    let quizzes = await Quiz.find(filter)
+      .populate('createdBy', 'name')
+      .sort({ createdAt: -1 });
 
-    // Remove .slice(0, 5) to send all recommended quizzes
-    const recommendedQuizzes = quizzes.map(quiz => ({
-      id: quiz._id,
-      title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
-      author: quiz.createdBy ? quiz.createdBy.name : 'Unknown',
-      difficulty: quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1),
-    }));
+    // Get ratings for all quizzes
+    const quizIds = quizzes.map(quiz => quiz._id);
+    const ratingsMap = await getMultipleQuizRatings(quizIds);
+
+    // Map quizzes with their ratings and sort by rating (highest first)
+    const recommendedQuizzes = quizzes
+      .map(quiz => ({
+        id: quiz._id,
+        title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
+        author: quiz.createdBy ? quiz.createdBy.name : 'Unknown',
+        difficulty: quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1),
+        averageRating: ratingsMap[quiz._id] || 0,
+      }))
+      .sort((a, b) => {
+        // Sort by rating first (highest first)
+        if (b.averageRating !== a.averageRating) {
+          return b.averageRating - a.averageRating;
+        }
+        // If ratings are equal, sort by creation date (newest first)
+        return 0;
+      })
+      .slice(0, 10); // Limit to 10 recommendations
 
     res.status(200).json(recommendedQuizzes);
   } catch (err) {
@@ -350,16 +368,22 @@ exports.getSavedQuizzes = async (req, res) => {
       path: 'quizId',
       populate: { path: 'createdBy', select: 'name' },
     });
+    
     const quizzes = saved
       .map(item => item.quizId)
-      .filter(Boolean)
-      .map(quiz => ({
-        ...quiz.toObject(),
-        author: quiz.createdBy?.name || 'Unknown'
-      }));
-    res.status(200).json(quizzes);
+      .filter(Boolean);
+    
+    const quizIds = quizzes.map(quiz => quiz._id);
+    const ratingsMap = await getMultipleQuizRatings(quizIds);
+    
+    const quizzesWithRatings = quizzes.map(quiz => ({
+      ...quiz.toObject(),
+      author: quiz.createdBy?.name || 'Unknown',
+      averageRating: ratingsMap[quiz._id] || 0
+    }));
+    
+    res.status(200).json(quizzesWithRatings);
   } catch (err) {
-    console.error("Failed to fetch saved quizzes", err);
     res.status(500).json({ message: 'Failed to fetch saved quizzes', error: err.message });
   }
 };
@@ -374,18 +398,13 @@ exports.getUserQuizzes = async (req, res) => {
   }
 };
 
-// Helper for attempts and rating aggregation
 const getAttemptsAndRating = async (quizId) => {
-  // Unique attempts: unique userId/quizId pairs in QuizAttempt
   const attempts = await QuizAttempt.distinct('userId', { quizId }).then(list => list.length);
-  // Ratings aggregation
   const ratings = await QuizRating.find({ quizId });
-  const avgRating = ratings.length === 0
-    ? 0
-    : ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+  const rating = ratings.length === 0 ? 0 : Number((ratings.reduce((sum, rating) => sum + rating.rating, 0) / ratings.length).toFixed(2));
   return {
     attempts,
-    rating: Number(avgRating.toFixed(2))
+    rating
   };
 };
 
@@ -432,7 +451,6 @@ exports.saveQuiz = async (req, res) => {
 
     if (!quizId) return res.status(400).json({ message: 'quizId is required' });
 
-    // Prevent duplicates
     const exists = await SavedQuiz.findOne({ userId, quizId });
     if (exists) return res.status(400).json({ message: 'Quiz already saved' });
 
@@ -460,17 +478,11 @@ exports.unsaveQuiz = async (req, res) => {
 exports.getQuizRatings = async (req, res) => {
   try {
     const quizId = req.params.id;
-    const ratings = await QuizRating.find({ quizId });
-    const count = ratings.length;
-    const average = count === 0 ? 0 : (ratings.reduce((a, r) => a + r.rating, 0) / count).toFixed(2);
-
-    let userRating = null;
-    if (req.query.user === "true" && req.user && req.user._id) {
-      const existing = await QuizRating.findOne({ quizId, userId: req.user._id });
-      userRating = existing ? existing.rating : null;
-    }
-
-    res.status(200).json({ average: Number(average), count, userRating });
+    const userId = req.query.user === "true" && req.user && req.user._id ? req.user._id : null;
+    
+    const ratingStats = await getRatingStats(quizId, userId);
+    
+    res.status(200).json(ratingStats);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch ratings', error: err.message });
   }
@@ -484,14 +496,17 @@ exports.rateQuiz = async (req, res) => {
     const userId = req.user._id;
     const { quizId, rating } = req.body;
     if (!quizId || !rating) return res.status(400).json({ message: 'quizId and rating required' });
-    if (rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be 1-5' });
 
-    await QuizRating.findOneAndUpdate(
-      { userId, quizId },
-      { rating, updatedAt: new Date() },
-      { upsert: true, new: true }
-    );
-    res.status(200).json({ message: 'Rating saved' });
+    const ratingDoc = await rateQuizUtil(userId, quizId, rating);
+    
+    const ratingStats = await getRatingStats(quizId);
+    
+    res.status(200).json({ 
+      message: 'Rating saved',
+      rating: ratingDoc.rating,
+      averageRating: ratingStats.average,
+      totalRatings: ratingStats.count
+    });
   } catch (err) {
     res.status(500).json({ message: 'Failed to rate quiz', error: err.message });
   }

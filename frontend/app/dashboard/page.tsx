@@ -1,35 +1,27 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { GradientButton } from "@/components/ui/gradient-button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight, BarChart3, Brain, CheckCircle, Clock, Plus, Trophy } from "lucide-react"
-import { AnimatedCounter, FadeUp, StaggerChildren, StaggerItem } from "@/components/animations/motion"
+import { useAuth } from "@/contexts/auth-context"
 import { getRecentQuizAttempts, getRecommendedQuizzes } from "@/lib/quiz"
 import { getMyStats } from "@/lib/stats"
 import type { RecentQuizAttempt, RecommendedQuiz } from "@/types/quiz"
 import type { UserStats } from "@/types/stats"
-import { useAuth } from "@/contexts/auth-context"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Brain, CheckCircle, BarChart3, Clock, Plus, Trophy, ArrowRight } from "lucide-react"
+import { GradientButton } from "@/components/ui/gradient-button"
+import { StaggerChildren, StaggerItem, FadeUp, AnimatedCounter } from "@/components/animations/motion"
+import Link from "next/link"
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<UserStats | null>(null)
+  const { user, isLoading } = useAuth()
   const [recentQuizzes, setRecentQuizzes] = useState<RecentQuizAttempt[]>([])
   const [recommendedQuizzes, setRecommendedQuizzes] = useState<RecommendedQuiz[]>([])
-  const [quizError, setQuizError] = useState<string | null>(null)
+  const [stats, setStats] = useState<UserStats | null>(null)
   const [statsError, setStatsError] = useState<string | null>(null)
-  const { user, isLoading } = useAuth()
-  const router = useRouter()
+  const [quizError, setQuizError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace("/login")
-    }
-  }, [user, isLoading, router])
-
-  // Fetch stats
+  // Fetch statistics
   useEffect(() => {
     const fetchStats = async () => {
       setStatsError(null)
@@ -50,18 +42,29 @@ export default function DashboardPage() {
     const fetchData = async () => {
       setQuizError(null)
       try {
+        console.log('🔍 Fetching dashboard data for user:', user?._id)
         const [recent, recommended] = await Promise.all([
           getRecentQuizAttempts(),
           getRecommendedQuizzes(),
         ])
+        console.log('📊 Dashboard data fetched:', { 
+          recent: recent.length, 
+          recommended: recommended.length,
+          recentData: recent,
+          recommendedData: recommended
+        })
         setRecentQuizzes(recent)
         setRecommendedQuizzes(recommended)
       } catch (error: any) {
+        console.error('❌ Failed to fetch dashboard data:', error)
         setQuizError("Failed to fetch dashboard data.")
       }
     }
     if (user) {
+      console.log('👤 User authenticated, fetching quiz data...')
       fetchData()
+    } else {
+      console.log('❌ User not authenticated, skipping quiz data fetch')
     }
   }, [user])
 

@@ -6,7 +6,8 @@ import { GradientButton } from "@/components/ui/gradient-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, Share2, Star } from "lucide-react"
-import { getQuizById, submitQuiz, getQuizRatings, rateQuiz } from "@/lib/quiz"
+import { getQuizById, submitQuiz } from "@/lib/quiz"
+import { rateQuiz, getQuizRatingStats } from "@/lib/rating"
 import type { Quiz, QuizQuestion, QuizAnswer } from "@/types/quiz"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
@@ -88,7 +89,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         setQuiz(quizData)
         setStartTime(Date.now())
         if (user && quizData?._id) {
-          const data = await getQuizRatings(quizData._id, true)
+          const data = await getQuizRatingStats(quizData._id)
           setHasRated(Boolean(data.userRating))
         }
       } catch (e) {
