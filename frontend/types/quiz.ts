@@ -99,6 +99,7 @@ export interface ExploreQuiz {
   createdAt: string
   attempts?: number
   rating?: number
+  ratingCount?: number
   tags?: string[]
   author: {
     name: string

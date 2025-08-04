@@ -410,7 +410,10 @@ function QuizCard({
   const uiDifficulty = difficultyMap[(quiz.difficulty || "").toLowerCase()] || quiz.difficulty
 
   return (
-    <Card className="card-hover mobile-card">
+    <Card className="card-hover mobile-card animate-fade-in" style={{
+      animationDelay: `${Math.random() * 500}ms`,
+      animation: 'fadeInUp 0.8s ease-out forwards'
+    }}>
       <CardContent className="p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 min-w-0">
@@ -443,22 +446,72 @@ function QuizCard({
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-4">
-              <div className="flex items-center gap-1">
-                <Brain className="h-4 w-4 text-muted-foreground" />
-                <span className="responsive-text-small">{quiz.questions.length} questions</span>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mt-4" style={{
+              animation: 'fadeInUp 0.8s ease-out forwards',
+              animationDelay: '200ms'
+            }}>
+              <div 
+                className="metric-badge metric-badge-blue flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                style={{
+                  animation: 'fadeInUp 0.6s ease-out forwards',
+                  animationDelay: '300ms'
+                }}
+                title={`${quiz.questions.length} question${quiz.questions.length === 1 ? '' : 's'} in this quiz`}
+              >
+                <Brain className="h-4 w-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  {quiz.questions.length} {quiz.questions.length === 1 ? 'question' : 'questions'}
+                </span>
               </div>
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="responsive-text-small">{quiz.attempts ?? 0} attempts</span>
+              
+              <div 
+                className="metric-badge metric-badge-green flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                style={{
+                  animation: 'fadeInUp 0.6s ease-out forwards',
+                  animationDelay: '400ms'
+                }}
+                title={`${quiz.attempts ?? 0} user${quiz.attempts === 1 ? '' : 's'} have attempted this quiz`}
+              >
+                <Users className="h-4 w-4 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-300">{quiz.attempts ?? 0} attempts</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-amber-500" />
-                <span className="responsive-text-small">{quiz.rating ?? 0}</span>
+              
+              <div 
+                className="metric-badge metric-badge-purple flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                style={{
+                  animation: 'fadeInUp 0.6s ease-out forwards',
+                  animationDelay: '500ms'
+                }}
+                title={`Created ${formatRelativeTime(quiz.createdAt)}`}
+              >
+                <Clock className="h-4 w-4 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">{formatRelativeTime(quiz.createdAt)}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="responsive-text-small">{formatRelativeTime(quiz.createdAt)}</span>
+              
+              <div 
+                className="metric-badge metric-badge-amber flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                style={{
+                  animation: 'fadeInUp 0.6s ease-out forwards',
+                  animationDelay: '600ms'
+                }}
+                title={`Average rating: ${quiz.rating ? quiz.rating.toFixed(1) : "0.0"}/5.0`}
+              >
+                <Star className="h-4 w-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-sm font-medium text-amber-700 dark:text-amber-300">{quiz.rating ? quiz.rating.toFixed(1) : "0.0"}</span>
+              </div>
+              
+              <div 
+                className="metric-badge metric-badge-orange flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                style={{
+                  animation: 'fadeInUp 0.6s ease-out forwards',
+                  animationDelay: '700ms'
+                }}
+                title={`${quiz.ratingCount ?? 0} user${quiz.ratingCount === 1 ? '' : 's'} rated this quiz`}
+              >
+                <div className="w-4 h-4 rounded-full bg-orange-600 dark:bg-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-xs font-bold text-white">{quiz.ratingCount ?? 0}</span>
+                </div>
+                <span className="text-sm font-medium text-orange-700 dark:text-orange-300">{quiz.ratingCount === 1 ? "rating" : "ratings"}</span>
               </div>
             </div>
           </div>
