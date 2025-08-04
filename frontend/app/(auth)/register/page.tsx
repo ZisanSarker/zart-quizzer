@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function RegisterPage() {
-  const { register, isLoading: authLoading } = useAuth()
+  const { register, user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const [formData, setFormData] = useState({
@@ -64,6 +64,15 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setPasswordError("Passwords do not match")
       return
@@ -78,7 +87,7 @@ export default function RegisterPage() {
         title: "Account created!",
         description: "Welcome to ZART Quizzer. You can now log in.",
       })
-      router.push("/")
+      router.push("/dashboard")
     } catch (err: any) {
       let message = "Registration failed. Please try again."
       if (err?.response?.data?.message) {
@@ -95,8 +104,6 @@ export default function RegisterPage() {
       setIsLoading(false)
     }
   }
-
-  const loading = isLoading || authLoading
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-b from-primary-50 to-background dark:from-primary-950/30 dark:to-background">
@@ -126,7 +133,7 @@ export default function RegisterPage() {
                   value={formData.username}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
-                  disabled={loading}
+                  disabled={isLoading}
                 />
               </FadeUp>
               <FadeUp delay={0.2} className="space-y-2">
@@ -140,7 +147,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
-                  disabled={loading}
+                  disabled={isLoading}
                 />
               </FadeUp>
               <FadeUp delay={0.3} className="space-y-2">
@@ -155,7 +162,7 @@ export default function RegisterPage() {
                   className={`transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 ${
                     passwordError && formData.password ? "border-red-500" : ""
                   }`}
-                  disabled={loading}
+                  disabled={isLoading}
                 />
                 <p className="text-xs text-muted-foreground">
                   Password must be at least 8 characters, include a number and special character
@@ -173,7 +180,7 @@ export default function RegisterPage() {
                   className={`transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 ${
                     passwordError && formData.confirmPassword ? "border-red-500" : ""
                   }`}
-                  disabled={loading}
+                  disabled={isLoading}
                 />
                 {passwordError && <p className="text-xs text-red-500">{passwordError}</p>}
               </FadeUp>
@@ -181,9 +188,9 @@ export default function RegisterPage() {
                 <GradientButton
                   type="submit"
                   className="w-full"
-                  disabled={loading || !!passwordError || !formData.password || !formData.confirmPassword}
+                  disabled={isLoading || !!passwordError || !formData.password || !formData.confirmPassword}
                 >
-                  {loading ? (
+                  {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account
                     </>
@@ -208,7 +215,7 @@ export default function RegisterPage() {
                 variant="outline"
                 className="w-full transition-all duration-300"
                 onClick={() => (window.location.href = getGoogleAuthUrl())}
-                disabled={loading}
+                disabled={isLoading}
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Google
@@ -217,7 +224,7 @@ export default function RegisterPage() {
                 variant="outline"
                 className="w-full transition-all duration-300"
                 onClick={() => (window.location.href = getGithubAuthUrl())}
-                disabled={loading}
+                disabled={isLoading}
               >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub

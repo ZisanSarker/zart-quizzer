@@ -186,18 +186,19 @@ export default function ExplorePage() {
     return `${Math.floor(diffInDays / 365)} years ago`
   }
 
-  // Pagination controls
+  // Enhanced responsive pagination controls
   const Pagination = () => (
-    <div className="flex items-center justify-center gap-4 mt-8">
+    <div className="flex items-center justify-center gap-2 sm:gap-4 mt-6 sm:mt-8">
       <Button
         variant="outline"
         size="sm"
         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
         disabled={currentPage === 1}
+        className="touch-target"
       >
         Prev
       </Button>
-      <span className="text-sm text-muted-foreground">
+      <span className="responsive-text-small text-muted-foreground">
         Page {currentPage} of {totalPages}
       </span>
       <Button
@@ -205,6 +206,7 @@ export default function ExplorePage() {
         size="sm"
         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
         disabled={currentPage === totalPages || totalPages === 0}
+        className="touch-target"
       >
         Next
       </Button>
@@ -212,26 +214,29 @@ export default function ExplorePage() {
   )
 
   return (
-    <main className="flex-1 mx-auto py-8 max-w-6xl">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <main className="flex-1 mx-auto py-6 sm:py-8 max-w-6xl">
+      {/* Enhanced responsive header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight gradient-heading">Explore Quizzes</h1>
-          <p className="text-muted-foreground mt-1">Discover and practice quizzes created by the community</p>
+          <h1 className="responsive-heading-1 gradient-heading">Explore Quizzes</h1>
+          <p className="responsive-text text-muted-foreground mt-1">Discover and practice quizzes created by the community</p>
         </div>
-        <Link href="/dashboard/create">
-          <Button>Create Your Own Quiz</Button>
+        <Link href="/dashboard/create" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto touch-target">Create Your Own Quiz</Button>
         </Link>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[250px_1fr]">
-        <div className="space-y-6">
+      {/* Enhanced responsive layout */}
+      <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
+        {/* Enhanced responsive sidebar */}
+        <div className="space-y-4 sm:space-y-6">
           <div>
-            <h3 className="font-medium mb-2">Search</h3>
+            <h3 className="font-medium mb-2 responsive-text-small">Search</h3>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search quizzes..."
-                className="pl-10"
+                className="pl-10 responsive-text-small"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -239,7 +244,7 @@ export default function ExplorePage() {
           </div>
 
           <div>
-            <h3 className="font-medium mb-2">Category</h3>
+            <h3 className="font-medium mb-2 responsive-text-small">Category</h3>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
@@ -255,7 +260,7 @@ export default function ExplorePage() {
           </div>
 
           <div>
-            <h3 className="font-medium mb-2">Difficulty</h3>
+            <h3 className="font-medium mb-2 responsive-text-small">Difficulty</h3>
             <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
               <SelectTrigger>
                 <SelectValue placeholder="Select difficulty" />
@@ -271,13 +276,13 @@ export default function ExplorePage() {
           </div>
 
           <div>
-            <h3 className="font-medium mb-2">Popular Tags</h3>
+            <h3 className="font-medium mb-2 responsive-text-small">Popular Tags</h3>
             <div className="flex flex-wrap gap-2">
               {["mathematics", "science", "history", "programming", "literature", "geography"].map((tag) => (
                 <Badge
                   key={tag}
                   variant="outline"
-                  className="cursor-pointer hover:bg-primary/10"
+                  className="cursor-pointer hover:bg-primary/10 touch-target responsive-text-small"
                   onClick={() => setSearchQuery(tag)}
                 >
                   {tag}
@@ -287,19 +292,20 @@ export default function ExplorePage() {
           </div>
         </div>
 
+        {/* Enhanced responsive main content */}
         <div>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="flex justify-between items-center mb-6">
-              <TabsList>
-                <TabsTrigger value="popular">Popular</TabsTrigger>
-                <TabsTrigger value="recent">Recent</TabsTrigger>
-                <TabsTrigger value="trending">Trending</TabsTrigger>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="popular" className="touch-target">Popular</TabsTrigger>
+                <TabsTrigger value="recent" className="touch-target">Recent</TabsTrigger>
+                <TabsTrigger value="trending" className="touch-target">Trending</TabsTrigger>
               </TabsList>
-              <div className="text-sm text-muted-foreground">{filteredQuizzes.length} quizzes found</div>
+              <div className="responsive-text-small text-muted-foreground">{filteredQuizzes.length} quizzes found</div>
             </div>
 
             {/* Popular Tab */}
-            <TabsContent value="popular" className="space-y-6">
+            <TabsContent value="popular" className="space-y-4 sm:space-y-6">
               {isLoading ? (
                 <SkeletonList />
               ) : pagedQuizzes.length > 0 ? (
@@ -325,7 +331,7 @@ export default function ExplorePage() {
             </TabsContent>
 
             {/* Recent Tab */}
-            <TabsContent value="recent" className="space-y-6">
+            <TabsContent value="recent" className="space-y-4 sm:space-y-6">
               {isLoading ? (
                 <SkeletonList />
               ) : pagedQuizzes.length > 0 ? (
@@ -351,7 +357,7 @@ export default function ExplorePage() {
             </TabsContent>
 
             {/* Trending Tab */}
-            <TabsContent value="trending" className="space-y-6">
+            <TabsContent value="trending" className="space-y-4 sm:space-y-6">
               {isLoading ? (
                 <SkeletonList />
               ) : pagedQuizzes.length > 0 ? (
@@ -404,16 +410,16 @@ function QuizCard({
   const uiDifficulty = difficultyMap[(quiz.difficulty || "").toLowerCase()] || quiz.difficulty
 
   return (
-    <Card className="card-hover">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
+    <Card className="card-hover mobile-card">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
                 <Link href={`/dashboard/quiz/practice/${quiz._id}`} className="hover:text-primary transition-colors">
-                  <h3 className="text-xl font-bold hover:underline">{quiz.topic}</h3>
+                  <h3 className="responsive-heading-3 hover:underline truncate">{quiz.topic}</h3>
                 </Link>
-                <p className="text-muted-foreground mt-1">{quiz.description}</p>
+                <p className="responsive-text-small text-muted-foreground mt-1 line-clamp-2">{quiz.description}</p>
               </div>
               <Badge
                 variant={
@@ -423,6 +429,7 @@ function QuizCard({
                       ? "secondary"
                       : "default"
                 }
+                className="flex-shrink-0"
               >
                 {uiDifficulty}
               </Badge>
@@ -430,54 +437,55 @@ function QuizCard({
 
             <div className="flex flex-wrap gap-2 mt-3">
               {(quiz.tags || []).map((tag) => (
-                <Badge key={tag} variant="outline" className="bg-muted/50">
+                <Badge key={tag} variant="outline" className="bg-muted/50 responsive-text-small">
                   {tag}
                 </Badge>
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 mt-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-4">
               <div className="flex items-center gap-1">
                 <Brain className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{quiz.questions.length} questions</span>
+                <span className="responsive-text-small">{quiz.questions.length} questions</span>
               </div>
               <div className="flex items-center gap-1">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{quiz.attempts ?? 0} attempts</span>
+                <span className="responsive-text-small">{quiz.attempts ?? 0} attempts</span>
               </div>
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 text-amber-500" />
-                <span className="text-sm">{quiz.rating ?? 0}</span>
+                <span className="responsive-text-small">{quiz.rating ?? 0}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{formatRelativeTime(quiz.createdAt)}</span>
+                <span className="responsive-text-small">{formatRelativeTime(quiz.createdAt)}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col justify-between items-end gap-4">
-            <div className="flex items-center gap-2">
-              <div className="text-sm text-right">
-                <p className="font-medium">{quiz.author?.name}</p>
-                <p className="text-muted-foreground">Author</p>
+          <div className="flex flex-col justify-between items-end gap-4 lg:min-w-0">
+            <div className="flex items-center gap-2 w-full lg:w-auto">
+              <div className="text-sm text-right min-w-0 flex-1 lg:flex-none">
+                <p className="font-medium responsive-text-small truncate">{quiz.author?.name}</p>
+                <p className="responsive-text-small text-muted-foreground">Author</p>
               </div>
-              <Avatar>
+              <Avatar className="flex-shrink-0">
                 <AvatarImage src={quiz.author?.avatar || "/placeholder.svg"} alt={quiz.author?.name} />
                 <AvatarFallback>{quiz.author?.initials || "?"}</AvatarFallback>
               </Avatar>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full lg:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onSave(quiz._id)}
                 disabled={saving}
+                className="flex-1 lg:flex-none touch-target"
               >
                 {saving ? "Saving..." : "Save"}
               </Button>
-              <Button asChild>
+              <Button asChild className="flex-1 lg:flex-none touch-target">
                 <Link href={`/dashboard/quiz/practice/${quiz._id}`}>Practice</Link>
               </Button>
             </div>
@@ -488,14 +496,14 @@ function QuizCard({
   )
 }
 
-// Helper skeleton loader
+// Enhanced responsive skeleton loader
 function SkeletonList() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {[1, 2, 3].map((i) => (
-        <Card key={i} className="animate-pulse">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        <Card key={i} className="animate-pulse mobile-card">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
                 <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
@@ -523,15 +531,15 @@ function SkeletonList() {
   )
 }
 
-// Helper for no quizzes
+// Enhanced responsive no quizzes notice
 function NoQuizzesNotice({ onClearFilters }: { onClearFilters: () => void }) {
   return (
     <FadeIn>
-      <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
+      <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed mobile-card">
         <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-medium mb-2">No quizzes found</h3>
-        <p className="text-muted-foreground mb-6">Try adjusting your filters or search query</p>
-        <Button onClick={onClearFilters}>Clear Filters</Button>
+        <h3 className="responsive-heading-3 mb-2">No quizzes found</h3>
+        <p className="responsive-text text-muted-foreground mb-6">Try adjusting your filters or search query</p>
+        <Button onClick={onClearFilters} className="touch-target">Clear Filters</Button>
       </div>
     </FadeIn>
   )

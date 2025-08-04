@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
-  const { login, isLoading: authLoading, user } = useAuth()
+  const { login, user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -26,10 +26,11 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (!authLoading && user) {
-      router.replace("/")
+    // Only redirect if user is already logged in
+    if (user) {
+      router.replace("/dashboard")
     }
-  }, [authLoading, user, router])
+  }, [user, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -38,6 +39,16 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    if (!formData.email || !formData.password) {
+      toast({
+        title: "Missing information",
+        description: "Please enter both email and password.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
     try {
       await login(formData)
@@ -45,7 +56,7 @@ export default function LoginPage() {
         title: "Logged in successfully",
         description: "Welcome back! Redirecting...",
       })
-      router.push("/")
+      router.push("/dashboard")
     } catch (err: any) {
       let message = "Failed to log in. Please try again."
       if (err?.response?.data?.message) {
@@ -62,8 +73,6 @@ export default function LoginPage() {
       setIsLoading(false)
     }
   }
-
-  const loading = isLoading || authLoading
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-b from-primary-50 to-background dark:from-primary-950/30 dark:to-background">
@@ -94,7 +103,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
-                  disabled={loading}
+                  disabled={isLoading}
                 />
               </FadeUp>
               <FadeUp delay={0.2} className="space-y-2">
@@ -113,12 +122,12 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
-                  disabled={loading}
+                  disabled={isLoading}
                 />
               </FadeUp>
               <FadeUp delay={0.3}>
-                <GradientButton type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
+                <GradientButton type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
                     </>
@@ -146,7 +155,7 @@ export default function LoginPage() {
                   toast({ title: "Redirecting...", description: "Opening Google login." })
                   window.location.href = getGoogleAuthUrl()
                 }}
-                disabled={loading}
+                disabled={isLoading}
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Google
@@ -158,7 +167,7 @@ export default function LoginPage() {
                   toast({ title: "Redirecting...", description: "Opening GitHub login." })
                   window.location.href = getGithubAuthUrl()
                 }}
-                disabled={loading}
+                disabled={isLoading}
               >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub
