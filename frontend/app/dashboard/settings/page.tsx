@@ -15,27 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   AlertTriangle,
-  Bell,
   Check,
-  Globe,
   Key,
   Loader2,
   Lock,
-  Moon,
   Palette,
   Shield,
-  Sun,
-  User,
 } from "lucide-react";
 import { FadeIn } from "@/components/animations/motion";
 import { deleteAccount, changePassword } from "@/lib/user";
@@ -66,18 +55,6 @@ const settingsMock = {
     newFollowers: true,
     quizComments: true,
     marketingEmails: false,
-  },
-  appearance: {
-    theme: "system", // "light", "dark", "system"
-    colorScheme: "purple", // "purple", "blue", "green", "orange"
-    fontSize: "medium", // "small", "medium", "large"
-    reducedMotion: false,
-  },
-  privacy: {
-    profileVisibility: "public", // "public", "followers", "private"
-    showActivityStatus: true,
-    allowTagging: true,
-    showQuizHistory: true,
   },
   security: {
     lastPasswordChange: "2023-03-15T10:30:00Z",
@@ -150,20 +127,6 @@ export default function SettingsPage() {
       [section]: {
         ...prev[section as keyof typeof prev],
         [setting]: checked,
-      },
-    }));
-  };
-
-  const handleSelectChange = (
-    section: string,
-    setting: string,
-    value: string
-  ) => {
-    setSettings((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section as keyof typeof prev],
-        [setting]: value,
       },
     }));
   };
@@ -316,27 +279,15 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="security" className="space-y-6">
-        <TabsList className="grid grid-cols-3 md:grid-cols-5 w-full overflow-x-auto">
-          {/* <TabsTrigger value="account" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span className="hidden md:inline">Account</span>
-          </TabsTrigger> */}
-          {/* <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            <span className="hidden md:inline">Notifications</span>
-          </TabsTrigger> */}
+        <TabsList className="grid grid-cols-2 w-full overflow-x-auto">
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             <span className="hidden md:inline">Security</span>
           </TabsTrigger>
-          {/* <TabsTrigger value="appearance" className="flex items-center gap-2">
+          <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             <span className="hidden md:inline">Appearance</span>
-          </TabsTrigger> */}
-          {/* <TabsTrigger value="privacy" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            <span className="hidden md:inline">Privacy</span>
-          </TabsTrigger> */}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="account">
@@ -423,140 +374,11 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Theme</Label>
-                  <Select
-                    value={settings.appearance.theme}
-                    onValueChange={(value) =>
-                      handleSelectChange("appearance", "theme", value)
-                    }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">
-                        <Sun className="inline h-4 w-4 mr-1" /> Light
-                      </SelectItem>
-                      <SelectItem value="dark">
-                        <Moon className="inline h-4 w-4 mr-1" /> Dark
-                      </SelectItem>
-                      <SelectItem value="system">
-                        <Loader2 className="inline h-4 w-4 mr-1" /> System
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Color Scheme</Label>
-                  <Select
-                    value={settings.appearance.colorScheme}
-                    onValueChange={(value) =>
-                      handleSelectChange("appearance", "colorScheme", value)
-                    }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="purple">Purple</SelectItem>
-                      <SelectItem value="blue">Blue</SelectItem>
-                      <SelectItem value="green">Green</SelectItem>
-                      <SelectItem value="orange">Orange</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Font Size</Label>
-                  <Select
-                    value={settings.appearance.fontSize}
-                    onValueChange={(value) =>
-                      handleSelectChange("appearance", "fontSize", value)
-                    }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Small</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="large">Large</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Reduced Motion</Label>
-                  <Switch
-                    checked={settings.appearance.reducedMotion}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("appearance", "reducedMotion", checked)
-                    }
-                  />
-                </div>
-              </div>
+              <ThemeToggle />
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="privacy">
-          <Card>
-            <CardHeader>
-              <CardTitle>Privacy Settings</CardTitle>
-              <CardDescription>
-                Control who can see your profile and activity.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Profile Visibility</Label>
-                  <Select
-                    value={settings.privacy.profileVisibility}
-                    onValueChange={(value) =>
-                      handleSelectChange("privacy", "profileVisibility", value)
-                    }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="followers">Followers Only</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Show Activity Status</Label>
-                  <Switch
-                    checked={settings.privacy.showActivityStatus}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange(
-                        "privacy",
-                        "showActivityStatus",
-                        checked
-                      )
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Allow Tagging</Label>
-                  <Switch
-                    checked={settings.privacy.allowTagging}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("privacy", "allowTagging", checked)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Show Quiz History</Label>
-                  <Switch
-                    checked={settings.privacy.showQuizHistory}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("privacy", "showQuizHistory", checked)
-                    }
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
         <TabsContent value="security">
           <Card>
             <CardHeader>
