@@ -1,4 +1,5 @@
 const QuizRating = require('../models/quizRating.model');
+const Quiz = require('../models/quiz.model');
 
 exports.getRating = async (req, res) => {
   try {
@@ -47,6 +48,20 @@ exports.rateQuiz = async (req, res) => {
     
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+    
+    // Check if user is trying to rate their own quiz or if quiz is not public
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+    
+    if (quiz.createdBy.toString() === userId) {
+      return res.status(403).json({ message: 'You cannot rate your own quiz' });
+    }
+    
+    if (!quiz.isPublic) {
+      return res.status(403).json({ message: 'You can only rate public quizzes' });
     }
     
     const ratingDoc = await QuizRating.findOneAndUpdate(

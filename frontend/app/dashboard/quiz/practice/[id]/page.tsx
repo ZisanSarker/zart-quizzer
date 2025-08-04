@@ -36,33 +36,75 @@ function RatingStars({
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
+  // Fetch current user rating on component mount
+  useEffect(() => {
+    const fetchUserRating = async () => {
+      if (userId && quizId) {
+        try {
+          const data = await getQuizRatingStats(quizId)
+          if (data.userRating) {
+            setRating(data.userRating)
+          }
+        } catch (error) {
+          console.error('Failed to fetch user rating:', error)
+        }
+      }
+    }
+    fetchUserRating()
+  }, [userId, quizId])
+
   const handleRate = async (r: number) => {
     if (!userId) return
     setLoading(true)
     setRating(r)
     try {
       await rateQuiz(quizId, r)
-      toast({ title: "Thank you for rating!" })
+      toast({ 
+        title: r === rating ? "Rating updated!" : "Thank you for rating!",
+        description: r === rating ? "Your rating has been updated." : "Your rating has been saved."
+      })
       if (onRated) onRated(r)
-    } catch {
-      toast({ title: "Failed to rate", variant: "destructive" })
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Failed to rate"
+      toast({ 
+        title: "Rating failed", 
+        description: errorMessage,
+        variant: "destructive" 
+      })
     } finally {
       setLoading(false)
     }
   }
   return (
-    <div className="flex items-center justify-center gap-2 py-2">
+    <div className="flex items-center justify-center gap-3 py-2">
       {Array.from({ length: 5 }, (_, i) => i + 1).map((i) => (
-        <button
-          key={i}
-          type="button"
-          aria-label={`Rate ${i}`}
-          disabled={loading}
-          onClick={() => handleRate(i)}
-          className={`transition-colors ${i <= rating ? "text-amber-400 scale-110" : "text-muted-foreground scale-100"} hover:scale-125`}
-        >
-          <Star className="h-9 w-9" fill={i <= rating ? "#fbbf24" : "none"} />
-        </button>
+        <div className="relative">
+          <button
+            key={i}
+            type="button"
+            aria-label={`Rate ${i}`}
+            disabled={loading}
+            onClick={() => handleRate(i)}
+            className={`transition-all duration-300 group ${
+              i <= rating 
+                ? "text-amber-500 scale-110" 
+                : "text-gray-300 dark:text-gray-600 scale-100 hover:text-amber-400 dark:hover:text-amber-400"
+            } hover:scale-125`}
+          >
+            <Star 
+              className={`h-10 w-10 transition-all duration-300 ${
+                i <= rating 
+                  ? "fill-amber-500 drop-shadow-lg" 
+                  : "fill-none group-hover:fill-amber-200 dark:group-hover:fill-amber-800"
+              }`} 
+            />
+            {i <= rating && (
+              <div className="absolute inset-0 animate-pulse">
+                <Star className="h-10 w-10 text-amber-400 fill-amber-400 opacity-30" />
+              </div>
+            )}
+          </button>
+        </div>
       ))}
     </div>
   )
@@ -79,8 +121,10 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
   const [startTime, setStartTime] = useState<number | null>(null)
   const [practiceSubmitted, setPracticeSubmitted] = useState(false)
   const [showRatingModal, setShowRatingModal] = useState(false)
+  const [showRateButton, setShowRateButton] = useState(false)
   const [hasRated, setHasRated] = useState(false)
   const [pendingRedirect, setPendingRedirect] = useState(false)
+  const [canRate, setCanRate] = useState(false)
 
   useEffect(() => {
     async function fetchQuizAndUserRating() {
@@ -88,9 +132,20 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         const quizData = await getQuizById(params.id)
         setQuiz(quizData)
         setStartTime(Date.now())
+        
+        // Check if user can rate this quiz (not their own quiz and must be public)
         if (user && quizData?._id) {
-          const data = await getQuizRatingStats(quizData._id)
-          setHasRated(Boolean(data.userRating))
+          const isOwnQuiz = quizData.createdBy === user._id
+          const isPublicQuiz = quizData.isPublic === true
+          const canRateQuiz = !isOwnQuiz && isPublicQuiz
+          
+          setCanRate(canRateQuiz)
+          setShowRateButton(canRateQuiz)
+          
+          if (canRateQuiz) {
+            const data = await getQuizRatingStats(quizData._id)
+            setHasRated(Boolean(data.userRating))
+          }
         }
       } catch (e) {
         toast({
@@ -156,7 +211,9 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         title: "Practice session logged!",
         description: "Your practice has been saved in your statistics.",
       })
-      if (!hasRated && user) {
+      
+      // Show rating modal if user can rate and hasn't rated yet
+      if (canRate && !hasRated && user) {
         setShowRatingModal(true)
         setPendingRedirect(true)
       } else {
@@ -188,6 +245,40 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
     }
   }
 
+  const handleRateClick = () => {
+    if (canRate && !hasRated) {
+      setShowRatingModal(true)
+    }
+  }
+
+  const handleRateButtonClick = () => {
+    if (!quiz || !user) return
+
+    const isOwnQuiz = quiz.createdBy === user._id
+    const isPublicQuiz = quiz.isPublic === true
+
+    if (isOwnQuiz) {
+      toast({
+        title: "Cannot rate your own quiz",
+        description: "You can only rate quizzes created by other users.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!isPublicQuiz) {
+      toast({
+        title: "Cannot rate private quiz",
+        description: "You can only rate public quizzes.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Allow rating (multiple ratings are supported, latest one counts)
+    setShowRatingModal(true)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -217,9 +308,50 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         <h1 className="text-3xl font-bold tracking-tight gradient-heading">
           Practice: {quiz.topic}
         </h1>
-        <Button variant="outline" size="sm" onClick={handleShareQuiz}>
-          <Share2 className="mr-2 h-4 w-4" /> Share Quiz
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Enhanced Rate Quiz Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRateButtonClick}
+            className={`
+              flex items-center gap-2 transition-all duration-300 transform hover:scale-105
+              ${showRateButton 
+                ? hasRated
+                  ? "bg-green-50 hover:bg-green-100 dark:bg-green-950/30 dark:hover:bg-green-950/50 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
+                  : "bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 dark:from-amber-950/30 dark:to-yellow-950/30 dark:hover:from-amber-950/50 dark:hover:to-yellow-950/50 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 shadow-md hover:shadow-lg rate-button-glow"
+                : "bg-gray-50 hover:bg-gray-100 dark:bg-gray-950/30 dark:hover:bg-gray-950/50 border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400"
+              }
+              ${showRateButton && !hasRated ? "rate-button-pulse" : ""}
+            `}
+            disabled={!showRateButton}
+            title={
+              !showRateButton 
+                ? quiz?.createdBy === user?._id 
+                  ? "You cannot rate your own quiz" 
+                  : "This quiz is not public"
+                : hasRated 
+                  ? "You have already rated this quiz" 
+                  : "Rate this public quiz"
+            }
+          >
+            <Star className={`h-4 w-4 transition-all duration-300 ${
+              showRateButton && !hasRated ? "star-bounce" : ""
+            }`} />
+            {showRateButton 
+              ? hasRated 
+                ? "Rated ✓" 
+                : "Rate Quiz"
+              : quiz?.createdBy === user?._id 
+                ? "Your Quiz" 
+                : "Private Quiz"
+            }
+          </Button>
+          
+          <Button variant="outline" size="sm" onClick={handleShareQuiz}>
+            <Share2 className="mr-2 h-4 w-4" /> Share Quiz
+          </Button>
+        </div>
       </div>
 
       <FadeIn>
@@ -338,23 +470,48 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* Rating Modal */}
+      {/* Enhanced Rating Modal */}
       <Dialog open={showRatingModal} onOpenChange={open => { if (!open) setShowRatingModal(false) }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800">
           <DialogHeader>
-            <DialogTitle className="text-center">How would you rate this quiz?</DialogTitle>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+              </div>
+              <DialogTitle className="text-xl font-bold text-amber-800 dark:text-amber-200">
+                Rate this Quiz
+              </DialogTitle>
+              <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                How would you rate "{quiz.topic}"?
+              </p>
+            </div>
           </DialogHeader>
-          <div className="flex flex-col items-center gap-3 my-2">
+          
+          <div className="flex flex-col items-center gap-4 my-4">
             <RatingStars
               quizId={quiz._id}
               userId={user?._id}
               onRated={handleRated}
             />
-            <span className="text-sm text-muted-foreground">Your feedback helps improve future quizzes!</span>
+            <div className="text-center">
+              <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
+                Your feedback helps improve future quizzes!
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                Click on a star to rate from 1 to 5 • You can update your rating anytime
+              </p>
+            </div>
           </div>
-          <DialogFooter className="flex justify-center">
+          
+          <DialogFooter className="flex justify-center gap-2">
             <DialogClose asChild>
-              <Button variant="ghost" onClick={handleModalClose}>Skip</Button>
+              <Button 
+                variant="ghost" 
+                onClick={handleModalClose}
+                className="text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50"
+              >
+                Skip for now
+              </Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

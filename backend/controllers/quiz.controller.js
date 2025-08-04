@@ -404,7 +404,8 @@ const getAttemptsAndRating = async (quizId) => {
   const rating = ratings.length === 0 ? 0 : Number((ratings.reduce((sum, rating) => sum + rating.rating, 0) / ratings.length).toFixed(2));
   return {
     attempts,
-    rating
+    rating,
+    ratingCount: ratings.length
   };
 };
 
@@ -415,7 +416,7 @@ exports.getPublicQuizzes = async (req, res) => {
       .populate({ path: 'createdBy', select: 'name avatar initials _id' });
 
     const mapped = await Promise.all(quizzes.map(async q => {
-      const { attempts, rating } = await getAttemptsAndRating(q._id);
+      const { attempts, rating, ratingCount } = await getAttemptsAndRating(q._id);
       return {
         _id: q._id,
         topic: q.topic,
@@ -429,6 +430,7 @@ exports.getPublicQuizzes = async (req, res) => {
         tags: q.tags || [],
         attempts,
         rating,
+        ratingCount,
         author: {
           name: q.createdBy?.name || "Unknown",
           avatar: q.createdBy?.avatar || "",
