@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const generateTokens = require('../utils/generateTokens');
+const { hashPassword, comparePassword, sanitizeUser } = require('../utils/userUtils');
 const validator = require('validator');
 const passport = require('../config/passport');
-require('colors');
 
 const cookieOptions = (maxAge) => ({
   httpOnly: true,
@@ -13,193 +13,207 @@ const cookieOptions = (maxAge) => ({
   path: '/',
 });
 
-const sanitizeUser = (user) => {
-  const userObj = user.toJSON ? user.toJSON() : user.toObject();
-  return userObj;
-};
-
-
-// ─────────── Register ───────────
-exports.register = async (req, res) => {
-  const { username, email, password } = req.body;
-
-  // Basic validations
+const validateRegistration = (username, email, password) => {
   if (!username || !email || !password) {
-    return res.status(400).json({ message: 'Please provide all required fields' });
+    return { valid: false, message: 'Please fill in all required fields' };
   }
 
   if (!validator.isEmail(email)) {
-    return res.status(400).json({ message: 'Invalid email address' });
+    return { valid: false, message: 'Please enter a valid email address' };
   }
 
-  if (password.length < 8 || !/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    return res.status(400).json({ message: 'Password must be at least 8 characters, include a number and special character' });
+  if (password.length < 8) {
+    return { valid: false, message: 'Password must be at least 8 characters long' };
   }
 
+  if (!/\d/.test(password)) {
+    return { valid: false, message: 'Password must include at least one number' };
+  }
+
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    return { valid: false, message: 'Password must include at least one special character' };
+  }
+
+  return { valid: true };
+};
+
+const validateLogin = (email, password) => {
+  if (!email || !password) {
+    return { valid: false, message: 'Please enter both email and password' };
+  }
+
+  if (!validator.isEmail(email)) {
+    return { valid: false, message: 'Please enter a valid email address' };
+  }
+
+  return { valid: true };
+};
+
+exports.register = async (req, res) => {
   try {
+    const { username, email, password } = req.body;
+
+    const validation = validateRegistration(username, email, password);
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
+    }
+
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'Email already exists' });
+    if (existingUser) {
+      return res.status(400).json({ message: 'An account with this email already exists' });
+    }
 
-    // Create new user (password hashing handled by model pre-save hook)
-    const newUser = await User.create({ username, email, password });
-
+    const hashedPassword = await hashPassword(password);
+    const newUser = await User.create({ 
+      username, 
+      email, 
+      password: hashedPassword,
+      passwordChangedAt: Date.now() - 1000
+    });
     const { accessToken, refreshToken } = generateTokens(newUser._id);
 
     res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
     res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
-    console.log(`Registered: ${email}`.green.bold);
+    console.log(`[AUTH] User registered: ${email} (ID: ${newUser._id})`);
 
     res.status(201).json({
-      message: 'Registered successfully',
+      message: 'Account created successfully! Welcome aboard!',
       user: sanitizeUser(newUser),
       accessToken,
       refreshToken
     });
-  } catch (err) {
-    console.error(`Register Error: ${err.message}`.red.bold);
-    res.status(500).json({ message: 'Server error during registration' });
+  } catch (error) {
+    console.error(`[AUTH] Registration error: ${error.message}`);
+    res.status(500).json({ message: 'Unable to create account. Please try again.' });
   }
 };
 
-// ─────────── Login ───────────
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'Please provide both email and password' });
-
   try {
-    const user = await User.findOne({ email }).select('+password');
-    
-    if (!user || !(await user.correctPassword(password, user.password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const { email, password } = req.body;
+
+    const validation = validateLogin(email, password);
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
     }
 
-    // Update last login time
+    const user = await User.findOne({ email }).select('+password');
+    
+    if (!user || !(await comparePassword(password, user.password))) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
     user.lastLogin = Date.now();
-    await user.save({ validateBeforeSave: false });
+    await user.save();
 
     const { accessToken, refreshToken } = generateTokens(user._id);
 
-    res.cookie('accessToken', accessToken, cookieOptions(24 * 60 * 60 * 1000));
+    res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
     res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
-    console.log(`Logged in: ${email}`.blue.bold);
+    console.log(`[AUTH] User logged in: ${email} (ID: ${user._id})`);
 
     res.status(200).json({
-      message: 'Logged in successfully',
+      message: 'Welcome back! You have been logged in successfully.',
       user: sanitizeUser(user),
       accessToken,
       refreshToken
     });
-  } catch (err) {
-    console.error(`Login Error: ${err.message}`.red.bold);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error(`[AUTH] Login error: ${error.message}`);
+    res.status(500).json({ message: 'Unable to log in. Please try again.' });
   }
 };
 
-// ─────────── Logout ───────────
 exports.logout = (req, res) => {
   try {
-    // Clear JWT cookies
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
 
-    // Passport logout (for OAuth session)
-    req.logout((err) => {
-      if (err) {
-        console.error(`Logout Error: ${err.message}`.red.bold);
-        return res.status(500).json({ message: 'Logout failed' });
+    req.logout((error) => {
+      if (error) {
+        console.error(`[AUTH] Logout error: ${error.message}`);
+        return res.status(500).json({ message: 'Unable to log out. Please try again.' });
       }
 
-      // Log the event
-      if (req.user?.email) {
-        console.log(`Logged out: ${req.user.email}`.yellow.bold);
-      } else if (req.userId) {
-        console.log(`Logged out user ID: ${req.userId}`.yellow.bold);
-      } else {
-        console.log(`Logged out anonymous session`.yellow.bold);
-      }
+      const userInfo = req.user?.email || req.userId || 'anonymous';
+      console.log(`[AUTH] User logged out: ${userInfo}`);
 
-      // Send logout success response
-      res.status(200).json({ message: 'Logged out successfully' });
+      res.status(200).json({ message: 'You have been logged out successfully.' });
     });
-  } catch (err) {
-    console.error(`❌ Logout Error: ${err.message}`.red.bold);
-    res.status(500).json({ message: 'Server error during logout' });
+  } catch (error) {
+    console.error(`[AUTH] Logout error: ${error.message}`);
+    res.status(500).json({ message: 'Unable to log out. Please try again.' });
   }
 };
 
-
-// ─────────── Refresh Token ───────────
 exports.refreshToken = (req, res) => {
-  const refreshTokenFromClient = req.cookies.refreshToken;
-
-  if (!refreshTokenFromClient) {
-    return res.status(403).json({ message: 'Refresh token required' });
-  }
-
   try {
+    const refreshTokenFromClient = req.cookies.refreshToken;
+
+    if (!refreshTokenFromClient) {
+      return res.status(403).json({ message: 'Session expired. Please log in again.' });
+    }
+
     const decoded = jwt.verify(refreshTokenFromClient, process.env.JWT_REFRESH_SECRET);
     const { accessToken, refreshToken } = generateTokens(decoded.userId);
 
     res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
     res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
-    res.status(200).json({ message: 'Tokens refreshed successfully' });
-  } catch (err) {
-    console.error(`Refresh Token Error: ${err.message}`.red.bold);
-    res.status(403).json({ message: 'Invalid refresh token' });
+    console.log(`[AUTH] Tokens refreshed for user: ${decoded.userId}`);
+
+    res.status(200).json({ message: 'Session refreshed successfully.' });
+  } catch (error) {
+    console.error(`[AUTH] Token refresh error: ${error.message}`);
+    res.status(403).json({ message: 'Session expired. Please log in again.' });
   }
 };
 
-// ─────────── Get Current User ───────────
 exports.getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User account not found.' });
+    }
 
     res.status(200).json({ user });
-  } catch (err) {
-    console.error(`Get User Error: ${err.message}`.red.bold);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error(`[AUTH] Get current user error: ${error.message}`);
+    res.status(500).json({ message: 'Unable to retrieve user information.' });
   }
 };
 
-// ─────────── oAuth 2.0 Google ───────────
 exports.startGoogleAuth = passport.authenticate('google', {
   scope: ['profile', 'email'],
 });
+
 exports.handleGoogleCallback = [
   passport.authenticate('google', {
     failureRedirect: '/login',
   }),
   async (req, res) => {
     try {
-      // User object is already set by passport
       const user = req.user;
-      
-      // Update last login
       user.lastLogin = Date.now();
-      
-      await user.save({ validateBeforeSave: false });
+      await user.save();
 
-      // Generate JWT tokens
       const { accessToken, refreshToken } = generateTokens(user._id);
-      // Set cookies
       res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
       res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
-      console.log(`Logged in via Google: ${user.email}`.blue.bold);
+      console.log(`[AUTH] Google OAuth login: ${user.email} (ID: ${user._id})`);
 
       const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
       res.redirect(redirectUrl);
-    } catch (err) {
-      console.error(`Google Auth Error: ${err.message}`.red.bold);
+    } catch (error) {
+      console.error(`[AUTH] Google OAuth error: ${error.message}`);
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
     }
   }
 ];
 
-// ─────────── oAuth 2.0 GitHub ───────────
 exports.startGithubAuth = passport.authenticate('github', {
   scope: ['user:email'],
 });
@@ -212,46 +226,21 @@ exports.handleGithubCallback = [
     try {
       const user = req.user;
       user.lastLogin = Date.now();
-      await user.save({ validateBeforeSave: false });
+      await user.save();
 
       const { accessToken, refreshToken } = generateTokens(user._id);
-
       res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
       res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
-      console.log(`Logged in via GitHub: ${user.email}`.cyan.bold);
+      console.log(`[AUTH] GitHub OAuth login: ${user.email} (ID: ${user._id})`);
+
       const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
       res.redirect(redirectUrl);
-    } catch (err) {
-      console.error(`GitHub Auth Error: ${err.message}`.red.bold);
+    } catch (error) {
+      console.error(`[AUTH] GitHub OAuth error: ${error.message}`);
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
     }
   },
 ];
 
-// ─────────── oAuth 2.0 Facebook ───────────
-exports.startFacebookAuth = passport.authenticate('facebook', {
-  scope: ['email'],
-});
 
-exports.handleFacebookCallback = [
-  passport.authenticate('facebook', {
-    failureRedirect: '/login',
-  }),
-  async (req, res) => {
-    try {
-      const user = req.user;
-      user.lastLogin = Date.now();
-      await user.save({ validateBeforeSave: false });
-
-      const { accessToken, refreshToken } = generateTokens(user._id);
-
-      res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
-
-      console.log(`Logged in via Facebook: ${user.email}`.magenta.bold);
-      res.redirect(process.env.FRONTEND_URL || '/');
-    } catch (err) {
-      console.error(`Facebook Auth Error: ${err.message}`.red.bold);
-    }
-  },
-];

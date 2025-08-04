@@ -67,8 +67,15 @@ export default function ExplorePage() {
 
   useEffect(() => {
     setIsLoading(true)
+    console.log('🔍 Fetching explore quizzes...')
     getExploreQuizzes()
-      .then(setPublicQuizzes)
+      .then((data) => {
+        console.log('📊 Explore quizzes fetched:', data.length)
+        setPublicQuizzes(data)
+      })
+      .catch((error) => {
+        console.error('❌ Failed to fetch explore quizzes:', error)
+      })
       .finally(() => setIsLoading(false))
   }, [])
 

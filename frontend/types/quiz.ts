@@ -66,7 +66,8 @@ export interface RecommendedQuiz {
   id: string
   title: string
   author: string
-  difficulty: "Beginner" | "Intermediate" | "Advanced"
+  difficulty: string
+  averageRating: number
 }
 
 export interface QuizAttemptResult {
@@ -105,11 +106,4 @@ export interface ExploreQuiz {
     initials?: string
     _id?: string
   }
-}
-
-// --- Rating types/responses ---
-export interface QuizRatingsResponse {
-  average: number
-  count: number
-  userRating?: number | null
 }

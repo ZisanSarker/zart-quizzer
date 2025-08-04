@@ -20,6 +20,7 @@ module.exports = (passport) => {
       async (accessToken, refreshToken, profile, done) => {
         try {
           if (!profile || !profile.id) return done(new Error('Invalid GitHub profile'), null);
+          
           const email = profile.emails?.[0]?.value;
           const githubId = profile.id;
           const username = profile.username || email.split('@')[0];

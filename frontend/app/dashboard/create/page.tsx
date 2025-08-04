@@ -80,6 +80,7 @@ export default function CreateQuizPage() {
     setIsGenerating(true)
     try {
       const { topic, description, quizType, numberOfQuestions, difficulty, timeLimit, isPublic } = formData
+      
       // Always pass timeLimit!
       const response = await generateQuiz({
         topic,
@@ -90,6 +91,7 @@ export default function CreateQuizPage() {
         timeLimit,
         isPublic,
       })
+      
       toast({
         title: "Quiz generated successfully",
         description: "Your quiz is ready to be taken or shared.",

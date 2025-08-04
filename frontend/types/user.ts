@@ -7,7 +7,7 @@ export interface User {
   isActive: boolean;
   isEmailVerified: boolean;
   lastLogin: string | null;
-  provider: "local" | "google" | "github" | "facebook";
+  provider: "local" | "google" | "github";
   createdAt: string;
   updatedAt: string;
 }
