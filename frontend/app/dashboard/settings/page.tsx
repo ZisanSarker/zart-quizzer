@@ -27,6 +27,7 @@ import {
   Shield,
 } from "lucide-react";
 import { FadeIn } from "@/components/animations/motion";
+import { Section } from "@/components/section";
 import { deleteAccount, changePassword } from "@/lib/user";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -248,199 +249,219 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-pulse text-center">
-          <h2 className="text-2xl font-bold mb-2">Loading settings...</h2>
-          <p className="text-muted-foreground">
-            Please wait while we load your settings
-          </p>
-        </div>
+      <div className="w-full flex flex-col items-center">
+        <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-pulse text-center">
+                <h2 className="text-2xl font-bold mb-2">Loading settings...</h2>
+                <p className="text-muted-foreground">
+                  Please wait while we load your settings
+                </p>
+              </div>
+            </div>
+          </div>
+        </Section>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold tracking-tight gradient-heading">
-          Settings
-        </h1>
-        <GradientButton onClick={handleSaveSettings} disabled={isSaving}>
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
-            </>
-          ) : (
-            <>
-              <Check className="mr-2 h-4 w-4" /> Save Changes
-            </>
-          )}
-        </GradientButton>
-      </div>
+    <div className="w-full flex flex-col items-center">
+      {/* Settings Header Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="animate-fade-up">
+              <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
+                Settings
+              </h1>
+            </div>
+            <div className="animate-fade-up animate-delay-200">
+              <GradientButton onClick={handleSaveSettings} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                  </>
+                ) : (
+                  <>
+                    <Check className="mr-2 h-4 w-4" /> Save Changes
+                  </>
+                )}
+              </GradientButton>
+            </div>
+          </div>
+        </div>
+      </Section>
 
-      <Tabs defaultValue="security" className="space-y-6">
-        <TabsList className="grid grid-cols-2 w-full overflow-x-auto">
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span className="hidden md:inline">Security</span>
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            <span className="hidden md:inline">Appearance</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Settings Content Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <Tabs defaultValue="security" className="space-y-6">
+            <TabsList className="grid grid-cols-2 w-full overflow-x-auto">
+              <TabsTrigger value="security" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                <span className="hidden md:inline">Security</span>
+              </TabsTrigger>
+              <TabsTrigger value="appearance" className="flex items-center gap-2">
+                <Palette className="h-4 w-4" />
+                <span className="hidden md:inline">Appearance</span>
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>
-                Update your account information and security settings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="w-full md:w-1/2 space-y-4">
-                  <Label>Email Address</Label>
-                  <Input type="email" value={settings.account.email} disabled />
-                  {settings.account.emailVerified ? (
-                    <span className="text-xs text-green-600 flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Verified
-                    </span>
-                  ) : (
-                    <span className="text-xs text-red-600 flex items-center gap-1">
-                      <AlertTriangle className="h-3 w-3" /> Not verified
-                    </span>
-                  )}
-                </div>
-                <div className="w-full md:w-1/2 space-y-4">
-                  <Label
-                    htmlFor="twoFactorEnabled"
-                    className="flex items-center gap-2">
-                    <Lock className="h-4 w-4" /> Two-Factor Authentication
-                  </Label>
-                  <Switch
-                    id="twoFactorEnabled"
-                    checked={settings.account.twoFactorEnabled}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("account", "twoFactorEnabled", checked)
-                    }
-                  />
-                </div>
-              </div>
-              <div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPasswordDialog(true)}
-                  className="mt-2">
-                  <Key className="h-4 w-4 mr-2" /> Change Password
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>
-                Choose which events trigger notifications.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(settings.notifications).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <Label className="capitalize">
-                    {key.replace(/([A-Z])/g, " $1")}
-                  </Label>
-                  <Switch
-                    checked={value}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("notifications", key, checked)
-                    }
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>
-                Customize the look and feel of your experience.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ThemeToggle />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security</CardTitle>
-              <CardDescription>
-                Review your account's security information.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                {/* <Label>Last Password Change</Label>
-                <div className="text-muted-foreground mb-2">
-                  {formatDate(settings.security.lastPasswordChange)}
-                </div> */}
-
-                <div className="w-full md:w-1/2 space-y-4 pb-6">
-                  <Label>Email Address</Label>
-                  <Input type="email" value={settings.account.email} disabled />
-                  {settings.account.emailVerified ? (
-                    <span className="text-xs text-green-600 flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Verified
-                    </span>
-                  ) : (
-                    <span className="text-xs text-red-600 flex items-center gap-1">
-                      <AlertTriangle className="h-3 w-3" /> Not verified
-                    </span>
-                  )}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPasswordDialog(true)}>
-                  <Key className="h-4 w-4 mr-2" /> Change Password
-                </Button>
-              </div>
-              {/* <div>
-                <Label>Login History</Label>
-                <ul className="divide-y divide-border">
-                  {settings.security.loginHistory.map((login, idx) => (
-                    <li
-                      key={idx}
-                      className="py-2 flex flex-col md:flex-row md:items-center md:justify-between">
-                      <span className="font-mono text-xs">{login.device}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {login.location}
-                      </span>
-                      <span className="text-xs">{formatDate(login.time)}</span>
-                    </li>
+            <TabsContent value="account">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Settings</CardTitle>
+                  <CardDescription>
+                    Update your account information and security settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="w-full md:w-1/2 space-y-4">
+                      <Label>Email Address</Label>
+                      <Input type="email" value={settings.account.email} disabled />
+                      {settings.account.emailVerified ? (
+                        <span className="text-xs text-green-600 flex items-center gap-1">
+                          <Check className="h-3 w-3" /> Verified
+                        </span>
+                      ) : (
+                        <span className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" /> Not verified
+                        </span>
+                      )}
+                    </div>
+                    <div className="w-full md:w-1/2 space-y-4">
+                      <Label
+                        htmlFor="twoFactorEnabled"
+                        className="flex items-center gap-2">
+                        <Lock className="h-4 w-4" /> Two-Factor Authentication
+                      </Label>
+                      <Switch
+                        id="twoFactorEnabled"
+                        checked={settings.account.twoFactorEnabled}
+                        onCheckedChange={(checked) =>
+                          handleSwitchChange("account", "twoFactorEnabled", checked)
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPasswordDialog(true)}
+                      className="mt-2">
+                      <Key className="h-4 w-4 mr-2" /> Change Password
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="notifications">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notification Preferences</CardTitle>
+                  <CardDescription>
+                    Choose which events trigger notifications.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(settings.notifications).map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <Label className="capitalize">
+                        {key.replace(/([A-Z])/g, " $1")}
+                      </Label>
+                      <Switch
+                        checked={value}
+                        onCheckedChange={(checked) =>
+                          handleSwitchChange("notifications", key, checked)
+                        }
+                      />
+                    </div>
                   ))}
-                </ul>
-              </div> */}
-              <div>
-                <Button
-                  variant="destructive"
-                  onClick={() => setShowDeleteDialog(true)}>
-                  <AlertTriangle className="h-4 w-4 mr-2" /> Delete Account
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="appearance">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Appearance</CardTitle>
+                  <CardDescription>
+                    Customize the look and feel of your experience.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <ThemeToggle />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="security">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Security</CardTitle>
+                  <CardDescription>
+                    Review your account's security information.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    {/* <Label>Last Password Change</Label>
+                    <div className="text-muted-foreground mb-2">
+                      {formatDate(settings.security.lastPasswordChange)}
+                    </div> */}
+
+                    <div className="w-full md:w-1/2 space-y-4 pb-6">
+                      <Label>Email Address</Label>
+                      <Input type="email" value={settings.account.email} disabled />
+                      {settings.account.emailVerified ? (
+                        <span className="text-xs text-green-600 flex items-center gap-1">
+                          <Check className="h-3 w-3" /> Verified
+                        </span>
+                      ) : (
+                        <span className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" /> Not verified
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPasswordDialog(true)}>
+                      <Key className="h-4 w-4 mr-2" /> Change Password
+                    </Button>
+                  </div>
+                  {/* <div>
+                    <Label>Login History</Label>
+                    <ul className="divide-y divide-border">
+                      {settings.security.loginHistory.map((login, idx) => (
+                        <li
+                          key={idx}
+                          className="py-2 flex flex-col md:flex-row md:items-center md:justify-between">
+                          <span className="font-mono text-xs">{login.device}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {login.location}
+                          </span>
+                          <span className="text-xs">{formatDate(login.time)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div> */}
+                  <div>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowDeleteDialog(true)}>
+                      <AlertTriangle className="h-4 w-4 mr-2" /> Delete Account
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </Section>
 
       {/* Change Password Dialog */}
       <AlertDialog
@@ -536,6 +557,6 @@ export default function SettingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

@@ -4,15 +4,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Calendar, Clock, Search, Trophy } from "lucide-react";
+import { Brain, Calendar, Clock, Trophy } from "lucide-react";
 import {
   FadeIn,
   StaggerChildren,
   StaggerItem,
 } from "@/components/animations/motion";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { Section } from "@/components/section";
 import { getRecentQuizAttempts } from "@/lib/quiz";
 import type { RecentQuizAttempt } from "@/types/quiz";
 
@@ -58,7 +59,6 @@ const formatRelativeTime = (dateString: string) => {
 };
 
 export default function HistoryPage() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [quizHistory, setQuizHistory] = useState<RecentQuizAttempt[]>([]);
 
@@ -165,281 +165,280 @@ export default function HistoryPage() {
     fetchData();
   }, []);
 
-  const filteredHistory = quizHistory.filter((item) =>
-    item.quizTitle.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
-    <>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold tracking-tight gradient-heading">
-          Quiz History
-        </h1>
-      </div>
-
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search quiz history..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+    <div className="w-full flex flex-col items-center">
+      {/* History Header Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="animate-fade-up">
+              <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
+                Quiz History
+              </h1>
+            </div>
+          </div>
         </div>
-      </div>
+      </Section>
 
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-6">
-        <Card className="card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Total Quizzes Taken</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{quizHistory.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Average Score</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {(() => {
-                const validScores = quizHistory
-                  .map((item) => Number(item.score))
-                  .filter(
-                    (score) => !isNaN(score) && score >= 0 && score <= 100
-                  );
-                return validScores.length > 0
-                  ? Math.round(
-                      validScores.reduce((acc, score) => acc + score, 0) /
-                        validScores.length
-                    )
-                  : 0;
-              })()}
-              %
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Topics Covered</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {performanceByTopic.length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Stats Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-6">
+            <Card className="card-hover">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Quizzes Taken</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{quizHistory.length}</div>
+              </CardContent>
+            </Card>
+            <Card className="card-hover">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Average Score</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {(() => {
+                    const validScores = quizHistory
+                      .map((item) => Number(item.score))
+                      .filter(
+                        (score) => !isNaN(score) && score >= 0 && score <= 100
+                      );
+                    return validScores.length > 0
+                      ? Math.round(
+                          validScores.reduce((acc, score) => acc + score, 0) /
+                            validScores.length
+                        )
+                      : 0;
+                  })()}
+                  %
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="card-hover">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Topics Covered</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {performanceByTopic.length}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </Section>
 
-      <Tabs defaultValue="history">
-        <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-3 mb-6">
-          <TabsTrigger value="history">Quiz History</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-        </TabsList>
+      {/* Content Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <Tabs defaultValue="history">
+            <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-3 mb-6">
+              <TabsTrigger value="history">Quiz History</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="achievements">Achievements</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="history">
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-center">
-                      <div className="space-y-2">
-                        <div className="h-6 bg-muted rounded w-48"></div>
-                        <div className="h-4 bg-muted rounded w-32"></div>
-                      </div>
-                      <div className="h-10 w-10 bg-muted rounded-full"></div>
+            <TabsContent value="history">
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-center">
+                          <div className="space-y-2">
+                            <div className="h-6 bg-muted rounded w-48"></div>
+                            <div className="h-4 bg-muted rounded w-32"></div>
+                          </div>
+                          <div className="h-10 w-10 bg-muted rounded-full"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : quizHistory.length > 0 ? (
+                <StaggerChildren className="space-y-4">
+                  {quizHistory.map((item) => (
+                    <StaggerItem key={item.id}>
+                      <Card className="card-hover">
+                        <CardContent className="p-6">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                            <div>
+                              <h3 className="font-medium text-lg">
+                                {item.quizTitle}
+                              </h3>
+                              <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>
+                                    {formatRelativeTime(item.completedAt)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Brain className="h-4 w-4" />
+                                  <span>{item.totalQuestions} questions</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  <span>{formatTimeTaken(item.timeTaken)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex flex-col items-center">
+                                <div
+                                  className={`flex items-center justify-center w-16 h-16 rounded-full ${getScoreBadgeColor(
+                                    item.score
+                                  )} text-white`}
+                                >
+                                  <span className="text-xl font-bold">
+                                    {item.score}%
+                                  </span>
+                                </div>
+                                <span className="text-xs mt-1 text-muted-foreground">
+                                  Score
+                                </span>
+                              </div>
+                              <Button asChild>
+                                <Link
+                                  href={`/dashboard/quiz/preview/${item.quizId}`}
+                                >
+                                  Retake Quiz
+                                </Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </StaggerItem>
+                  ))}
+                </StaggerChildren>
+              ) : (
+                <FadeIn>
+                  <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
+                    <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">
+                      No quiz history found
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      You haven't taken any quizzes yet
+                    </p>
+                    <GradientButton asChild>
+                      <Link href="/explore">
+                        Find Quizzes to Practice
+                      </Link>
+                    </GradientButton>
+                  </div>
+                </FadeIn>
+              )}
+            </TabsContent>
+
+            <TabsContent value="performance">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Performance by Topic</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {performanceByTopic.map((item) => (
+                        <div key={item.topic} className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <div className="font-medium">{item.topic}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.attempts} attempts
+                            </div>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary"
+                              style={{ width: `${item.averageScore}%` }}
+                            ></div>
+                          </div>
+                          <div className="text-sm text-right">
+                            {item.averageScore}% average
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          ) : filteredHistory.length > 0 ? (
-            <StaggerChildren className="space-y-4">
-              {filteredHistory.map((item) => (
-                <StaggerItem key={item.id}>
-                  <Card className="card-hover">
-                    <CardContent className="p-6">
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-                        <div>
-                          <h3 className="font-medium text-lg">
-                            {item.quizTitle}
-                          </h3>
-                          <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>
-                                {formatRelativeTime(item.completedAt)}
-                              </span>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Progress</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {quizHistory.slice(0, 5).map((item) => (
+                        <div key={item.id} className="flex items-center gap-4">
+                          <div
+                            className={`flex items-center justify-center w-10 h-10 rounded-full ${getScoreBadgeColor(
+                              item.score
+                            )} text-white flex-shrink-0`}
+                          >
+                            <span className="text-sm font-bold">{item.score}%</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">
+                              {item.quizTitle}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Brain className="h-4 w-4" />
-                              <span>{item.totalQuestions} questions</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span>{formatTimeTaken(item.timeTaken)}</span>
+                            <div className="text-sm text-muted-foreground">
+                              {formatRelativeTime(item.completedAt)}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex flex-col items-center">
-                            <div
-                              className={`flex items-center justify-center w-16 h-16 rounded-full ${getScoreBadgeColor(
-                                item.score
-                              )} text-white`}
-                            >
-                              <span className="text-xl font-bold">
-                                {item.score}%
-                              </span>
-                            </div>
-                            <span className="text-xs mt-1 text-muted-foreground">
-                              Score
-                            </span>
-                          </div>
-                          <Button asChild>
-                            <Link
-                              href={`/dashboard/quiz/preview/${item.quizId}`}
-                            >
-                              Retake Quiz
-                            </Link>
-                          </Button>
-                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="achievements">
+              <div className="min-h-[300px] grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                {achievements.length === 0 ? (
+                  <Card className="flex flex-1 items-center justify-center">
+                    <CardContent className="p-6 flex flex-col items-center text-center w-full">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                        <Trophy className="h-8 w-8 text-primary" />
                       </div>
+                      <h3 className="font-bold text-lg mb-2">
+                        No Achievements Yet
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        Complete more quizzes to unlock achievements!
+                      </p>
                     </CardContent>
                   </Card>
-                </StaggerItem>
-              ))}
-            </StaggerChildren>
-          ) : (
-            <FadeIn>
-              <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  No quiz history found
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {searchQuery
-                    ? "No quizzes match your search query"
-                    : "You haven't taken any quizzes yet"}
-                </p>
-                <Button asChild>
-                  <Link href="/explore">
-                    <Search className="mr-2 h-4 w-4" /> Find Quizzes to Practice
-                  </Link>
-                </Button>
+                ) : (
+                  achievements.map((achievement) => (
+                    <Card
+                      key={achievement.id}
+                      className="card-hover flex flex-col h-full"
+                    >
+                      <CardContent className="p-6 flex flex-col items-center text-center h-full">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                          <Trophy className="h-8 w-8 text-primary" />
+                        </div>
+                        <h3 className="font-bold text-lg mb-2">
+                          {achievement.title}
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          {achievement.description}
+                        </p>
+                        <Badge variant="outline" className="mt-auto">
+                          {formatRelativeTime(achievement.date)}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
-            </FadeIn>
-          )}
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance by Topic</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {performanceByTopic.map((item) => (
-                    <div key={item.topic} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">{item.topic}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {item.attempts} attempts
-                        </div>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${item.averageScore}%` }}
-                        ></div>
-                      </div>
-                      <div className="text-sm text-right">
-                        {item.averageScore}% average
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {quizHistory.slice(0, 5).map((item) => (
-                    <div key={item.id} className="flex items-center gap-4">
-                      <div
-                        className={`flex items-center justify-center w-10 h-10 rounded-full ${getScoreBadgeColor(
-                          item.score
-                        )} text-white flex-shrink-0`}
-                      >
-                        <span className="text-sm font-bold">{item.score}%</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
-                          {item.quizTitle}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {formatRelativeTime(item.completedAt)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="achievements">
-          <div className="min-h-[300px] grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-            {achievements.length === 0 ? (
-              <Card className="flex flex-1 items-center justify-center">
-                <CardContent className="p-6 flex flex-col items-center text-center w-full">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Trophy className="h-8 w-8 text-primary" />
-                  </div>
-                  <h3 className="font-bold text-lg mb-2">
-                    No Achievements Yet
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Complete more quizzes to unlock achievements!
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              achievements.map((achievement) => (
-                <Card
-                  key={achievement.id}
-                  className="card-hover flex flex-col h-full"
-                >
-                  <CardContent className="p-6 flex flex-col items-center text-center h-full">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <Trophy className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">
-                      {achievement.title}
-                    </h3>
-                    <p className="text-muted-foreground mb-4">
-                      {achievement.description}
-                    </p>
-                    <Badge variant="outline" className="mt-auto">
-                      {formatRelativeTime(achievement.date)}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
-    </>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </Section>
+    </div>
   );
 }
