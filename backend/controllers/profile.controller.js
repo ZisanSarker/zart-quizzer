@@ -129,3 +129,47 @@ exports.updateMyProfile = async (req, res) => {
     res.status(500).json({ message: 'Unable to update profile. Please try again.' });
   }
 };
+
+exports.getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    console.log(`[PROFILE] Requesting profile for userId: ${userId}`);
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    let profile = await Profile.findOne({ userId }).populate(
+      'userId',
+      'username email profilePicture createdAt'
+    );
+
+    console.log(`[PROFILE] Found profile:`, profile ? 'yes' : 'no');
+
+    if (!profile) {
+      console.log(`[PROFILE] Creating default profile for userId: ${userId}`);
+      // Create a default profile if it doesn't exist
+      profile = await Profile.create({ userId });
+      profile = await profile.populate('userId', 'username email profilePicture createdAt');
+    }
+
+    const statsDoc = await UserStats.findOne({ userId });
+    console.log(`[PROFILE] Found stats:`, statsDoc ? 'yes' : 'no');
+    
+    const stats = buildProfileStats(statsDoc);
+    const profileData = buildProfileData(profile, stats);
+
+    console.log(`[PROFILE] Profile retrieved for user: ${userId}`);
+    console.log(`[PROFILE] Profile data:`, JSON.stringify(profileData, null, 2));
+
+    res.status(200).json({ 
+      message: 'Profile retrieved successfully',
+      profile: profileData 
+    });
+  } catch (error) {
+    console.error(`[PROFILE] Get user profile error: ${error.message}`);
+    console.error(`[PROFILE] Error stack:`, error.stack);
+    res.status(500).json({ message: 'Unable to retrieve profile. Please try again.' });
+  }
+};

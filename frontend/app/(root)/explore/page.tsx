@@ -293,10 +293,25 @@ export default function ExplorePage() {
         <div>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <TabsList className="w-full sm:w-auto">
-                <TabsTrigger value="popular" className="touch-target">Popular</TabsTrigger>
-                <TabsTrigger value="recent" className="touch-target">Recent</TabsTrigger>
-                <TabsTrigger value="trending" className="touch-target">Trending</TabsTrigger>
+              <TabsList className="w-full sm:w-auto glass-effect-tabs">
+                <TabsTrigger 
+                  value="popular" 
+                  className="touch-target glass-tab-trigger"
+                >
+                  Popular
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="recent" 
+                  className="touch-target glass-tab-trigger"
+                >
+                  Recent
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="trending" 
+                  className="touch-target glass-tab-trigger"
+                >
+                  Trending
+                </TabsTrigger>
               </TabsList>
               <div className="responsive-text-small text-muted-foreground">{filteredQuizzes.length} quizzes found</div>
             </div>
@@ -407,10 +422,7 @@ function QuizCard({
   const uiDifficulty = difficultyMap[(quiz.difficulty || "").toLowerCase()] || quiz.difficulty
 
   return (
-    <Card className="card-hover mobile-card animate-fade-in" style={{
-      animationDelay: `${Math.random() * 500}ms`,
-      animation: 'fadeInUp 0.8s ease-out forwards'
-    }}>
+    <Card className="card-hover mobile-card">
       <CardContent className="p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 min-w-0">
@@ -443,16 +455,9 @@ function QuizCard({
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mt-4" style={{
-              animation: 'fadeInUp 0.8s ease-out forwards',
-              animationDelay: '200ms'
-            }}>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mt-4">
               <div 
                 className="metric-badge metric-badge-blue flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out forwards',
-                  animationDelay: '300ms'
-                }}
                 title={`${quiz.questions.length} question${quiz.questions.length === 1 ? '' : 's'} in this quiz`}
               >
                 <Brain className="h-4 w-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
@@ -463,10 +468,6 @@ function QuizCard({
               
               <div 
                 className="metric-badge metric-badge-green flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out forwards',
-                  animationDelay: '400ms'
-                }}
                 title={`${quiz.attempts ?? 0} user${quiz.attempts === 1 ? '' : 's'} have attempted this quiz`}
               >
                 <Users className="h-4 w-4 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-300" />
@@ -475,10 +476,6 @@ function QuizCard({
               
               <div 
                 className="metric-badge metric-badge-purple flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out forwards',
-                  animationDelay: '500ms'
-                }}
                 title={`Created ${formatRelativeTime(quiz.createdAt)}`}
               >
                 <Clock className="h-4 w-4 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300" />
@@ -487,10 +484,6 @@ function QuizCard({
               
               <div 
                 className="metric-badge metric-badge-amber flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out forwards',
-                  animationDelay: '600ms'
-                }}
                 title={`Average rating: ${quiz.rating ? quiz.rating.toFixed(1) : "0.0"}/5.0`}
               >
                 <Star className="h-4 w-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300" />
@@ -499,10 +492,6 @@ function QuizCard({
               
               <div 
                 className="metric-badge metric-badge-orange flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out forwards',
-                  animationDelay: '700ms'
-                }}
                 title={`${quiz.ratingCount ?? 0} user${quiz.ratingCount === 1 ? '' : 's'} rated this quiz`}
               >
                 <div className="w-4 h-4 rounded-full bg-orange-600 dark:bg-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -516,13 +505,27 @@ function QuizCard({
           <div className="flex flex-col justify-between items-end gap-4 lg:min-w-0">
             <div className="flex items-center gap-2 w-full lg:w-auto">
               <div className="text-sm text-right min-w-0 flex-1 lg:flex-none">
-                <p className="font-medium responsive-text-small truncate">{quiz.author?.name}</p>
-                <p className="responsive-text-small text-muted-foreground">Author</p>
+                <Link 
+                  href={`/dashboard/profile/${quiz.author?._id || 'unknown'}`}
+                  className="group hover:text-primary transition-colors duration-200 author-link"
+                >
+                  <p className="font-medium responsive-text-small truncate group-hover:underline">
+                    {quiz.author?.name || "Unknown Author"}
+                  </p>
+                  <p className="responsive-text-small text-muted-foreground group-hover:text-primary/70 transition-colors duration-200">
+                    Author
+                  </p>
+                </Link>
               </div>
-              <Avatar className="flex-shrink-0">
-                <AvatarImage src={quiz.author?.avatar || "/placeholder.svg"} alt={quiz.author?.name} />
-                <AvatarFallback>{quiz.author?.initials || "?"}</AvatarFallback>
-              </Avatar>
+              <Link 
+                href={`/dashboard/profile/${quiz.author?._id || 'unknown'}`}
+                className="flex-shrink-0 group"
+              >
+                <Avatar className="group-hover:scale-105 transition-transform duration-200 group-hover:ring-2 group-hover:ring-primary/20 author-avatar-hover">
+                  <AvatarImage src={quiz.author?.avatar || "/placeholder.svg"} alt={quiz.author?.name} />
+                  <AvatarFallback>{quiz.author?.initials || "?"}</AvatarFallback>
+                </Avatar>
+              </Link>
             </div>
 
             <div className="flex gap-2 w-full lg:w-auto">
