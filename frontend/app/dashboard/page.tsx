@@ -14,6 +14,7 @@ import { StaggerChildren, StaggerItem, FadeUp, AnimatedCounter } from "@/compone
 import { Section } from "@/components/section"
 import Link from "next/link"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
+import { LottieAnimation } from "@/components/lottie-animation"
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth()
@@ -531,6 +532,316 @@ export default function DashboardPage() {
                 </StaggerItem>
               </div>
             </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Motivation Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Left Side - Lottie Animation */}
+            <div className="flex justify-center lg:justify-start">
+              <div className="w-80 h-80 bg-muted/20 rounded-lg border border-border/50 flex items-center justify-center">
+                <LottieAnimation 
+                  animationPath="/business-ideas.json"
+                  loop={true}
+                  autoplay={true}
+                />
+              </div>
+            </div>
+
+            {/* Right Side - Motivation Content */}
+            <div className="text-center lg:text-left space-y-6">
+              <div className="animate-fade-up">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
+                  Keep Learning, Keep Growing
+                </h2>
+                <p className="text-lg text-muted-foreground mb-6">
+                  Every quiz you create and complete brings you one step closer to mastering new skills. 
+                  Your dedication to learning is what sets you apart.
+                </p>
+              </div>
+
+              <div className="animate-fade-up animate-delay-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4">
+                    <div className="text-2xl font-bold text-primary mb-2">
+                      {stats?.quizzesCreated ?? 0}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Quizzes Created
+                    </div>
+                  </div>
+                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4">
+                    <div className="text-2xl font-bold text-primary mb-2">
+                      {stats?.quizzesCompleted ?? 0}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Quizzes Completed
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="animate-fade-up animate-delay-400">
+                <GradientButton asChild className="w-full sm:w-auto">
+                  <Link href="/dashboard/create">
+                    <Plus className="mr-2 h-4 w-4" /> Create Your Next Quiz
+                  </Link>
+                </GradientButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Recent Quizzes Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="space-y-6">
+            {/* Section Header */}
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
+                Your Recent Quizzes
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Track your latest quiz creations and their performance
+              </p>
+            </div>
+
+            {/* Quizzes Grid */}
+            {recentQuizzes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recentQuizzes.slice(0, 3).map((quiz, index) => (
+                  <StaggerItem key={quiz._id}>
+                    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                      {/* Glass effect background */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
+                      
+                      {/* Animated border gradient */}
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                      
+                      {/* Card Content */}
+                      <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500">
+                        {/* Quiz Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                              {quiz.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {quiz.category || "General"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-muted-foreground">Active</span>
+                          </div>
+                        </div>
+
+                        {/* Quiz Stats */}
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-primary">
+                              {quiz.questions?.length || 0}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Questions</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-primary">
+                              {quiz.attempts || 0}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Attempts</div>
+                          </div>
+                        </div>
+
+                        {/* Quiz Actions */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              Created {new Date(quiz.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                              className="group-hover:border-primary/50 group-hover:text-primary transition-colors duration-300"
+                            >
+                              <Link href={`/dashboard/quiz/preview/${quiz._id}`}>
+                                <ArrowRight className="h-3 w-3 mr-1" />
+                                Preview
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Floating particles effect */}
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-primary/30 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute bottom-4 left-4 w-1 h-1 bg-secondary/40 rounded-full animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                      </div>
+                    </Card>
+                  </StaggerItem>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+                  <Brain className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  No Quizzes Yet
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Start creating your first quiz to see it here
+                </p>
+                <GradientButton asChild>
+                  <Link href="/dashboard/create">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Your First Quiz
+                  </Link>
+                </GradientButton>
+              </div>
+            )}
+
+            {/* View All Button */}
+            {recentQuizzes.length > 0 && (
+              <div className="text-center pt-6">
+                <GradientButton asChild variant="outline">
+                  <Link href="/dashboard/library">
+                    <Trophy className="mr-2 h-4 w-4" />
+                    View All Quizzes
+                  </Link>
+                </GradientButton>
+              </div>
+            )}
+          </div>
+        </div>
+      </Section>
+
+      {/* Recommended Quizzes Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="space-y-6">
+            {/* Section Header */}
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
+                Recommended for You
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Discover quizzes tailored to your interests and learning goals
+              </p>
+            </div>
+
+            {/* Quizzes Grid */}
+            {recommendedQuizzes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendedQuizzes.slice(0, 3).map((quiz, index) => (
+                  <StaggerItem key={quiz._id}>
+                    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                      {/* Glass effect background */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
+                      
+                      {/* Animated border gradient */}
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                      
+                      {/* Card Content */}
+                      <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500">
+                        {/* Quiz Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                              {quiz.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {quiz.category || "General"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-xs text-muted-foreground">Recommended</span>
+                          </div>
+                        </div>
+
+                        {/* Quiz Stats */}
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-primary">
+                              {quiz.questions?.length || 0}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Questions</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-primary">
+                              {quiz.attempts || 0}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Attempts</div>
+                          </div>
+                        </div>
+
+                        {/* Quiz Actions */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              Created {new Date(quiz.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                              className="group-hover:border-primary/50 group-hover:text-primary transition-colors duration-300"
+                            >
+                              <Link href={`/dashboard/quiz/preview/${quiz._id}`}>
+                                <ArrowRight className="h-3 w-3 mr-1" />
+                                Preview
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Floating particles effect */}
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-primary/30 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute bottom-4 left-4 w-1 h-1 bg-secondary/40 rounded-full animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                      </div>
+                    </Card>
+                  </StaggerItem>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+                  <Trophy className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  No Recommendations Yet
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Complete more quizzes to get personalized recommendations
+                </p>
+                <GradientButton asChild>
+                  <Link href="/explore">
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Explore Quizzes
+                  </Link>
+                </GradientButton>
+              </div>
+            )}
+
+            {/* View All Button */}
+            {recommendedQuizzes.length > 0 && (
+              <div className="text-center pt-6">
+                <GradientButton asChild variant="outline">
+                  <Link href="/explore">
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    View All Recommendations
+                  </Link>
+                </GradientButton>
+              </div>
+            )}
           </div>
         </div>
       </Section>
