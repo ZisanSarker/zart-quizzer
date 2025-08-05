@@ -126,3 +126,13 @@ export const unsaveQuiz = async (quizId: string): Promise<{ message: string }> =
   const response = await api.post<{ message: string }>("/quizzes/unsave", { quizId });
   return response.data;
 };
+
+export const getTrendingQuizzes = async (limit: number = 3): Promise<ExploreQuiz[]> => {
+  try {
+    const response = await api.get<ExploreQuiz[]>(`/quizzes/public/trending?limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch trending quizzes:', error)
+    return []
+  }
+}

@@ -608,3 +608,44 @@ exports.rateQuiz = async (req, res) => {
     res.status(500).json({ message: 'Failed to rate quiz', error: err.message });
   }
 };
+
+exports.getTrendingQuizzes = async (req, res) => {
+  try {
+    const { limit = 3 } = req.query;
+    
+    // Get trending quizzes based on attempts and rating
+    const trendingQuizzes = await Quiz.find({ isPublic: true })
+      .sort({ attempts: -1, rating: -1 })
+      .limit(parseInt(limit))
+      .populate({ path: 'createdBy', select: 'username profilePicture _id' });
+
+    const mapped = await Promise.all(trendingQuizzes.map(async q => {
+      const { attempts, rating, ratingCount } = await getAttemptsAndRating(q._id);
+      return {
+        _id: q._id,
+        topic: q.topic,
+        description: q.description,
+        quizType: q.quizType,
+        difficulty: q.difficulty,
+        questions: q.questions,
+        isPublic: q.isPublic,
+        timeLimit: q.timeLimit,
+        createdAt: q.createdAt,
+        tags: q.tags || [],
+        attempts,
+        rating,
+        ratingCount,
+        author: {
+          name: q.createdBy?.username || "Unknown",
+          avatar: q.createdBy?.profilePicture || "",
+          initials: q.createdBy?.username ? q.createdBy.username.split(" ").map(n => n[0]).join("").toUpperCase() : "",
+          _id: q.createdBy?._id,
+        }
+      };
+    }));
+
+    res.status(200).json(mapped);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch trending quizzes', error: err.message });
+  }
+};
