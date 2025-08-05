@@ -79,9 +79,22 @@ export const getQuizResultByAttemptId = async (attemptId: string): Promise<QuizA
   return response.data;
 }
 
-export const getExploreQuizzes = async (): Promise<ExploreQuiz[]> => {
+export interface ExploreQuizzesParams {
+  search?: string;
+  category?: string;
+  difficulty?: string;
+  sort?: 'popular' | 'recent' | 'trending';
+}
+
+export const getExploreQuizzes = async (params?: ExploreQuizzesParams): Promise<ExploreQuiz[]> => {
   try {
-    const response = await api.get<ExploreQuiz[]>("/quizzes/public/explore");
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.difficulty) queryParams.append('difficulty', params.difficulty);
+    if (params?.sort) queryParams.append('sort', params.sort);
+    
+    const response = await api.get<ExploreQuiz[]>(`/quizzes/public/explore?${queryParams.toString()}`);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch explore quizzes:', error)
@@ -92,6 +105,21 @@ export const getExploreQuizzes = async (): Promise<ExploreQuiz[]> => {
 export const saveQuiz = async (quizId: string): Promise<{ message: string }> => {
   const response = await api.post<{ message: string }>("/quizzes/save", { quizId });
   return response.data;
+};
+
+export interface PopularSearchQuery {
+  query: string;
+  count: number;
+}
+
+export const getPopularSearchQueries = async (limit: number = 10): Promise<PopularSearchQuery[]> => {
+  try {
+    const response = await api.get<PopularSearchQuery[]>(`/quizzes/public/popular-search-queries?limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch popular search queries:', error);
+    return [];
+  }
 };
 
 export const unsaveQuiz = async (quizId: string): Promise<{ message: string }> => {
