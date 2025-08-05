@@ -43,12 +43,22 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex flex-col min-h-screen w-full">
       {/* Enhanced responsive header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10 dark:bg-background/80 w-full">
-        <div className="container flex h-14 sm:h-16 items-center justify-between max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          {/* Left: Logo & Name */}
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Brain className="h-6 w-6 text-primary animate-bounce-small" />
-            <span className="font-bold text-lg sm:text-xl gradient-heading font-playfair-display-sc">ZART Quizzer</span>
+      <header className="sticky top-0 z-10 w-full py-2">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-3xl mx-4 sm:mx-8 lg:mx-12 border border-white/30 dark:border-white/10 shadow-lg">
+            <div className="flex h-12 sm:h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Left: Logo or Text */}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img 
+              src="/logo.png" 
+              alt="ZART Quizzer" 
+              className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <span className="hidden font-bold text-lg sm:text-xl text-primary font-playfair-display-sc">ZART Quizzer</span>
           </Link>
 
           {/* Center: Desktop Navigation for authenticated users */}
@@ -132,6 +142,8 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
               </div>
             )}
           </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -145,9 +157,13 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       </main>
 
       {/* Enhanced responsive footer */}
-      <footer className="w-full py-4 border-t bg-white dark:bg-background text-center text-sm text-muted-foreground">
+      <footer className="w-full py-4 text-center text-sm text-muted-foreground">
         <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          &copy; {new Date().getFullYear()} ZART Quizzer. All rights reserved.
+          <div className="bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-3xl mx-4 sm:mx-8 lg:mx-12 border border-white/30 dark:border-white/10 shadow-lg py-3 sm:py-4">
+            <div className="px-4 sm:px-6 lg:px-8">
+              &copy; {new Date().getFullYear()} ZART Quizzer. All rights reserved.
+            </div>
+          </div>
         </div>
       </footer>
     </div>

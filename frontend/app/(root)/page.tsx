@@ -84,8 +84,8 @@ export default function Home() {
         </PageContainer>
       ) : (
         <PageContainer>
-          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
-            <div className="container max-w-6xl">
+          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+            <div className="container max-w-7xl">
               <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
                 <div className="w-full lg:w-[70%] text-center lg:text-left animate-fade-up">
                   <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6 font-playfair-display-sc">
@@ -124,8 +124,8 @@ export default function Home() {
             </div>
           </Section>
 
-          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
-            <div className="container max-w-6xl">
+          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+            <div className="container max-w-7xl">
               <h2 className="responsive-heading-2 gradient-heading text-center mb-8 sm:mb-12">Key Features</h2>
               <ResponsiveGrid cols={ResponsiveGridLayouts.standard}>
                 <div className="flex flex-col items-center text-center p-4 sm:p-6 bg-card rounded-lg shadow-soft card-hover animate-fade-up mobile-card">
@@ -161,16 +161,16 @@ export default function Home() {
 
 
 
-          <Section className="py-16 sm:py-20 lg:py-24 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
-            <div className="container max-w-6xl">
+          <Section className="py-16 sm:py-20 lg:py-24 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+            <div className="container max-w-7xl">
               <div className="flex justify-center animate-fade-up animate-delay-400 -mt-12 sm:-mt-16 lg:-mt-20">
                 <AnimatedGallery className="max-w-4xl" />
               </div>
             </div>
           </Section>
 
-          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
-            <div className="container max-w-6xl">
+          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+            <div className="container max-w-7xl">
               <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
                 <div className="flex-1 animate-fade-in">
                   <h2 className="responsive-heading-2 gradient-heading mb-4 sm:mb-6">
