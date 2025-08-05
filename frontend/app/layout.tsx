@@ -1,5 +1,6 @@
 import { Inter, Playfair_Display_SC } from "next/font/google"
 import { Providers } from "@/components/providers"
+import SharedLayout from "@/components/shared-layout"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -23,9 +24,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} ${playfairDisplaySC.variable}`} suppressHydrationWarning>
         <Providers>
-          <div className="min-h-screen flex flex-col">
+          <SharedLayout>
             {children}
-          </div>
+          </SharedLayout>
         </Providers>
       </body>
     </html>

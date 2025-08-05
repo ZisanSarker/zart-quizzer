@@ -918,6 +918,68 @@ body {
   animation: slideInActive 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+@keyframes rotate1 {
+  0%, 33.33% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotate2 {
+  0%, 33.33%, 66.66% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotate3 {
+  0%, 33.33%, 66.66%, 100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-rotate-1 {
+  animation: rotate1 9s linear infinite;
+}
+
+.animate-rotate-2 {
+  animation: rotate2 9s linear infinite;
+}
+
+.animate-rotate-3 {
+  animation: rotate3 9s linear infinite;
+}
+
+@keyframes iconRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.group:hover .group-hover\:rotate-icon {
+  animation: iconRotate 0.6s ease-in-out;
+}
+
 @keyframes slideInActive {
   from {
     transform: scaleX(0);
