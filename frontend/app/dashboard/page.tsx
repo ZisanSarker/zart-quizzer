@@ -615,7 +615,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recentQuizzes.slice(0, 3).map((quiz, index) => (
                   <StaggerItem key={quiz._id}>
-                    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 h-80">
                       {/* Glass effect background */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                       
@@ -623,21 +623,34 @@ export default function DashboardPage() {
                       <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                       
                       {/* Card Content */}
-                      <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500">
+                      <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 h-full flex flex-col">
                         {/* Quiz Header */}
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
                               {quiz.title}
                             </h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {quiz.category || "General"}
-                            </p>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                             <span className="text-xs text-muted-foreground">Active</span>
                           </div>
+                        </div>
+
+                        {/* Difficulty */}
+                        {quiz.difficulty && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                              {quiz.difficulty}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Description */}
+                        <div className="mb-4 flex-1">
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {quiz.description || "No additional description"}
+                          </p>
                         </div>
 
                         {/* Quiz Stats */}
@@ -657,13 +670,13 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Quiz Actions */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-2">
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-foreground truncate">
                               Created {new Date(quiz.createdAt).toLocaleDateString()}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <Button
                               variant="outline"
                               size="sm"
@@ -740,7 +753,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recommendedQuizzes.slice(0, 3).map((quiz, index) => (
                   <StaggerItem key={quiz._id}>
-                    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 h-80">
                       {/* Glass effect background */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                       
@@ -748,21 +761,34 @@ export default function DashboardPage() {
                       <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                       
                       {/* Card Content */}
-                      <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500">
+                      <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 h-full flex flex-col">
                         {/* Quiz Header */}
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
                               {quiz.title}
                             </h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {quiz.category || "General"}
-                            </p>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             <span className="text-xs text-muted-foreground">Recommended</span>
                           </div>
+                        </div>
+
+                        {/* Difficulty */}
+                        {quiz.difficulty && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                              {quiz.difficulty}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Description */}
+                        <div className="mb-4 flex-1">
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {quiz.description || "No additional description"}
+                          </p>
                         </div>
 
                         {/* Quiz Stats */}
@@ -782,13 +808,13 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Quiz Actions */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-2">
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-foreground truncate">
                               Created {new Date(quiz.createdAt).toLocaleDateString()}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <Button
                               variant="outline"
                               size="sm"
