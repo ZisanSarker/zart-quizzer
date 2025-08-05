@@ -8,6 +8,7 @@ import { ArrowRight, CheckCircle, Lightbulb, Users } from "lucide-react"
 import { PageContainer } from "@/components/page-container"
 import { Section } from "@/components/section"
 import { ResponsiveGrid, ResponsiveGridLayouts } from "@/components/responsive-grid"
+import { AnimatedGallery } from "@/components/animated-gallery"
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth()
@@ -105,6 +106,14 @@ export default function Home() {
                     Explore Quizzes
                   </Button>
                 </Link>
+              </div>
+            </div>
+          </Section>
+
+          <Section className="py-12 sm:py-16 lg:py-20">
+            <div className="container max-w-6xl">
+              <div className="flex justify-center animate-fade-up animate-delay-400">
+                <AnimatedGallery className="max-w-4xl" />
               </div>
             </div>
           </Section>
