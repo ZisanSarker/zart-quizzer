@@ -9,6 +9,8 @@ import { PageContainer } from "@/components/page-container"
 import { Section } from "@/components/section"
 import { ResponsiveGrid, ResponsiveGridLayouts } from "@/components/responsive-grid"
 import { AnimatedGallery } from "@/components/animated-gallery"
+import { LottieAnimation } from "@/components/lottie-animation"
+import examsAnimation from "@/public/Exams.json"
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth()
@@ -82,43 +84,47 @@ export default function Home() {
         </PageContainer>
       ) : (
         <PageContainer>
-          <Section>
-            <div className="container flex flex-col items-center text-center max-w-6xl">
-              <div className="animate-fade-up">
-                <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
-                  Create, Practice, and Master Quizzes with AI
-                </h1>
-              </div>
-              <div className="animate-fade-up animate-delay-200">
-                <p className="responsive-text text-muted-foreground max-w-[800px] mb-6 sm:mb-8">
-                  Generate personalized quizzes on any topic, practice with voice commands, and track your progress with
-                  detailed feedback.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-up animate-delay-300 w-full sm:w-auto">
-                <Link href="/register" className="w-full sm:w-auto">
-                  <GradientButton size="lg" className="gap-2 w-full sm:w-auto touch-target">
-                    Get Started <ArrowRight className="h-4 w-4" />
-                  </GradientButton>
-                </Link>
-                <Link href="/explore" className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="transition-all duration-300 hover:border-primary-300 w-full sm:w-auto touch-target">
-                    Explore Quizzes
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </Section>
-
-          <Section className="py-12 sm:py-16 lg:py-20">
+          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
             <div className="container max-w-6xl">
-              <div className="flex justify-center animate-fade-up animate-delay-400">
-                <AnimatedGallery className="max-w-4xl" />
+              <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
+                <div className="w-full lg:w-[70%] text-center lg:text-left animate-fade-up">
+                  <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6 font-playfair-display-sc">
+                    Create, Practice, and Master Quizzes with AI
+                  </h1>
+                  <div className="animate-fade-up animate-delay-200">
+                    <p className="responsive-text text-muted-foreground max-w-[600px] mb-6 sm:mb-8">
+                      Generate personalized quizzes on any topic, practice with voice commands, and track your progress with
+                      detailed feedback. Experience interactive learning with real-time animations and dynamic content.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-up animate-delay-300 w-full sm:w-auto lg:justify-start">
+                    <Link href="/register" className="w-full sm:w-auto">
+                      <GradientButton size="lg" className="gap-2 w-full sm:w-auto touch-target">
+                        Get Started <ArrowRight className="h-4 w-4" />
+                      </GradientButton>
+                    </Link>
+                    <Link href="/explore" className="w-full sm:w-auto">
+                      <Button size="lg" variant="outline" className="transition-all duration-300 hover:border-primary-300 w-full sm:w-auto touch-target">
+                        Explore Quizzes
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+                <div className="w-full lg:w-[30%] flex justify-center animate-fade-in animate-delay-200">
+                  <div className="w-full max-w-lg h-96">
+                    <LottieAnimation 
+                      animationData={examsAnimation}
+                      className="w-full h-full"
+                      loop={true}
+                      autoplay={true}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </Section>
 
-          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50">
+          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
             <div className="container max-w-6xl">
               <h2 className="responsive-heading-2 gradient-heading text-center mb-8 sm:mb-12">Key Features</h2>
               <ResponsiveGrid cols={ResponsiveGridLayouts.standard}>
@@ -153,7 +159,17 @@ export default function Home() {
             </div>
           </Section>
 
-          <Section className="py-12 sm:py-16 lg:py-20">
+
+
+          <Section className="py-16 sm:py-20 lg:py-24 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
+            <div className="container max-w-6xl">
+              <div className="flex justify-center animate-fade-up animate-delay-400 -mt-12 sm:-mt-16 lg:-mt-20">
+                <AnimatedGallery className="max-w-4xl" />
+              </div>
+            </div>
+          </Section>
+
+          <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-4 sm:mx-8 lg:mx-12">
             <div className="container max-w-6xl">
               <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
                 <div className="flex-1 animate-fade-in">

@@ -136,6 +136,9 @@ const config = {
         height: "height",
         spacing: "margin, padding",
       },
+      fontFamily: {
+        "playfair-display-sc": ["var(--font-playfair-display-sc)", "system-ui", "sans-serif"],
+      },
       boxShadow: {
         soft: "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
         glow: "0 0 15px rgba(var(--primary-rgb) / 0.5)",

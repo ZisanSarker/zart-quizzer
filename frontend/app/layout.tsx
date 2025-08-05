@@ -1,8 +1,13 @@
-import { Inter } from "next/font/google"
+import { Inter, Playfair_Display_SC } from "next/font/google"
 import { Providers } from "@/components/providers"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
+const playfairDisplaySC = Playfair_Display_SC({ 
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-playfair-display-sc"
+})
 
 export const metadata = {
   title: "ZART Quizzer - Create and Practice Quizzes",
@@ -16,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${inter.className} ${playfairDisplaySC.variable}`} suppressHydrationWarning>
         <Providers>
           <div className="min-h-screen flex flex-col">
             {children}
