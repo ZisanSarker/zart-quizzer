@@ -1,89 +1,38 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Brain, Clock, Search, Star, Users } from "lucide-react"
+import { Brain, Clock, Star, Users } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { FadeIn } from "@/components/animations/motion"
+import { GradientButton } from "@/components/ui/gradient-button"
+import { Section } from "@/components/section"
 
 import type { ExploreQuiz } from "@/types/quiz"
-import { getExploreQuizzes, saveQuiz, getPopularSearchQueries, type PopularSearchQuery } from "@/lib/quiz"
-
-const difficultyMap: Record<string, string> = {
-  easy: "Beginner",
-  medium: "Intermediate",
-  hard: "Advanced",
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-}
-const uiToBackendDifficulty: Record<string, string> = {
-  "Beginner": "easy",
-  "Intermediate": "medium",
-  "Advanced": "hard",
-  "All Levels": "",
-}
-
-const categories = [
-  "All Categories",
-  "Mathematics",
-  "Science",
-  "History",
-  "Literature",
-  "Computer Science",
-  "Geography",
-  "Languages",
-  "Arts",
-]
-
-const difficulties = [
-  "All Levels",
-  "Beginner",
-  "Intermediate",
-  "Advanced"
-]
+import { getExploreQuizzes, saveQuiz } from "@/lib/quiz"
 
 const PAGE_SIZE = 10
 
 export default function ExplorePage() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All Categories")
-  const [selectedDifficulty, setSelectedDifficulty] = useState("All Levels")
   const [isLoading, setIsLoading] = useState(true)
   const [publicQuizzes, setPublicQuizzes] = useState<ExploreQuiz[]>([])
   const [savingQuizId, setSavingQuizId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("popular")
   const [currentPage, setCurrentPage] = useState(1)
-  const [popularQueries, setPopularQueries] = useState<PopularSearchQuery[]>([])
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [searchQuery])
 
   useEffect(() => {
     setIsLoading(true)
     console.log('🔍 Fetching explore quizzes...')
     
     const params = {
-      search: debouncedSearchQuery.trim() || undefined,
-      category: selectedCategory !== "All Categories" ? selectedCategory : undefined,
-      difficulty: selectedDifficulty !== "All Levels" ? selectedDifficulty : undefined,
       sort: activeTab as 'popular' | 'recent' | 'trending'
     }
     
@@ -96,23 +45,12 @@ export default function ExplorePage() {
         console.error('❌ Failed to fetch explore quizzes:', error)
       })
       .finally(() => setIsLoading(false))
-  }, [debouncedSearchQuery, selectedCategory, selectedDifficulty, activeTab])
+  }, [activeTab])
 
-  // Fetch popular search queries
-  useEffect(() => {
-    getPopularSearchQueries(10)
-      .then((queries) => {
-        setPopularQueries(queries)
-      })
-      .catch((error) => {
-        console.error('Failed to fetch popular search queries:', error)
-      })
-  }, [])
-
-  // Reset page when filter/search/tab changes
+  // Reset page when tab changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, selectedCategory, selectedDifficulty, activeTab])
+  }, [activeTab])
 
   // Use the quizzes directly since filtering is now done server-side
   const sortedQuizzes = useMemo(() => {
@@ -192,210 +130,135 @@ export default function ExplorePage() {
   )
 
   return (
-    <main className="flex-1 mx-auto py-6 sm:py-8 max-w-6xl">
-      {/* Enhanced responsive header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-        <div>
-          <h1 className="responsive-heading-1 gradient-heading">Explore Quizzes</h1>
-          <p className="responsive-text text-muted-foreground mt-1">Discover and practice quizzes created by the community</p>
-        </div>
-        <Link href="/dashboard/create" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto touch-target">Create Your Own Quiz</Button>
-        </Link>
-      </div>
-
-      {/* Enhanced responsive layout */}
-      <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
-        {/* Enhanced responsive sidebar */}
-        <div className="space-y-4 sm:space-y-6">
-          <div>
-            <h3 className="font-medium mb-2 responsive-text-small">Search</h3>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search quizzes..."
-                className="pl-10 responsive-text-small"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+    <div className="w-full flex flex-col items-center">
+      {/* Explore Header Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="animate-fade-up">
+              <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
+                Explore Quizzes
+              </h1>
+              <p className="responsive-text text-muted-foreground mt-1">Discover and practice quizzes created by the community</p>
             </div>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2 responsive-text-small">Category</h3>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2 responsive-text-small">Difficulty</h3>
-            <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select difficulty" />
-              </SelectTrigger>
-              <SelectContent>
-                {difficulties.map((difficulty) => (
-                  <SelectItem key={difficulty} value={difficulty}>
-                    {difficulty}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2 responsive-text-small">Popular Searches</h3>
-            <div className="flex flex-wrap gap-2">
-              {popularQueries.length > 0 ? (
-                popularQueries.map((query) => (
-                  <Badge
-                    key={query.query}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 touch-target responsive-text-small"
-                    onClick={() => setSearchQuery(query.query)}
-                    title={`${query.count} searches`}
-                  >
-                    {query.query}
-                  </Badge>
-                ))
-              ) : (
-                // Fallback popular tags when no search data is available
-                ["mathematics", "science", "history", "programming", "literature", "geography"].map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 touch-target responsive-text-small"
-                    onClick={() => setSearchQuery(tag)}
-                  >
-                    {tag}
-                  </Badge>
-                ))
-              )}
+            <div className="animate-fade-up animate-delay-200">
+              <GradientButton asChild className="w-full sm:w-auto touch-target">
+                <Link href="/dashboard/create">Create Your Own Quiz</Link>
+              </GradientButton>
             </div>
           </div>
         </div>
+      </Section>
 
-        {/* Enhanced responsive main content */}
-        <div>
+      {/* Explore Content Section */}
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <TabsList className="w-full sm:w-auto glass-effect-tabs">
-                <TabsTrigger 
-                  value="popular" 
-                  className="touch-target glass-tab-trigger"
-                >
-                  Popular
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="recent" 
-                  className="touch-target glass-tab-trigger"
-                >
-                  Recent
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="trending" 
-                  className="touch-target glass-tab-trigger"
-                >
-                  Trending
-                </TabsTrigger>
-              </TabsList>
-              <div className="responsive-text-small text-muted-foreground">{sortedQuizzes.length} quizzes found</div>
+            <div className="mb-6">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-24 sm:gap-32 lg:gap-40 xl:gap-48 px-4 sm:px-6 lg:px-8 xl:px-10">
+                <TabsList className="w-full sm:w-auto glass-effect-tabs">
+                  <TabsTrigger 
+                    value="popular" 
+                    className="touch-target glass-tab-trigger"
+                  >
+                    Popular
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="recent" 
+                    className="touch-target glass-tab-trigger"
+                  >
+                    Recent
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="trending" 
+                    className="touch-target glass-tab-trigger"
+                  >
+                    Trending
+                  </TabsTrigger>
+                </TabsList>
+                <div className="responsive-text-small text-muted-foreground">{sortedQuizzes.length} quizzes found</div>
+              </div>
             </div>
 
-            {/* Popular Tab */}
-            <TabsContent value="popular" className="space-y-4 sm:space-y-6">
-              {isLoading ? (
-                <SkeletonList />
-              ) : pagedQuizzes.length > 0 ? (
-                <>
-                  {pagedQuizzes.map((quiz) => (
-                    <QuizCard
-                      key={quiz._id}
-                      quiz={quiz}
-                      onSave={handleSaveQuiz}
-                      saving={savingQuizId === quiz._id}
-                      formatRelativeTime={formatRelativeTime}
-                    />
-                  ))}
-                  <Pagination />
-                </>
-              ) : (
-                <NoQuizzesNotice onClearFilters={() => {
-                  setSearchQuery("")
-                  setDebouncedSearchQuery("")
-                  setSelectedCategory("All Categories")
-                  setSelectedDifficulty("All Levels")
-                }} />
-              )}
-            </TabsContent>
+                {/* Popular Tab */}
+                <TabsContent value="popular" className="space-y-4 sm:space-y-6">
+                  {isLoading ? (
+                    <SkeletonList />
+                  ) : pagedQuizzes.length > 0 ? (
+                    <>
+                      {pagedQuizzes.map((quiz) => (
+                        <QuizCard
+                          key={quiz._id}
+                          quiz={quiz}
+                          onSave={handleSaveQuiz}
+                          saving={savingQuizId === quiz._id}
+                          formatRelativeTime={formatRelativeTime}
+                        />
+                      ))}
+                      <Pagination />
+                    </>
+                  ) : (
+                    <NoQuizzesNotice onClearFilters={() => {
+                      setSearchQuery("")
+                      setDebouncedSearchQuery("")
+                      setSelectedCategory("All Categories")
+                      setSelectedDifficulty("All Levels")
+                    }} />
+                  )}
+                </TabsContent>
 
-            {/* Recent Tab */}
-            <TabsContent value="recent" className="space-y-4 sm:space-y-6">
-              {isLoading ? (
-                <SkeletonList />
-              ) : pagedQuizzes.length > 0 ? (
-                <>
-                  {pagedQuizzes.map((quiz) => (
-                    <QuizCard
-                      key={quiz._id}
-                      quiz={quiz}
-                      onSave={handleSaveQuiz}
-                      saving={savingQuizId === quiz._id}
-                      formatRelativeTime={formatRelativeTime}
-                    />
-                  ))}
-                  <Pagination />
-                </>
-              ) : (
-                <NoQuizzesNotice onClearFilters={() => {
-                  setSearchQuery("")
-                  setDebouncedSearchQuery("")
-                  setSelectedCategory("All Categories")
-                  setSelectedDifficulty("All Levels")
-                }} />
-              )}
-            </TabsContent>
+                {/* Recent Tab */}
+                <TabsContent value="recent" className="space-y-4 sm:space-y-6">
+                  {isLoading ? (
+                    <SkeletonList />
+                  ) : pagedQuizzes.length > 0 ? (
+                    <>
+                      {pagedQuizzes.map((quiz) => (
+                        <QuizCard
+                          key={quiz._id}
+                          quiz={quiz}
+                          onSave={handleSaveQuiz}
+                          saving={savingQuizId === quiz._id}
+                          formatRelativeTime={formatRelativeTime}
+                        />
+                      ))}
+                      <Pagination />
+                    </>
+                  ) : (
+                    <NoQuizzesNotice onClearFilters={() => {
+                      setSearchQuery("")
+                      setDebouncedSearchQuery("")
+                      setSelectedCategory("All Categories")
+                      setSelectedDifficulty("All Levels")
+                    }} />
+                  )}
+                </TabsContent>
 
-            {/* Trending Tab */}
-            <TabsContent value="trending" className="space-y-4 sm:space-y-6">
-              {isLoading ? (
-                <SkeletonList />
-              ) : pagedQuizzes.length > 0 ? (
-                <>
-                  {pagedQuizzes.map((quiz) => (
-                    <QuizCard
-                      key={quiz._id}
-                      quiz={quiz}
-                      onSave={handleSaveQuiz}
-                      saving={savingQuizId === quiz._id}
-                      formatRelativeTime={formatRelativeTime}
-                    />
-                  ))}
-                  <Pagination />
-                </>
-              ) : (
-                <NoQuizzesNotice onClearFilters={() => {
-                  setSearchQuery("")
-                  setDebouncedSearchQuery("")
-                  setSelectedCategory("All Categories")
-                  setSelectedDifficulty("All Levels")
-                }} />
-              )}
-            </TabsContent>
-          </Tabs>
+                                 {/* Trending Tab */}
+                 <TabsContent value="trending" className="space-y-4 sm:space-y-6">
+                   {isLoading ? (
+                     <SkeletonList />
+                   ) : pagedQuizzes.length > 0 ? (
+                     <>
+                       {pagedQuizzes.map((quiz) => (
+                         <QuizCard
+                           key={quiz._id}
+                           quiz={quiz}
+                           onSave={handleSaveQuiz}
+                           saving={savingQuizId === quiz._id}
+                           formatRelativeTime={formatRelativeTime}
+                         />
+                       ))}
+                       <Pagination />
+                     </>
+                   ) : (
+                     <NoQuizzesNotice />
+                   )}
+                 </TabsContent>
+               </Tabs>
         </div>
-      </div>
-    </main>
+      </Section>
+    </div>
   )
 }
 
@@ -584,14 +447,13 @@ function SkeletonList() {
 }
 
 // Enhanced responsive no quizzes notice
-function NoQuizzesNotice({ onClearFilters }: { onClearFilters: () => void }) {
+function NoQuizzesNotice() {
   return (
     <FadeIn>
       <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed mobile-card">
         <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="responsive-heading-3 mb-2">No quizzes found</h3>
-        <p className="responsive-text text-muted-foreground mb-6">Try adjusting your filters or search query</p>
-        <Button onClick={onClearFilters} className="touch-target">Clear Filters</Button>
+        <p className="responsive-text text-muted-foreground mb-6">No quizzes available in this category</p>
       </div>
     </FadeIn>
   )
