@@ -213,8 +213,8 @@ export default function Home() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-up animate-delay-200">
                 {trendingQuizzes.map((quiz, index) => (
-                  <Card key={quiz._id} className="bg-card rounded-lg shadow-soft border border-border/50 hover:shadow-lg transition-all duration-300 group">
-                    <CardContent className="p-6">
+                  <Card key={quiz._id} className="bg-card rounded-lg shadow-soft border border-border/50 hover:shadow-lg transition-all duration-300 group h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col h-full">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
@@ -227,13 +227,13 @@ export default function Home() {
                           <span className="text-xs text-muted-foreground">Trending</span>
                         </div>
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                         {quiz.topic}
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-4 leading-relaxed flex-grow">
                         {quiz.description || "Test your knowledge with this engaging quiz."}
                       </p>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mt-auto">
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <span>📊 {quiz.attempts || 0} attempts</span>
                           <span>⭐ {quiz.rating ? quiz.rating.toFixed(1) : "0.0"}/5</span>
