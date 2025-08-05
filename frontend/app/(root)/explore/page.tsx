@@ -125,16 +125,13 @@ export default function ExplorePage() {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     }
     if (activeTab === "trending") {
-      const DAY_MS = 24 * 60 * 60 * 1000
-      const now = Date.now()
-      const last24h = filteredQuizzes.filter(q =>
-        now - new Date(q.createdAt).getTime() < DAY_MS
-      )
-      return (last24h.length ? last24h : filteredQuizzes)
+      return filteredQuizzes
         .slice()
         .sort((a, b) => {
+          // Primary sort: highest attempt count
           const attemptsDiff = (b.attempts ?? 0) - (a.attempts ?? 0)
           if (attemptsDiff !== 0) return attemptsDiff
+          // Secondary sort: highest rating
           return (b.rating ?? 0) - (a.rating ?? 0)
         })
     }
