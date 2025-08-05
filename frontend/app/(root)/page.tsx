@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { ArrowRight, CheckCircle, Lightbulb, Users, Plus, BookOpen, Star, Clock } from "lucide-react"
-import { PageContainer } from "@/components/page-container"
+
 import { Section } from "@/components/section"
 import { ResponsiveGrid, ResponsiveGridLayouts } from "@/components/responsive-grid"
 import { AnimatedGallery } from "@/components/animated-gallery"
@@ -45,10 +45,11 @@ export default function Home() {
 
   if (isAuthenticated) {
     return (
-      <PageContainer>
+      <>
         {/* Welcome Section */}
         <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-          <div className="container flex flex-col items-center text-center max-w-6xl">
+          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+            <div className="flex flex-col items-center text-center">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
                 Welcome back{user?.username ? `, ${user.username}` : ""}! 👋
@@ -59,12 +60,13 @@ export default function Home() {
                 Ready to continue your learning journey? Here's what's happening in your quiz world.
               </p>
             </div>
+            </div>
           </div>
         </Section>
 
         {/* Triangle Navigation with Lottie Animation */}
         <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-          <div className="container max-w-7xl">
+          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
             <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8">
               {/* Left Side - Triangle Navigation */}
               <div className="w-full lg:w-[60%] animate-fade-up">
@@ -141,7 +143,7 @@ export default function Home() {
 
         {/* Key Features */}
         <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-          <div className="container max-w-7xl">
+          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
             <h2 className="responsive-heading-2 gradient-heading text-center mb-8">Key Features</h2>
             <ResponsiveGrid cols={ResponsiveGridLayouts.standard}>
               <div className="flex flex-col items-center text-center p-4 sm:p-6 bg-card rounded-lg shadow-soft card-hover animate-fade-up mobile-card">
@@ -177,7 +179,7 @@ export default function Home() {
 
         {/* Animated Gallery */}
         <Section className="py-16 sm:py-20 lg:py-24 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-          <div className="container max-w-7xl">
+          <div className="container max-w-6xl">
             <div className="flex justify-center animate-fade-up animate-delay-400 -mt-12 sm:-mt-16 lg:-mt-20">
               <AnimatedGallery className="max-w-4xl" />
             </div>
@@ -186,7 +188,7 @@ export default function Home() {
 
         {/* Trending Quizzes Section */}
         <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-          <div className="container max-w-7xl">
+          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
             <div className="text-center mb-8 animate-fade-up">
               <h2 className="responsive-heading-2 gradient-heading mb-4">Trending Quizzes</h2>
               <p className="responsive-text text-muted-foreground max-w-[600px] mx-auto">
@@ -254,15 +256,15 @@ export default function Home() {
             </div>
           </div>
         </Section>
-      </PageContainer>
+      </>
     )
   }
 
   // Unauthenticated user landing page
   return (
-    <PageContainer>
+    <>
       <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
             <div className="w-full lg:w-[70%] text-center lg:text-left animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6 font-playfair-display-sc">
@@ -301,9 +303,9 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl">
-          <h2 className="responsive-heading-2 gradient-heading text-center mb-8 sm:mb-12">Key Features</h2>
+              <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+            <h2 className="responsive-heading-2 gradient-heading text-center mb-8 sm:mb-12">Key Features</h2>
           <ResponsiveGrid cols={ResponsiveGridLayouts.standard}>
             <div className="flex flex-col items-center text-center p-4 sm:p-6 bg-card rounded-lg shadow-soft card-hover animate-fade-up mobile-card">
               <div className="rounded-full bg-primary-100 p-3 sm:p-4 mb-3 sm:mb-4">
@@ -337,7 +339,7 @@ export default function Home() {
       </Section>
 
       <Section className="py-16 sm:py-20 lg:py-24 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex justify-center animate-fade-up animate-delay-400 -mt-12 sm:-mt-16 lg:-mt-20">
             <AnimatedGallery className="max-w-4xl" />
           </div>
@@ -345,7 +347,7 @@ export default function Home() {
       </Section>
 
       <Section className="py-12 sm:py-16 lg:py-20 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
             <div className="flex-1 animate-fade-in">
               <h2 className="responsive-heading-2 gradient-heading mb-4 sm:mb-6">
@@ -388,6 +390,6 @@ export default function Home() {
           </div>
         </div>
       </Section>
-    </PageContainer>
+    </>
   )
 }
