@@ -13,7 +13,7 @@ import { GradientButton } from "@/components/ui/gradient-button"
 import { StaggerChildren, StaggerItem, FadeUp, AnimatedCounter } from "@/components/animations/motion"
 import { Section } from "@/components/section"
 import Link from "next/link"
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth()
@@ -102,6 +102,17 @@ export default function DashboardPage() {
     { name: 'Attempted', value: attemptedQuizzes - completedQuizzes, color: '#ddd6fe' },
   ];
 
+  // Chart data for Average Score performance over 1 week
+  const scoreChartData = [
+    { day: 'Mon', score: 72, target: 85, aboveTarget: false },
+    { day: 'Tue', score: 78, target: 85, aboveTarget: false },
+    { day: 'Wed', score: 85, target: 85, aboveTarget: true },
+    { day: 'Thu', score: 88, target: 85, aboveTarget: true },
+    { day: 'Fri', score: 82, target: 85, aboveTarget: false },
+    { day: 'Sat', score: 90, target: 85, aboveTarget: true },
+    { day: 'Sun', score: 87, target: 85, aboveTarget: true },
+  ];
+
   return (
     <div className="w-full flex flex-col items-center">
       {/* Dashboard Header Section */}
@@ -141,7 +152,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                     
                     {/* Main card content */}
-                    <div className="relative px-6 pt-8 pb-6 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
+                    <div className="relative px-6 pt-8 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
                       {/* Header with Icon and Title */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -176,6 +187,12 @@ export default function DashboardPage() {
                         </div>
                         <div className="bg-muted/50 rounded-lg p-2">
                           <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">This Month</span>
+                            <span className="text-xs font-medium text-primary">+12</span>
+                          </div>
+                        </div>
+                        <div className="bg-muted/50 rounded-lg p-2">
+                          <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">Avg Quiz per Week</span>
                             <span className="text-xs font-medium text-primary">2.5</span>
                           </div>
@@ -201,7 +218,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                     
                     {/* Main card content */}
-                    <div className="relative px-4 pt-4 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full">
+                    <div className="relative px-6 pt-12 pb-12 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
                       {/* Header with Icon and Title - Top Center */}
                       <div className="flex items-center justify-center mb-4">
                         <div className="flex items-center gap-3">
@@ -219,7 +236,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Stats and Chart Section */}
-                      <div className="flex items-start justify-center pt-2">
+                      <div className="flex items-start justify-center pt-2 flex-1">
                         <div className="flex-1">
                           {/* Stats Section */}
                           <div className="space-y-4 mb-4">
@@ -246,7 +263,7 @@ export default function DashboardPage() {
                         
                         {/* Chart Section */}
                         <div className="flex-1 flex items-start justify-center">
-                          <div className="h-32 w-32">
+                          <div className="h-48 w-48">
                             <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
                                 <Pie
@@ -305,8 +322,8 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                     
                     {/* Main card content */}
-                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full">
-                      {/* Header with Icon and Title */}
+                    <div className="relative px-6 pt-8 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
+                      {/* Header with Icon and Title - Left Side */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="relative">
@@ -320,51 +337,123 @@ export default function DashboardPage() {
                             <p className="text-xs text-muted-foreground">Your performance overview</p>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Score Display */}
-                      <div className="text-center mb-4">
-                        <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                          <AnimatedCounter value={stats?.averageScore ?? 0} />
-                          <span className="text-2xl">%</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">Overall Performance</p>
-                      </div>
-
-                      {/* Progress Circles */}
-                      <div className="flex justify-center space-x-4">
-                        <div className="text-center">
-                          <div className="relative w-16 h-16 mx-auto mb-2">
-                            <div className="absolute inset-0 rounded-full bg-muted"></div>
-                            <div 
-                              className="absolute inset-0 rounded-full bg-gradient-to-r from-green-400 to-green-600"
-                              style={{ 
-                                clipPath: `polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%)`,
-                                transform: `rotate(${(stats?.averageScore ?? 0) * 3.6}deg)`
-                              }}
-                            ></div>
-                            <div className="absolute inset-2 rounded-full bg-card flex items-center justify-center">
-                              <span className="text-xs font-bold text-primary">{stats?.averageScore ?? 0}%</span>
-                            </div>
+                        
+                        {/* Performance Text - Right Side */}
+                        <div className="text-right">
+                          <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            <AnimatedCounter value={stats?.averageScore ?? 0} />
+                            <span className="text-2xl">%</span>
                           </div>
-                          <p className="text-xs text-muted-foreground">Current</p>
+                          <p className="text-sm text-muted-foreground mt-1">Overall Performance</p>
+                          <h4 className="text-sm font-semibold text-foreground mt-2">Weekly Performance</h4>
+                        </div>
+                      </div>
+
+                      {/* Performance Line Chart - Centered Below */}
+                      <div className="flex-1 flex flex-col items-center justify-center">
+                        <div className="h-48 w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={scoreChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                              <XAxis 
+                                dataKey="day" 
+                                stroke="#6b7280" 
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                              />
+                              <YAxis 
+                                stroke="#6b7280" 
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                                domain={[0, 100]}
+                                ticks={[0, 20, 40, 60, 80, 100]}
+                                tickFormatter={(value) => `${value}%`}
+                                allowDataOverflow={false}
+                                scale="linear"
+                                type="number"
+                                tickCount={6}
+                                minTickGap={10}
+                              />
+                              {/* Grid lines for each range */}
+                              <ReferenceLine y={20} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
+                              <ReferenceLine y={40} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
+                              <ReferenceLine y={60} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
+                              <ReferenceLine y={80} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
+                              <ReferenceLine 
+                                y={85} 
+                                stroke="#3b82f6" 
+                                strokeDasharray="3 3" 
+                                strokeWidth={2}
+                                label={{ value: "Target", position: "insideTopRight", fontSize: 10, fill: "#3b82f6" }}
+                              />
+                              <Tooltip 
+                                content={({ active, payload, label }) => {
+                                  if (active && payload && payload.length) {
+                                    return (
+                                      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+                                        <p className="text-sm font-medium text-foreground">{label}</p>
+                                        <p className="text-sm text-muted-foreground">Score: {payload[0].value}%</p>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                }}
+                              />
+                              {/* Performance line with conditional colors */}
+                              <Line 
+                                type="monotone" 
+                                dataKey="score" 
+                                stroke="#10b981" 
+                                strokeWidth={3}
+                                dot={(props) => {
+                                  const { cx, cy, payload } = props;
+                                  const color = payload.aboveTarget ? '#f59e0b' : '#10b981';
+                                  return (
+                                    <circle 
+                                      cx={cx} 
+                                      cy={cy} 
+                                      r={4} 
+                                      fill={color} 
+                                      stroke={color} 
+                                      strokeWidth={2}
+                                    />
+                                  );
+                                }}
+                                activeDot={(props) => {
+                                  const { cx, cy, payload } = props;
+                                  const color = payload.aboveTarget ? '#f59e0b' : '#10b981';
+                                  return (
+                                    <circle 
+                                      cx={cx} 
+                                      cy={cy} 
+                                      r={6} 
+                                      fill="#ffffff" 
+                                      stroke={color} 
+                                      strokeWidth={2}
+                                    />
+                                  );
+                                }}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
                         </div>
                         
-                        <div className="text-center">
-                          <div className="relative w-16 h-16 mx-auto mb-2">
-                            <div className="absolute inset-0 rounded-full bg-muted"></div>
-                            <div 
-                              className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-blue-600"
-                              style={{ 
-                                clipPath: `polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%)`,
-                                transform: `rotate(72deg)`
-                              }}
-                            ></div>
-                            <div className="absolute inset-2 rounded-full bg-card flex items-center justify-center">
-                              <span className="text-xs font-bold text-primary">85%</span>
-                            </div>
+                        {/* Legend */}
+                        <div className="flex justify-center gap-4 mt-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-muted-foreground">Below Target</span>
                           </div>
-                          <p className="text-xs text-muted-foreground">Target</p>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                            <span className="text-xs text-muted-foreground">Above Target</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <span className="text-xs text-muted-foreground">Target (85%)</span>
+                          </div>
                         </div>
                       </div>
                       
@@ -387,7 +476,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                     
                     {/* Main card content */}
-                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
+                    <div className="relative px-6 pt-8 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
                       {/* Header with Icon and Title */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -413,11 +502,17 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Additional Stats */}
-                      <div className="space-y-2">
+                      <div className="space-y-2 flex-1">
                         <div className="bg-muted/50 rounded-lg p-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">This Week</span>
                             <span className="text-xs font-medium text-primary">2.5h</span>
+                          </div>
+                        </div>
+                        <div className="bg-muted/50 rounded-lg p-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">This Month</span>
+                            <span className="text-xs font-medium text-primary">8.5h</span>
                           </div>
                         </div>
                         <div className="bg-muted/50 rounded-lg p-2">
