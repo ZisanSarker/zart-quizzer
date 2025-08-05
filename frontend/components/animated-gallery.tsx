@@ -84,7 +84,7 @@ export function AnimatedGallery({ className = "" }: AnimatedGalleryProps) {
               transform: position.transform,
             }}
           >
-            <div className="relative w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48 bg-white dark:bg-purple-600 rounded-lg">
+            <div className="relative w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48 bg-white/20 dark:bg-purple-600/20 backdrop-blur-md rounded-lg border border-white/30 dark:border-purple-400/30 shadow-lg">
               <Image
                 src={image.src}
                 alt={image.alt}

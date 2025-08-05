@@ -48,7 +48,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
           {/* Left: Logo & Name */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Brain className="h-6 w-6 text-primary animate-bounce-small" />
-            <span className="font-bold text-lg sm:text-xl gradient-heading">ZART Quizzer</span>
+            <span className="font-bold text-lg sm:text-xl gradient-heading font-playfair-display-sc">ZART Quizzer</span>
           </Link>
 
           {/* Center: Desktop Navigation for authenticated users */}
