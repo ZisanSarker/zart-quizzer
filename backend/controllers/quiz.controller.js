@@ -413,7 +413,7 @@ exports.getPublicQuizzes = async (req, res) => {
   try {
     const quizzes = await Quiz.find({ isPublic: true })
       .sort({ createdAt: -1 })
-      .populate({ path: 'createdBy', select: 'name avatar initials _id' });
+      .populate({ path: 'createdBy', select: 'username profilePicture _id' });
 
     const mapped = await Promise.all(quizzes.map(async q => {
       const { attempts, rating, ratingCount } = await getAttemptsAndRating(q._id);
@@ -432,9 +432,9 @@ exports.getPublicQuizzes = async (req, res) => {
         rating,
         ratingCount,
         author: {
-          name: q.createdBy?.name || "Unknown",
-          avatar: q.createdBy?.avatar || "",
-          initials: q.createdBy?.initials || (q.createdBy?.name ? q.createdBy.name.split(" ").map(n => n[0]).join("").toUpperCase() : ""),
+          name: q.createdBy?.username || "Unknown",
+          avatar: q.createdBy?.profilePicture || "",
+          initials: q.createdBy?.username ? q.createdBy.username.split(" ").map(n => n[0]).join("").toUpperCase() : "",
           _id: q.createdBy?._id,
         }
       };

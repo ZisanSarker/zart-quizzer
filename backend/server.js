@@ -104,7 +104,7 @@ app.use('/api/quizzes/public', quizPublicRoutes);
 app.use('/api/quizzes', authMiddleware, quizRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
-app.use('/api/profile', authMiddleware, profileRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/settings', authMiddleware, settingsRoutes);
 
 app.get('/health', (req, res) => {

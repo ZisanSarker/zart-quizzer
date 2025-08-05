@@ -735,3 +735,197 @@ body {
   animation: starBounce 0.6s ease-out;
 }
 
+/* Author Profile Link Styles */
+.author-link {
+  transition: all 0.2s ease-in-out;
+}
+
+.author-link:hover {
+  transform: translateY(-1px);
+}
+
+.author-avatar-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.author-avatar-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+/* Glass Effect Tabs with Water Flow Transitions */
+.glass-effect-tabs {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .glass-effect-tabs {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.glass-effect-tabs::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease-in-out;
+}
+
+.glass-effect-tabs:hover::before {
+  left: 100%;
+}
+
+.glass-tab-trigger {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  color: hsl(var(--muted-foreground)) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-weight: 500 !important;
+  overflow: hidden;
+}
+
+.glass-tab-trigger::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.1),
+    rgba(124, 58, 237, 0.05)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 8px;
+}
+
+.glass-tab-trigger:hover::before {
+  opacity: 1;
+}
+
+.glass-tab-trigger[data-state="active"] {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.15),
+    rgba(124, 58, 237, 0.1)
+  ) !important;
+  color: hsl(var(--primary)) !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+.glass-tab-trigger[data-state="active"]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary)),
+    transparent
+  );
+  border-radius: 1px;
+  animation: waterFlow 2s ease-in-out infinite;
+}
+
+@keyframes waterFlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translateX(-50%) scaleX(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1.2);
+  }
+}
+
+/* Smooth tab content transitions with slider effect */
+[data-state="active"] {
+  animation: tabContentSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes tabContentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Tab content container for smooth transitions */
+.tab-content-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-content-slide {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: translateX(0);
+  opacity: 1;
+  will-change: transform, opacity;
+}
+
+.tab-content-slide.sliding-out {
+  transform: translateX(-50px);
+  opacity: 0;
+}
+
+.tab-content-slide.sliding-in {
+  transform: translateX(50px);
+  opacity: 0;
+}
+
+/* Enhanced tab trigger with sliding indicator */
+.glass-tab-trigger[data-state="active"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.15),
+    rgba(124, 58, 237, 0.1)
+  );
+  border-radius: 8px;
+  animation: slideInActive 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInActive {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
