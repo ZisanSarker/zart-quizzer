@@ -3,6 +3,7 @@ const QuizPrompt = require('../models/quizPrompt.model');
 const QuizAttempt = require('../models/quizAttempt.model');
 const SavedQuiz = require('../models/savedQuiz.model');
 const QuizRating = require('../models/quizRating.model');
+const SearchQuery = require('../models/searchQuery.model');
 const moment = require('moment');
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -409,10 +410,84 @@ const getAttemptsAndRating = async (quizId) => {
   };
 };
 
+const trackSearchQuery = async (query) => {
+  if (!query || query.trim().length < 2) return; // Don't track very short queries
+  
+  const trimmedQuery = query.trim().toLowerCase();
+  
+  try {
+    await SearchQuery.findOneAndUpdate(
+      { query: trimmedQuery },
+      { 
+        $inc: { count: 1 },
+        $set: { lastSearched: new Date() }
+      },
+      { upsert: true }
+    );
+  } catch (error) {
+    console.error('Error tracking search query:', error);
+  }
+};
+
 exports.getPublicQuizzes = async (req, res) => {
   try {
-    const quizzes = await Quiz.find({ isPublic: true })
-      .sort({ createdAt: -1 })
+    const { search, category, difficulty, sort = 'recent' } = req.query;
+    
+    // Track search query if provided
+    if (search && search.trim()) {
+      await trackSearchQuery(search);
+    }
+    
+    // Build filter object
+    let filter = { isPublic: true };
+    
+    // Search filter
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      filter.$or = [
+        { topic: searchRegex },
+        { description: searchRegex },
+        { tags: searchRegex }
+      ];
+    }
+    
+    // Category filter
+    if (category && category !== 'All Categories') {
+      filter.$or = filter.$or || [];
+      filter.$or.push(
+        { topic: new RegExp(category, 'i') },
+        { tags: new RegExp(category, 'i') }
+      );
+    }
+    
+    // Difficulty filter
+    if (difficulty && difficulty !== 'All Levels') {
+      const difficultyMap = {
+        'Beginner': 'easy',
+        'Intermediate': 'medium', 
+        'Advanced': 'hard'
+      };
+      const backendDifficulty = difficultyMap[difficulty] || difficulty.toLowerCase();
+      filter.difficulty = backendDifficulty;
+    }
+    
+    // Build sort object
+    let sortObj = {};
+    switch (sort) {
+      case 'popular':
+        sortObj = { rating: -1, attempts: -1 };
+        break;
+      case 'trending':
+        sortObj = { attempts: -1, rating: -1 };
+        break;
+      case 'recent':
+      default:
+        sortObj = { createdAt: -1 };
+        break;
+    }
+
+    const quizzes = await Quiz.find(filter)
+      .sort(sortObj)
       .populate({ path: 'createdBy', select: 'username profilePicture _id' });
 
     const mapped = await Promise.all(quizzes.map(async q => {
@@ -487,6 +562,26 @@ exports.getQuizRatings = async (req, res) => {
     res.status(200).json(ratingStats);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch ratings', error: err.message });
+  }
+};
+
+exports.getPopularSearchQueries = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    
+    const popularQueries = await SearchQuery.find({})
+      .sort({ count: -1, lastSearched: -1 })
+      .limit(parseInt(limit))
+      .select('query count');
+    
+    const queries = popularQueries.map(q => ({
+      query: q.query,
+      count: q.count
+    }));
+    
+    res.status(200).json(queries);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch popular search queries', error: err.message });
   }
 };
 

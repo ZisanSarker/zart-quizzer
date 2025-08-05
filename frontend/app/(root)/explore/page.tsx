@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { FadeIn } from "@/components/animations/motion"
 
 import type { ExploreQuiz } from "@/types/quiz"
-import { getExploreQuizzes, saveQuiz } from "@/lib/quiz"
+import { getExploreQuizzes, saveQuiz, getPopularSearchQueries, type PopularSearchQuery } from "@/lib/quiz"
 
 const difficultyMap: Record<string, string> = {
   easy: "Beginner",
@@ -57,6 +57,7 @@ export default function ExplorePage() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All Categories")
   const [selectedDifficulty, setSelectedDifficulty] = useState("All Levels")
   const [isLoading, setIsLoading] = useState(true)
@@ -64,11 +65,29 @@ export default function ExplorePage() {
   const [savingQuizId, setSavingQuizId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("popular")
   const [currentPage, setCurrentPage] = useState(1)
+  const [popularQueries, setPopularQueries] = useState<PopularSearchQuery[]>([])
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   useEffect(() => {
     setIsLoading(true)
     console.log('🔍 Fetching explore quizzes...')
-    getExploreQuizzes()
+    
+    const params = {
+      search: debouncedSearchQuery.trim() || undefined,
+      category: selectedCategory !== "All Categories" ? selectedCategory : undefined,
+      difficulty: selectedDifficulty !== "All Levels" ? selectedDifficulty : undefined,
+      sort: activeTab as 'popular' | 'recent' | 'trending'
+    }
+    
+    getExploreQuizzes(params)
       .then((data) => {
         console.log('📊 Explore quizzes fetched:', data.length)
         setPublicQuizzes(data)
@@ -77,6 +96,17 @@ export default function ExplorePage() {
         console.error('❌ Failed to fetch explore quizzes:', error)
       })
       .finally(() => setIsLoading(false))
+  }, [debouncedSearchQuery, selectedCategory, selectedDifficulty, activeTab])
+
+  // Fetch popular search queries
+  useEffect(() => {
+    getPopularSearchQueries(10)
+      .then((queries) => {
+        setPopularQueries(queries)
+      })
+      .catch((error) => {
+        console.error('Failed to fetch popular search queries:', error)
+      })
   }, [])
 
   // Reset page when filter/search/tab changes
@@ -84,59 +114,10 @@ export default function ExplorePage() {
     setCurrentPage(1)
   }, [searchQuery, selectedCategory, selectedDifficulty, activeTab])
 
-  // Filtering logic
-  const filteredQuizzes = useMemo(() => {
-    return publicQuizzes.filter((quiz) => {
-      const lowerQuery = searchQuery.trim().toLowerCase()
-      const matchesSearch =
-        quiz.topic.toLowerCase().includes(lowerQuery) ||
-        (quiz.description?.toLowerCase().includes(lowerQuery) ?? false) ||
-        (quiz.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery)) ?? false)
-
-      const matchesCategory =
-        selectedCategory === "All Categories" ||
-        quiz.topic === selectedCategory ||
-        (quiz.tags?.map(t => t.toLowerCase()).includes(selectedCategory.toLowerCase()) ?? false)
-
-      const backendDifficulty = (quiz.difficulty || "").toLowerCase()
-      const uiDifficulty = difficultyMap[backendDifficulty] || backendDifficulty
-      const matchesDifficulty =
-        selectedDifficulty === "All Levels" ||
-        uiDifficulty === selectedDifficulty
-
-      return matchesSearch && matchesCategory && matchesDifficulty
-    })
-  }, [publicQuizzes, searchQuery, selectedCategory, selectedDifficulty])
-
-  // Sorting logic for each tab
+  // Use the quizzes directly since filtering is now done server-side
   const sortedQuizzes = useMemo(() => {
-    if (activeTab === "popular") {
-      return filteredQuizzes
-        .slice()
-        .sort((a, b) =>
-          (b.rating ?? 0) - (a.rating ?? 0) !== 0
-            ? (b.rating ?? 0) - (a.rating ?? 0)
-            : (b.attempts ?? 0) - (a.attempts ?? 0)
-        )
-    }
-    if (activeTab === "recent") {
-      return filteredQuizzes
-        .slice()
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }
-    if (activeTab === "trending") {
-      return filteredQuizzes
-        .slice()
-        .sort((a, b) => {
-          // Primary sort: highest attempt count
-          const attemptsDiff = (b.attempts ?? 0) - (a.attempts ?? 0)
-          if (attemptsDiff !== 0) return attemptsDiff
-          // Secondary sort: highest rating
-          return (b.rating ?? 0) - (a.rating ?? 0)
-        })
-    }
-    return filteredQuizzes.slice()
-  }, [filteredQuizzes, activeTab])
+    return publicQuizzes
+  }, [publicQuizzes])
 
   // Pagination
   const totalPages = Math.ceil(sortedQuizzes.length / PAGE_SIZE)
@@ -273,18 +254,33 @@ export default function ExplorePage() {
           </div>
 
           <div>
-            <h3 className="font-medium mb-2 responsive-text-small">Popular Tags</h3>
+            <h3 className="font-medium mb-2 responsive-text-small">Popular Searches</h3>
             <div className="flex flex-wrap gap-2">
-              {["mathematics", "science", "history", "programming", "literature", "geography"].map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-primary/10 touch-target responsive-text-small"
-                  onClick={() => setSearchQuery(tag)}
-                >
-                  {tag}
-                </Badge>
-              ))}
+              {popularQueries.length > 0 ? (
+                popularQueries.map((query) => (
+                  <Badge
+                    key={query.query}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-primary/10 touch-target responsive-text-small"
+                    onClick={() => setSearchQuery(query.query)}
+                    title={`${query.count} searches`}
+                  >
+                    {query.query}
+                  </Badge>
+                ))
+              ) : (
+                // Fallback popular tags when no search data is available
+                ["mathematics", "science", "history", "programming", "literature", "geography"].map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-primary/10 touch-target responsive-text-small"
+                    onClick={() => setSearchQuery(tag)}
+                  >
+                    {tag}
+                  </Badge>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -313,7 +309,7 @@ export default function ExplorePage() {
                   Trending
                 </TabsTrigger>
               </TabsList>
-              <div className="responsive-text-small text-muted-foreground">{filteredQuizzes.length} quizzes found</div>
+              <div className="responsive-text-small text-muted-foreground">{sortedQuizzes.length} quizzes found</div>
             </div>
 
             {/* Popular Tab */}
@@ -336,6 +332,7 @@ export default function ExplorePage() {
               ) : (
                 <NoQuizzesNotice onClearFilters={() => {
                   setSearchQuery("")
+                  setDebouncedSearchQuery("")
                   setSelectedCategory("All Categories")
                   setSelectedDifficulty("All Levels")
                 }} />
@@ -362,6 +359,7 @@ export default function ExplorePage() {
               ) : (
                 <NoQuizzesNotice onClearFilters={() => {
                   setSearchQuery("")
+                  setDebouncedSearchQuery("")
                   setSelectedCategory("All Categories")
                   setSelectedDifficulty("All Levels")
                 }} />
@@ -388,6 +386,7 @@ export default function ExplorePage() {
               ) : (
                 <NoQuizzesNotice onClearFilters={() => {
                   setSearchQuery("")
+                  setDebouncedSearchQuery("")
                   setSelectedCategory("All Categories")
                   setSelectedDifficulty("All Levels")
                 }} />
