@@ -96,22 +96,22 @@ export default function DashboardPage() {
 
   // Pie chart data for attempted vs completed quizzes
   const completedQuizzes = stats?.quizzesCompleted ?? 0;
-  const attemptedQuizzes = Math.max(completedQuizzes * 1.5, completedQuizzes + 1); // Ensure we have some attempted quizzes
+  const attemptedQuizzes = stats?.quizzesAttempted ?? 0;
   
   const pieChartData = [
     { name: 'Completed', value: completedQuizzes, color: '#8b5cf6' },
-    { name: 'Attempted', value: attemptedQuizzes - completedQuizzes, color: '#ddd6fe' },
+    { name: 'Attempted', value: Math.max(attemptedQuizzes - completedQuizzes, 0), color: '#ddd6fe' },
   ];
 
   // Chart data for Average Score performance over 1 week
-  const scoreChartData = [
-    { day: 'Mon', score: 72, target: 85, aboveTarget: false },
-    { day: 'Tue', score: 78, target: 85, aboveTarget: false },
-    { day: 'Wed', score: 85, target: 85, aboveTarget: true },
-    { day: 'Thu', score: 88, target: 85, aboveTarget: true },
-    { day: 'Fri', score: 82, target: 85, aboveTarget: false },
-    { day: 'Sat', score: 90, target: 85, aboveTarget: true },
-    { day: 'Sun', score: 87, target: 85, aboveTarget: true },
+  const scoreChartData = stats?.dailyScores ?? [
+    { day: 'Mon', score: 0, target: 85, aboveTarget: false },
+    { day: 'Tue', score: 0, target: 85, aboveTarget: false },
+    { day: 'Wed', score: 0, target: 85, aboveTarget: false },
+    { day: 'Thu', score: 0, target: 85, aboveTarget: false },
+    { day: 'Fri', score: 0, target: 85, aboveTarget: false },
+    { day: 'Sat', score: 0, target: 85, aboveTarget: false },
+    { day: 'Sun', score: 0, target: 85, aboveTarget: false },
   ];
 
   return (
@@ -183,21 +183,16 @@ export default function DashboardPage() {
                         <div className="bg-muted/50 rounded-lg p-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">This Week</span>
-                            <span className="text-xs font-medium text-primary">+3</span>
+                            <span className="text-xs font-medium text-primary">+{stats?.thisWeekQuizzes ?? 0}</span>
                           </div>
                         </div>
                         <div className="bg-muted/50 rounded-lg p-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">This Month</span>
-                            <span className="text-xs font-medium text-primary">+12</span>
+                            <span className="text-xs font-medium text-primary">+{stats?.thisMonthQuizzes ?? 0}</span>
                           </div>
                         </div>
-                        <div className="bg-muted/50 rounded-lg p-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Avg Quiz per Week</span>
-                            <span className="text-xs font-medium text-primary">2.5</span>
-                          </div>
-                        </div>
+
                       </div>
                       
                       {/* Floating particles effect */}
@@ -255,7 +250,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="text-center">
                               <div className="text-xl font-bold text-primary">
-                                {Math.round((completedQuizzes / attemptedQuizzes) * 100)}%
+                                {attemptedQuizzes > 0 ? Math.round((completedQuizzes / attemptedQuizzes) * 100) : 0}%
                               </div>
                               <p className="text-xs text-muted-foreground">Success Rate</p>
                             </div>
@@ -628,44 +623,35 @@ export default function DashboardPage() {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1 min-w-0">
                             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
-                              {quiz.title}
+                              {quiz.quizTitle}
                             </h3>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-xs text-muted-foreground">Active</span>
+                            <span className="text-xs text-muted-foreground">Completed</span>
                           </div>
                         </div>
 
-                        {/* Difficulty */}
-                        {quiz.difficulty && (
-                          <div className="mb-2">
-                            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                              {quiz.difficulty}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Description */}
-                        <div className="mb-4 flex-1">
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {quiz.description || "No additional description"}
-                          </p>
+                        {/* Score Display */}
+                        <div className="mb-2">
+                          <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                            Score: {quiz.score}%
+                          </span>
                         </div>
 
                         {/* Quiz Stats */}
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div className="text-center">
                             <div className="text-xl font-bold text-primary">
-                              {quiz.questions?.length || 0}
+                              {quiz.totalQuestions}
                             </div>
                             <div className="text-xs text-muted-foreground">Questions</div>
                           </div>
                           <div className="text-center">
                             <div className="text-xl font-bold text-primary">
-                              {quiz.attempts || 0}
+                              {quiz.correctAnswers}
                             </div>
-                            <div className="text-xs text-muted-foreground">Attempts</div>
+                            <div className="text-xs text-muted-foreground">Correct</div>
                           </div>
                         </div>
 
@@ -673,7 +659,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-2">
                             <div className="text-xs text-muted-foreground truncate">
-                              Created {new Date(quiz.createdAt).toLocaleDateString()}
+                              {quiz.date}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
@@ -683,9 +669,9 @@ export default function DashboardPage() {
                               asChild
                               className="group-hover:border-primary/50 group-hover:text-primary transition-colors duration-300"
                             >
-                              <Link href={`/dashboard/quiz/preview/${quiz._id}`}>
+                              <Link href={`/dashboard/quiz/result/${quiz.id}`}>
                                 <ArrowRight className="h-3 w-3 mr-1" />
-                                Preview
+                                View Result
                               </Link>
                             </Button>
                           </div>
@@ -752,7 +738,7 @@ export default function DashboardPage() {
             {recommendedQuizzes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recommendedQuizzes.slice(0, 3).map((quiz, index) => (
-                  <StaggerItem key={quiz._id}>
+                  <StaggerItem key={quiz.id}>
                     <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 h-80">
                       {/* Glass effect background */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
@@ -784,10 +770,10 @@ export default function DashboardPage() {
                           </div>
                         )}
 
-                        {/* Description */}
+                        {/* Author */}
                         <div className="mb-4 flex-1">
                           <p className="text-sm text-muted-foreground line-clamp-2">
-                            {quiz.description || "No additional description"}
+                            By {quiz.author}
                           </p>
                         </div>
 
@@ -795,15 +781,15 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div className="text-center">
                             <div className="text-xl font-bold text-primary">
-                              {quiz.questions?.length || 0}
+                              {quiz.averageRating.toFixed(1)}
                             </div>
-                            <div className="text-xs text-muted-foreground">Questions</div>
+                            <div className="text-xs text-muted-foreground">Rating</div>
                           </div>
                           <div className="text-center">
                             <div className="text-xl font-bold text-primary">
-                              {quiz.attempts || 0}
+                              ⭐
                             </div>
-                            <div className="text-xs text-muted-foreground">Attempts</div>
+                            <div className="text-xs text-muted-foreground">Stars</div>
                           </div>
                         </div>
 
@@ -811,7 +797,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-2">
                             <div className="text-xs text-muted-foreground truncate">
-                              Created {new Date(quiz.createdAt).toLocaleDateString()}
+                              Recommended for you
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
@@ -821,9 +807,9 @@ export default function DashboardPage() {
                               asChild
                               className="group-hover:border-primary/50 group-hover:text-primary transition-colors duration-300"
                             >
-                              <Link href={`/dashboard/quiz/preview/${quiz._id}`}>
+                              <Link href={`/dashboard/quiz/practice/${quiz.id}`}>
                                 <ArrowRight className="h-3 w-3 mr-1" />
-                                Preview
+                                Practice
                               </Link>
                             </Button>
                           </div>
