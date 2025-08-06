@@ -28,8 +28,8 @@ export default function SharedLayout({ children }: { children: React.ReactNode }
       
       {/* Main content area */}
       <main className="flex-1 flex flex-col w-full items-center justify-center overflow-auto">
-        <div className="w-full max-w-7xl px-3 sm:px-4 lg:px-6 py-4 md:py-6 mx-auto">
-          <div className="mx-4 sm:mx-8 lg:mx-12">
+        <div className="w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 mx-auto">
+          <div className="mx-2 sm:mx-4 md:mx-6 lg:mx-8 xl:mx-12">
             <PageTransition>
               <LayoutWrapper>
                 {isDashboardPage ? (

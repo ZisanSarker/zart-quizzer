@@ -88,8 +88,8 @@ export default function LibraryPage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Library Header Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -108,20 +108,20 @@ export default function LibraryPage() {
       </Section>
 
       {/* Quizzes Content Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <Tabs defaultValue="created">
-            <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-              <TabsTrigger value="created">Created by Me</TabsTrigger>
-              <TabsTrigger value="saved">Saved</TabsTrigger>
+            <TabsList className="grid w-full max-w-md grid-cols-2 mb-4 sm:mb-6">
+              <TabsTrigger value="created" className="text-sm sm:text-base">Created by Me</TabsTrigger>
+              <TabsTrigger value="saved" className="text-sm sm:text-base">Saved</TabsTrigger>
             </TabsList>
 
             <TabsContent value="created">
               {isLoading ? (
-                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {[1, 2, 3].map((i) => (
                     <Card key={i} className="animate-pulse">
-                      <CardHeader className="pb-3">
+                      <CardHeader className="pb-3 p-3 sm:p-4 md:p-6">
                         <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
                         <div className="h-4 bg-muted rounded w-1/2"></div>
                       </CardHeader>
@@ -134,16 +134,16 @@ export default function LibraryPage() {
                   ))}
                 </div>
               ) : createdQuizzes.length > 0 ? (
-                <StaggerChildren className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <StaggerChildren className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {createdQuizzes.map((quiz) => (
                     <StaggerItem key={quiz._id}>
                       <Card className="card-hover">
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 p-3 sm:p-4 md:p-6">
                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <CardTitle className="text-lg">{quiz.topic}</CardTitle>
+                            <CardTitle className="text-base sm:text-lg">{quiz.topic}</CardTitle>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="min-h-[44px] sm:min-h-[40px]">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -172,16 +172,16 @@ export default function LibraryPage() {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                          <CardDescription>{quiz.description}</CardDescription>
+                          <CardDescription className="text-sm sm:text-base">{quiz.description}</CardDescription>
                         </CardHeader>
                         <CardContent className="p-3 sm:p-4 md:p-6">
-                          <div className="flex justify-between text-sm">
+                          <div className="flex justify-between text-xs sm:text-sm">
                             <div className="flex items-center gap-1">
-                              <Brain className="h-4 w-4 text-muted-foreground" />
+                              <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                               <span>{quiz.questions?.length || 0} questions</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                               <span>
                                 {quiz.createdAt
                                   ? new Date(quiz.createdAt).toLocaleDateString()
@@ -189,9 +189,9 @@ export default function LibraryPage() {
                               </span>
                             </div>
                           </div>
-                          <div className="flex justify-between mt-2 text-sm">
+                          <div className="flex justify-between mt-2 text-xs sm:text-sm">
                             <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                               <span>{quiz.attempts ?? 0} attempts</span>
                             </div>
                             <div>
@@ -203,10 +203,10 @@ export default function LibraryPage() {
                             </div>
                           </div>
                           <div className="mt-4 flex gap-2">
-                            <Button variant="outline" size="sm" className="flex-1" asChild>
+                            <Button variant="outline" size="sm" className="flex-1 min-h-[44px] sm:min-h-[40px] text-xs sm:text-sm" asChild>
                               <Link href={`/dashboard/quiz/preview/${quiz._id}`}>Preview</Link>
                             </Button>
-                            <Button size="sm" className="flex-1" asChild>
+                            <Button size="sm" className="flex-1 min-h-[44px] sm:min-h-[40px] text-xs sm:text-sm" asChild>
                               <Link href={`/dashboard/quiz/practice/${quiz._id}`}>Practice</Link>
                             </Button>
                           </div>

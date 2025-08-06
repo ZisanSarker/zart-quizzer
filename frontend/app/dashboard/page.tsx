@@ -117,8 +117,8 @@ export default function DashboardPage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Dashboard Header Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -137,11 +137,11 @@ export default function DashboardPage() {
       </Section>
 
       {/* Modern animated stats grid - Two rows layout */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="space-y-6">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="space-y-4 sm:space-y-6">
             {/* First Row - 30% Quizzes Created / 70% Quizzes Completed */}
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 sm:gap-6">
               {/* Quizzes Created - 30% */}
               <div className="lg:col-span-3">
                 <StaggerItem>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Second Row - 70% Average Score / 30% Time Spent */}
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 sm:gap-6">
               {/* Average Score - 70% */}
               <div className="lg:col-span-7">
                 <StaggerItem>
@@ -532,12 +532,12 @@ export default function DashboardPage() {
       </Section>
 
       {/* Motivation Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
             {/* Left Side - Lottie Animation */}
             <div className="flex justify-center lg:justify-start">
-              <div className="w-80 h-80 bg-muted/20 rounded-lg border border-border/50 flex items-center justify-center">
+              <div className="w-64 h-64 sm:w-80 sm:h-80 bg-muted/20 rounded-lg border border-border/50 flex items-center justify-center">
                 <LottieAnimation 
                   animationPath="/business-ideas.json"
                   loop={true}
@@ -547,32 +547,32 @@ export default function DashboardPage() {
             </div>
 
             {/* Right Side - Motivation Content */}
-            <div className="text-center lg:text-left space-y-6">
+            <div className="text-center lg:text-left space-y-4 sm:space-y-6">
               <div className="animate-fade-up">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
                   Keep Learning, Keep Growing
                 </h2>
-                <p className="text-lg text-muted-foreground mb-6">
+                <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-6">
                   Every quiz you create and complete brings you one step closer to mastering new skills. 
                   Your dedication to learning is what sets you apart.
                 </p>
               </div>
 
               <div className="animate-fade-up animate-delay-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4">
-                    <div className="text-2xl font-bold text-primary mb-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-3 sm:p-4">
+                    <div className="text-xl sm:text-2xl font-bold text-primary mb-2">
                       {stats?.quizzesCreated ?? 0}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-xs sm:text-sm text-muted-foreground">
                       Quizzes Created
                     </div>
                   </div>
-                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4">
-                    <div className="text-2xl font-bold text-primary mb-2">
+                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-3 sm:p-4">
+                    <div className="text-xl sm:text-2xl font-bold text-primary mb-2">
                       {stats?.quizzesCompleted ?? 0}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-xs sm:text-sm text-muted-foreground">
                       Quizzes Completed
                     </div>
                   </div>

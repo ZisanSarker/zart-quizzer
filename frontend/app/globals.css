@@ -196,6 +196,203 @@ body {
     @apply text-xs sm:text-sm md:text-base;
   }
 
+  /* Enhanced responsive spacing */
+  .responsive-section-padding {
+    @apply py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20;
+  }
+
+  .responsive-container-padding {
+    @apply px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12;
+  }
+
+  /* Responsive grid layouts */
+  .responsive-grid-1-2-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .responsive-grid-1-2-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .responsive-grid-1-3-6 {
+    @apply grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  /* Responsive flex layouts */
+  .responsive-flex-col-row {
+    @apply flex flex-col lg:flex-row;
+  }
+
+  .responsive-flex-col-row-reverse {
+    @apply flex flex-col lg:flex-row-reverse;
+  }
+
+  .responsive-flex-center {
+    @apply flex flex-col items-center text-center lg:text-left lg:items-start;
+  }
+
+  /* Responsive card layouts */
+  .responsive-card {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .responsive-card-mobile {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  /* Responsive button layouts */
+  .responsive-button-group {
+    @apply flex flex-col sm:flex-row gap-3 sm:gap-4;
+  }
+
+  .responsive-button-full {
+    @apply w-full sm:w-auto;
+  }
+
+  /* Responsive navigation */
+  .responsive-nav {
+    @apply flex flex-col sm:flex-row items-center gap-2 sm:gap-4;
+  }
+
+  .responsive-nav-mobile {
+    @apply flex flex-col space-y-2;
+  }
+
+  /* Responsive sidebar */
+  .responsive-sidebar {
+    @apply fixed left-4 top-1/2 transform -translate-y-1/2 w-16 z-50;
+  }
+
+  .responsive-sidebar-mobile {
+    @apply fixed bottom-0 left-0 right-0 w-full h-16 z-50;
+  }
+
+  /* Responsive modal */
+  .responsive-modal {
+    @apply w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl;
+  }
+
+  .responsive-modal-mobile {
+    @apply w-full h-full max-w-none max-h-none rounded-none;
+  }
+
+  /* Responsive form */
+  .responsive-form {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  .responsive-input {
+    @apply w-full py-3 px-4 text-base;
+  }
+
+  /* Responsive table */
+  .responsive-table {
+    @apply block overflow-x-auto;
+  }
+
+  .responsive-table-mobile {
+    @apply flex flex-col border-b py-2;
+  }
+
+  /* Responsive image */
+  .responsive-image {
+    @apply w-full h-auto object-cover;
+  }
+
+  .responsive-image-container {
+    @apply relative overflow-hidden rounded-lg;
+  }
+
+  /* Responsive aspect ratios */
+  .responsive-aspect-square {
+    @apply aspect-square;
+  }
+
+  .responsive-aspect-video {
+    @apply aspect-video;
+  }
+
+  .responsive-aspect-photo {
+    @apply aspect-[4/3];
+  }
+
+  /* Responsive spacing utilities */
+  .responsive-gap-sm {
+    @apply gap-2 sm:gap-3 md:gap-4;
+  }
+
+  .responsive-gap-md {
+    @apply gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .responsive-gap-lg {
+    @apply gap-6 sm:gap-8 lg:gap-12;
+  }
+
+  /* Responsive margin utilities */
+  .responsive-margin-sm {
+    @apply m-2 sm:m-4 md:m-6;
+  }
+
+  .responsive-margin-md {
+    @apply m-4 sm:m-6 lg:m-8;
+  }
+
+  .responsive-margin-lg {
+    @apply m-6 sm:m-8 lg:m-12;
+  }
+
+  /* Responsive padding utilities */
+  .responsive-padding-sm {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  .responsive-padding-md {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .responsive-padding-lg {
+    @apply p-6 sm:p-8 lg:p-12;
+  }
+
+  /* Responsive text alignment */
+  .responsive-text-center {
+    @apply text-center sm:text-left lg:text-center;
+  }
+
+  .responsive-text-left {
+    @apply text-left;
+  }
+
+  .responsive-text-right {
+    @apply text-right;
+  }
+
+  /* Responsive visibility */
+  .responsive-hidden-mobile {
+    @apply hidden sm:block;
+  }
+
+  .responsive-hidden-tablet {
+    @apply hidden md:block;
+  }
+
+  .responsive-hidden-desktop {
+    @apply hidden lg:block;
+  }
+
+  .responsive-visible-mobile {
+    @apply block sm:hidden;
+  }
+
+  .responsive-visible-tablet {
+    @apply block md:hidden;
+  }
+
+  .responsive-visible-desktop {
+    @apply block lg:hidden;
+  }
+
   /* Enhanced touch targets for mobile */
   .touch-target {
     @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
