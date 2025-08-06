@@ -1,36 +1,23 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-
-import { Button } from "@/components/ui/button";
-import { GradientButton } from "@/components/ui/gradient-button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import {
-  AlertTriangle,
-  Check,
-  Key,
-  Loader2,
-  Lock,
-  Palette,
-  Shield,
-} from "lucide-react";
-import { FadeIn } from "@/components/animations/motion";
-import { Section } from "@/components/section";
-import { deleteAccount, changePassword } from "@/lib/user";
-import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react"
+import { GradientButton } from "@/components/ui/gradient-button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useToast } from "@/components/ui/use-toast"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { Loader2 } from "lucide-react"
+import { FadeIn } from "@/components/animations/motion"
+import { Section } from "@/components/section"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+import { useSettingsData } from "@/hooks/use-settings-data"
+import { 
+  SettingsTab, 
+  PasswordForm, 
+  SecurityLog, 
+  AccountInfo, 
+  DangerZone 
+} from "@/components/dashboard"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,230 +27,57 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { logout } from "@/lib/auth";
-
-// Mock settings data
-const settingsMock = {
-  account: {
-    email: "john.doe@example.com",
-    emailVerified: true,
-    twoFactorEnabled: false,
-  },
-  notifications: {
-    emailNotifications: true,
-    quizReminders: true,
-    newFollowers: true,
-    quizComments: true,
-    marketingEmails: false,
-  },
-  security: {
-    lastPasswordChange: "2023-03-15T10:30:00Z",
-    loginHistory: [
-      {
-        device: "Chrome on Windows",
-        location: "New York, USA",
-        time: "2023-06-15T14:30:00Z",
-      },
-      {
-        device: "Safari on iPhone",
-        location: "New York, USA",
-        time: "2023-06-14T09:15:00Z",
-      },
-      {
-        device: "Firefox on MacOS",
-        location: "Boston, USA",
-        time: "2023-06-10T16:45:00Z",
-      },
-    ],
-  },
-};
+} from "@/components/ui/alert-dialog"
+import { logout } from "@/lib/auth"
 
 export default function SettingsPage() {
-  const { toast } = useToast();
-  const { user, logout } = useAuth();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [settings, setSettings] = useState(settingsMock);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-  const [passwordError, setPasswordError] = useState("");
+  const { toast } = useToast()
+  const { user, logout: authLogout } = useAuth()
+  const router = useRouter()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  
+  const {
+    isLoading,
+    isSaving,
+    settings,
+    handleSettingChange,
+    handleSaveSettings,
+    handleChangePassword,
+    handleDeleteAccount
+  } = useSettingsData()
 
-  useEffect(() => {
-    // Simulate API call to fetch user settings
-    const fetchSettings = async () => {
-      try {
-        // In a real app, this would be an API call
-        // const response = await api.get(`/users/${user?._id}/settings`);
-        // const data = response.data;
-        // Using mock data for now
-        const data = settingsMock;
-        setSettings(data);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load settings",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSettings();
-  }, [toast, user]);
-
-  const handleSwitchChange = (
-    section: string,
-    setting: string,
-    checked: boolean
-  ) => {
-    setSettings((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section as keyof typeof prev],
-        [setting]: checked,
-      },
-    }));
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordData((prev) => ({ ...prev, [name]: value }));
-
-    // Password validation
-    if (name === "newPassword") {
-      if (value.length < 8) {
-        setPasswordError("Password must be at least 8 characters");
-      } else if (!/\d/.test(value)) {
-        setPasswordError("Password must include a number");
-      } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
-        setPasswordError("Password must include a special character");
-      } else if (
-        passwordData.confirmPassword &&
-        value !== passwordData.confirmPassword
-      ) {
-        setPasswordError("Passwords do not match");
-      } else {
-        setPasswordError("");
-      }
-    }
-
-    // Confirm password validation
-    if (name === "confirmPassword") {
-      if (value !== passwordData.newPassword) {
-        setPasswordError("Passwords do not match");
-      } else if (
-        value === passwordData.newPassword &&
-        passwordError.startsWith("Passwords do not match")
-      ) {
-        setPasswordError("");
-      }
-    }
-  };
-
-  const handleSaveSettings = async () => {
-    setIsSaving(true);
+  const handleLogout = async () => {
     try {
-      // Simulate API call to update settings
-      // await api.put(`/users/${user?._id}/settings`, settings);
-      toast({
-        title: "Settings saved",
-        description: "Your settings have been updated successfully",
-      });
+      await logout()
+      authLogout()
+      router.push("/auth/login")
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save settings",
+        description: "Failed to logout",
         variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
+      })
     }
-  };
+  }
 
-  const handleChangePassword = async () => {
-    if (passwordError) return;
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError("Passwords do not match");
-      return;
-    }
-    setIsSaving(true);
+  const handleDeleteAccountConfirm = async () => {
     try {
-      const response = await changePassword(passwordData);
-      toast({
-        title: "Password changed",
-        description: response.message,
-      });
-      setShowPasswordDialog(false);
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to change password",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    try {
-      await deleteAccount();
-      toast({
-        title: "Account deleted",
-        description: "Your account has been deleted successfully",
-      });
-      router.push("/");
+      await handleDeleteAccount()
+      authLogout()
+      router.push("/auth/login")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete account",
-        variant: "destructive",
-      });
+      // Error is already handled in the hook
     } finally {
-      setShowDeleteDialog(false);
+      setShowDeleteDialog(false)
     }
-  };
-
-  // Format date to readable format
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  }
 
   if (isLoading) {
     return (
-      <div className="w-full flex flex-col items-center">
-        <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-pulse text-center">
-                <h2 className="text-2xl font-bold mb-2">Loading settings...</h2>
-                <p className="text-muted-foreground">
-                  Please wait while we load your settings
-                </p>
-              </div>
-            </div>
-          </div>
-        </Section>
+      <div className="w-full flex items-center justify-center h-96">
+        <span className="text-lg text-muted-foreground">Loading...</span>
       </div>
-    );
+    )
   }
 
   return (
@@ -278,17 +92,7 @@ export default function SettingsPage() {
               </h1>
             </div>
             <div className="animate-fade-up animate-delay-200">
-              <GradientButton onClick={handleSaveSettings} disabled={isSaving} className="min-h-[44px] sm:min-h-[40px] text-sm sm:text-base">
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
-                  </>
-                ) : (
-                  <>
-                    <Check className="mr-2 h-4 w-4" /> Save Changes
-                  </>
-                )}
-              </GradientButton>
+              <ThemeToggle />
             </div>
           </div>
         </div>
@@ -297,247 +101,75 @@ export default function SettingsPage() {
       {/* Settings Content Section */}
       <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
         <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <Tabs defaultValue="security" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid grid-cols-2 w-full overflow-x-auto">
-              <TabsTrigger value="security" className="flex items-center gap-2 text-sm sm:text-base">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Security</span>
-              </TabsTrigger>
-              <TabsTrigger value="appearance" className="flex items-center gap-2 text-sm sm:text-base">
-                <Palette className="h-4 w-4" />
-                <span className="hidden sm:inline">Appearance</span>
-              </TabsTrigger>
+          <Tabs defaultValue="account" className="space-y-6">
+            <TabsList className="grid w-full max-w-md grid-cols-4">
+              <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="danger">Danger</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="account">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Settings</CardTitle>
-                  <CardDescription>
-                    Update your account information and security settings.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="w-full md:w-1/2 space-y-4">
-                      <Label>Email Address</Label>
-                      <Input type="email" value={settings.account.email} disabled />
-                      {settings.account.emailVerified ? (
-                        <span className="text-xs text-green-600 flex items-center gap-1">
-                          <Check className="h-3 w-3" /> Verified
-                        </span>
-                      ) : (
-                        <span className="text-xs text-red-600 flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" /> Not verified
-                        </span>
-                      )}
-                    </div>
-                    <div className="w-full md:w-1/2 space-y-4">
-                      <Label
-                        htmlFor="twoFactorEnabled"
-                        className="flex items-center gap-2">
-                        <Lock className="h-4 w-4" /> Two-Factor Authentication
-                      </Label>
-                      <Switch
-                        id="twoFactorEnabled"
-                        checked={settings.account.twoFactorEnabled}
-                        onCheckedChange={(checked) =>
-                          handleSwitchChange("account", "twoFactorEnabled", checked)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowPasswordDialog(true)}
-                      className="mt-2">
-                      <Key className="h-4 w-4 mr-2" /> Change Password
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="notifications">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notification Preferences</CardTitle>
-                  <CardDescription>
-                    Choose which events trigger notifications.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(settings.notifications).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between">
-                      <Label className="capitalize">
-                        {key.replace(/([A-Z])/g, " $1")}
-                      </Label>
-                      <Switch
-                        checked={value}
-                        onCheckedChange={(checked) =>
-                          handleSwitchChange("notifications", key, checked)
-                        }
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="appearance">
-              <Card>
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-lg sm:text-xl lg:text-2xl">Appearance</CardTitle>
-                  <CardDescription className="text-sm sm:text-base">
-                    Customize the look and feel of your experience.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-                  <ThemeToggle />
-                </CardContent>
-              </Card>
+            <TabsContent value="account" className="space-y-6">
+              <AccountInfo
+                email={settings.account.email}
+                emailVerified={settings.account.emailVerified}
+                isSaving={isSaving}
+                onSave={handleSaveSettings}
+              />
             </TabsContent>
 
-            <TabsContent value="security">
-              <Card>
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-lg sm:text-xl lg:text-2xl">Security</CardTitle>
-                  <CardDescription className="text-sm sm:text-base">
-                    Review your account's security information.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-                  <div>
-                    {/* <Label>Last Password Change</Label>
-                    <div className="text-muted-foreground mb-2">
-                      {formatDate(settings.security.lastPasswordChange)}
-                    </div> */}
+            <TabsContent value="notifications" className="space-y-6">
+              <FadeIn>
+                <SettingsTab
+                  title="Notification Preferences"
+                  description="Choose what notifications you want to receive"
+                  settings={settings.notifications}
+                  onSettingChange={(setting, checked) => 
+                    handleSettingChange("notifications", setting, checked)
+                  }
+                />
+                <div className="flex justify-end">
+                  <GradientButton
+                    onClick={handleSaveSettings}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </GradientButton>
+                </div>
+              </FadeIn>
+            </TabsContent>
 
-                    <div className="w-full md:w-1/2 space-y-4 pb-6">
-                      <Label className="text-sm sm:text-base">Email Address</Label>
-                      <Input type="email" value={settings.account.email} disabled className="min-h-[44px] sm:min-h-[40px] text-sm sm:text-base" />
-                      {settings.account.emailVerified ? (
-                        <span className="text-xs text-green-600 flex items-center gap-1">
-                          <Check className="h-3 w-3" /> Verified
-                        </span>
-                      ) : (
-                        <span className="text-xs text-red-600 flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" /> Not verified
-                        </span>
-                      )}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowPasswordDialog(true)}
-                      className="min-h-[44px] sm:min-h-[40px] text-sm sm:text-base">
-                      <Key className="h-4 w-4 mr-2" /> Change Password
-                    </Button>
-                  </div>
-                  {/* <div>
-                    <Label>Login History</Label>
-                    <ul className="divide-y divide-border">
-                      {settings.security.loginHistory.map((login, idx) => (
-                        <li
-                          key={idx}
-                          className="py-2 flex flex-col md:flex-row md:items-center md:justify-between">
-                          <span className="font-mono text-xs">{login.device}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {login.location}
-                          </span>
-                          <span className="text-xs">{formatDate(login.time)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div> */}
-                  <div>
-                    <Button
-                      variant="destructive"
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="min-h-[44px] sm:min-h-[40px] text-sm sm:text-base">
-                      <AlertTriangle className="h-4 w-4 mr-2" /> Delete Account
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="security" className="space-y-6">
+              <FadeIn>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <PasswordForm
+                    onSubmit={handleChangePassword}
+                    isSubmitting={isSaving}
+                  />
+                  <SecurityLog
+                    lastPasswordChange={settings.security.lastPasswordChange}
+                    loginHistory={settings.security.loginHistory}
+                  />
+                </div>
+              </FadeIn>
+            </TabsContent>
+
+            <TabsContent value="danger" className="space-y-6">
+              <DangerZone
+                onLogout={handleLogout}
+                onDeleteAccount={() => setShowDeleteDialog(true)}
+              />
             </TabsContent>
           </Tabs>
         </div>
       </Section>
-
-      {/* Change Password Dialog */}
-      <AlertDialog
-        open={showPasswordDialog}
-        onOpenChange={setShowPasswordDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Change Password</AlertDialogTitle>
-            <AlertDialogDescription>
-              Enter your current password and a new password to update your
-              account security.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                name="currentPassword"
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-                className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                name="newPassword"
-                type="password"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange}
-                className={`transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 ${
-                  passwordError && passwordData.newPassword
-                    ? "border-red-500"
-                    : ""
-                }`}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={handlePasswordChange}
-                className={`transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 ${
-                  passwordError && passwordData.confirmPassword
-                    ? "border-red-500"
-                    : ""
-                }`}
-              />
-              {passwordError && (
-                <p className="text-xs text-red-500">{passwordError}</p>
-              )}
-            </div>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleChangePassword}
-              disabled={
-                !passwordData.currentPassword ||
-                !passwordData.newPassword ||
-                !passwordData.confirmPassword ||
-                !!passwordError
-              }>
-              Change Password
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Delete Account Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -545,20 +177,21 @@ export default function SettingsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
+              This action cannot be undone. This will permanently delete your account
+              and remove all your data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteAccount}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              onClick={handleDeleteAccountConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete Account
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }

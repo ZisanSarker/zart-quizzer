@@ -1,0 +1,7 @@
+export { LoginHeader } from "./login-header"
+export { LoginForm } from "./login-form"
+export { LoginSocialButtons } from "./login-social-buttons"
+export { LoginFooter } from "./login-footer"
+export { RegisterForm } from "./register-form"
+export { RegisterSocialButtons } from "./register-social-buttons"
+export { RegisterFooter } from "./register-footer" 
