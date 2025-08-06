@@ -174,55 +174,55 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold tracking-tight gradient-heading">My Profile</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight gradient-heading">My Profile</h1>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-[1fr_2fr]">
+      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 lg:grid-cols-[1fr_2fr]">
         <FadeIn>
           <Card className="card-hover">
-            <CardContent className="p-6 flex flex-col items-center text-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center">
               <div className="relative mb-4">
-                <Avatar className="h-32 w-32 border-4 border-primary-100">
+                <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary-100">
                   <AvatarImage src={profileData.userIdObj.profilePicture || "/placeholder.svg"} alt={formData.username} />
-                  <AvatarFallback className="text-3xl">
+                  <AvatarFallback className="text-xl sm:text-3xl">
                     {formData.username.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 {tab === "edit" && (
                   <Button
                     size="icon"
-                    className="absolute bottom-0 right-0 rounded-full bg-primary text-white hover:bg-primary/90"
+                    className="absolute bottom-0 right-0 rounded-full bg-primary text-white hover:bg-primary/90 min-h-[44px] sm:min-h-[40px]"
                     onClick={handleUploadPhoto}
                   >
                     <Camera className="h-4 w-4" />
                   </Button>
                 )}
               </div>
-              <h2 className="text-2xl font-bold">{formData.username}</h2>
-              <p className="text-muted-foreground mt-1">{formData.email}</p>
-              <div className="flex items-center gap-1 mt-2 text-sm">
+              <h2 className="text-xl sm:text-2xl font-bold">{formData.username}</h2>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">{formData.email}</p>
+              <div className="flex items-center gap-1 mt-2 text-xs sm:text-sm">
                 <span>Member since</span>
                 <span className="font-medium">{formatDate(profileData.userIdObj.createdAt)}</span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-4 w-full mt-4 sm:mt-6">
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl font-bold">{stats.quizzesCreated}</span>
+                  <span className="text-xl sm:text-2xl font-bold">{stats.quizzesCreated}</span>
                   <span className="text-xs text-muted-foreground">Created</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl font-bold">{stats.quizzesCompleted}</span>
+                  <span className="text-xl sm:text-2xl font-bold">{stats.quizzesCompleted}</span>
                   <span className="text-xs text-muted-foreground">Taken</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl font-bold">{stats.averageScore}%</span>
+                  <span className="text-xl sm:text-2xl font-bold">{stats.averageScore}%</span>
                   <span className="text-xs text-muted-foreground">Avg. Score</span>
                 </div>
               </div>
 
-              <div className="w-full mt-6">
-                <h3 className="font-medium mb-3">Badges</h3>
+              <div className="w-full mt-4 sm:mt-6">
+                <h3 className="font-medium mb-3 text-sm sm:text-base">Badges</h3>
                 <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
                   {(() => {
                     const badge = getHighestStarBadge(stats.badges)
@@ -237,7 +237,7 @@ export default function ProfilePage() {
                         <span className="text-[10px] font-medium">{badge.name}</span>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">No badges yet</span>
+                      <span className="text-muted-foreground text-xs sm:text-sm">No badges yet</span>
                     )
                   })()}
                 </div>
@@ -246,16 +246,16 @@ export default function ProfilePage() {
           </Card>
         </FadeIn>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <Tabs value={tab} onValueChange={(value) => setTab(value as "about" | "stats" | "edit")}>
             <TabsList className="mb-4">
-              <TabsTrigger value="about">
+              <TabsTrigger value="about" className="text-sm sm:text-base">
                 About
               </TabsTrigger>
-              <TabsTrigger value="stats">
+              <TabsTrigger value="stats" className="text-sm sm:text-base">
                 Statistics
               </TabsTrigger>
-              <TabsTrigger value="edit">
+              <TabsTrigger value="edit" className="text-sm sm:text-base">
                 Edit Profile
               </TabsTrigger>
             </TabsList>

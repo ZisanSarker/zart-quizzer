@@ -304,8 +304,8 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold tracking-tight gradient-heading">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight gradient-heading">
           Practice: {quiz.topic}
         </h1>
         <div className="flex items-center gap-2">
@@ -315,7 +315,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
             size="sm"
             onClick={handleRateButtonClick}
             className={`
-              flex items-center gap-2 transition-all duration-300 transform hover:scale-105
+              flex items-center gap-2 transition-all duration-300 transform hover:scale-105 min-h-[44px] sm:min-h-[40px] text-xs sm:text-sm
               ${showRateButton 
                 ? hasRated
                   ? "bg-green-50 hover:bg-green-100 dark:bg-green-950/30 dark:hover:bg-green-950/50 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
@@ -348,14 +348,14 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
             }
           </Button>
           
-          <Button variant="outline" size="sm" onClick={handleShareQuiz}>
+          <Button variant="outline" size="sm" onClick={handleShareQuiz} className="min-h-[44px] sm:min-h-[40px] text-xs sm:text-sm">
             <Share2 className="mr-2 h-4 w-4" /> Share Quiz
           </Button>
         </div>
       </div>
 
       <FadeIn>
-        <div className="space-y-8 max-w-3xl mx-auto">
+        <div className="space-y-6 sm:space-y-8 max-w-3xl mx-auto">
           {quiz.questions.map((question, index) => {
             const userAnswer = selectedAnswers[question._id]
             const checked = checkedAnswers[question._id]
@@ -371,20 +371,20 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
                       : "border-t-primary/40"
                   }`}
                 >
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="bg-background">
+                      <Badge variant="outline" className="bg-background text-xs sm:text-sm">
                         Question {index + 1}
                       </Badge>
                       {checked && (
                         isCorrect
-                          ? <Badge className="bg-green-500">Correct</Badge>
-                          : <Badge className="bg-red-500">Incorrect</Badge>
+                          ? <Badge className="bg-green-500 text-xs sm:text-sm">Correct</Badge>
+                          : <Badge className="bg-red-500 text-xs sm:text-sm">Incorrect</Badge>
                       )}
                     </div>
-                    <CardTitle className="text-lg">{question.questionText}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">{question.questionText}</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                       {question.options.map((option, optionIdx) => {
                         const isOptionCorrect = option === question.correctAnswer
@@ -395,7 +395,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
                             key={optionIdx}
                             type="button"
                             className={`
-                              group flex items-start gap-2 p-3 rounded-md border w-full text-left transition-all duration-150
+                              group flex items-start gap-2 p-3 rounded-md border w-full text-left transition-all duration-150 min-h-[44px] sm:min-h-[40px] text-sm sm:text-base
                               ${checked
                                 ? isOptionCorrect
                                   ? "bg-green-100 border-green-200 dark:bg-green-950/30 dark:border-green-900/50"
@@ -413,16 +413,16 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
                             <span className="flex-shrink-0 mt-0.5">
                               {checked ? (
                                 isOptionCorrect ? (
-                                  <CheckCircle className="h-5 w-5 text-green-500" />
+                                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                                 ) : showError ? (
-                                  <XCircle className="h-5 w-5 text-red-500" />
+                                  <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
                                 ) : (
-                                  <div className="h-5 w-5 rounded-full border border-muted-foreground flex items-center justify-center">
+                                  <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs sm:text-sm">
                                     {String.fromCharCode(65 + optionIdx)}
                                   </div>
                                 )
                               ) : (
-                                <div className="h-5 w-5 rounded-full border border-muted-foreground flex items-center justify-center">
+                                <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full border border-muted-foreground flex items-center justify-center text-xs sm:text-sm">
                                   {String.fromCharCode(65 + optionIdx)}
                                 </div>
                               )}
@@ -434,7 +434,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
                     </div>
 
                     {checked && (
-                      <div className="mt-3 text-sm">
+                      <div className="mt-3 text-xs sm:text-sm">
                         {!isCorrect && (
                           <div className="mb-2">
                             <span className="font-medium text-red-500">Your answer:</span> {userAnswer}
@@ -455,15 +455,16 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
         </div>
       </FadeIn>
 
-      <div className="flex flex-col items-center max-w-3xl mx-auto mt-12 mb-6 gap-3">
-        <div className="flex justify-end w-full gap-3">
-          <GradientButton onClick={handleResetPractice}>
+      <div className="flex flex-col items-center max-w-3xl mx-auto mt-8 sm:mt-12 mb-6 gap-3">
+        <div className="flex flex-col sm:flex-row justify-end w-full gap-3">
+          <GradientButton onClick={handleResetPractice} className="min-h-[44px] sm:min-h-[40px] text-sm sm:text-base">
             Reset Practice
           </GradientButton>
           <Button
             variant="default"
             onClick={handleFinishPractice}
             disabled={practiceSubmitted}
+            className="min-h-[44px] sm:min-h-[40px] text-sm sm:text-base"
           >
             {practiceSubmitted ? "Practice Saved" : "Finish Practice"}
           </Button>

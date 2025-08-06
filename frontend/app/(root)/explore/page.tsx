@@ -132,8 +132,8 @@ export default function ExplorePage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Explore Header Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -151,27 +151,27 @@ export default function ExplorePage() {
       </Section>
 
       {/* Explore Content Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="mb-6">
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-24 sm:gap-32 lg:gap-40 xl:gap-48 px-4 sm:px-6 lg:px-8 xl:px-10">
+            <div className="mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 lg:px-8">
                 <TabsList className="w-full sm:w-auto glass-effect-tabs">
                   <TabsTrigger 
                     value="popular" 
-                    className="touch-target glass-tab-trigger"
+                    className="touch-target glass-tab-trigger text-xs sm:text-sm"
                   >
                     Popular
                   </TabsTrigger>
                   <TabsTrigger 
                     value="recent" 
-                    className="touch-target glass-tab-trigger"
+                    className="touch-target glass-tab-trigger text-xs sm:text-sm"
                   >
                     Recent
                   </TabsTrigger>
                   <TabsTrigger 
                     value="trending" 
-                    className="touch-target glass-tab-trigger"
+                    className="touch-target glass-tab-trigger text-xs sm:text-sm"
                   >
                     Trending
                   </TabsTrigger>
@@ -181,7 +181,7 @@ export default function ExplorePage() {
             </div>
 
                 {/* Popular Tab */}
-                <TabsContent value="popular" className="space-y-4 sm:space-y-6">
+                <TabsContent value="popular" className="space-y-3 sm:space-y-4 md:space-y-6">
                   {isLoading ? (
                     <SkeletonList />
                   ) : pagedQuizzes.length > 0 ? (
@@ -198,17 +198,12 @@ export default function ExplorePage() {
                       <Pagination />
                     </>
                   ) : (
-                    <NoQuizzesNotice onClearFilters={() => {
-                      setSearchQuery("")
-                      setDebouncedSearchQuery("")
-                      setSelectedCategory("All Categories")
-                      setSelectedDifficulty("All Levels")
-                    }} />
+                    <NoQuizzesNotice />
                   )}
                 </TabsContent>
 
                 {/* Recent Tab */}
-                <TabsContent value="recent" className="space-y-4 sm:space-y-6">
+                <TabsContent value="recent" className="space-y-3 sm:space-y-4 md:space-y-6">
                   {isLoading ? (
                     <SkeletonList />
                   ) : pagedQuizzes.length > 0 ? (
@@ -225,36 +220,31 @@ export default function ExplorePage() {
                       <Pagination />
                     </>
                   ) : (
-                    <NoQuizzesNotice onClearFilters={() => {
-                      setSearchQuery("")
-                      setDebouncedSearchQuery("")
-                      setSelectedCategory("All Categories")
-                      setSelectedDifficulty("All Levels")
-                    }} />
+                    <NoQuizzesNotice />
                   )}
                 </TabsContent>
 
-                                 {/* Trending Tab */}
-                 <TabsContent value="trending" className="space-y-4 sm:space-y-6">
-                   {isLoading ? (
-                     <SkeletonList />
-                   ) : pagedQuizzes.length > 0 ? (
-                     <>
-                       {pagedQuizzes.map((quiz) => (
-                         <QuizCard
-                           key={quiz._id}
-                           quiz={quiz}
-                           onSave={handleSaveQuiz}
-                           saving={savingQuizId === quiz._id}
-                           formatRelativeTime={formatRelativeTime}
-                         />
-                       ))}
-                       <Pagination />
-                     </>
-                   ) : (
-                     <NoQuizzesNotice />
-                   )}
-                 </TabsContent>
+                {/* Trending Tab */}
+                <TabsContent value="trending" className="space-y-3 sm:space-y-4 md:space-y-6">
+                  {isLoading ? (
+                    <SkeletonList />
+                  ) : pagedQuizzes.length > 0 ? (
+                    <>
+                      {pagedQuizzes.map((quiz) => (
+                        <QuizCard
+                          key={quiz._id}
+                          quiz={quiz}
+                          onSave={handleSaveQuiz}
+                          saving={savingQuizId === quiz._id}
+                          formatRelativeTime={formatRelativeTime}
+                        />
+                      ))}
+                      <Pagination />
+                    </>
+                  ) : (
+                    <NoQuizzesNotice />
+                  )}
+                </TabsContent>
                </Tabs>
         </div>
       </Section>
@@ -285,10 +275,10 @@ function QuizCard({
 
   return (
     <Card className="card-hover mobile-card">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <CardContent className="p-3 sm:p-4 md:p-6">
+        <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
               <div className="min-w-0 flex-1">
                 <Link href={`/dashboard/quiz/practice/${quiz._id}`} className="hover:text-primary transition-colors">
                   <h3 className="responsive-heading-3 hover:underline truncate">{quiz.topic}</h3>
@@ -303,68 +293,68 @@ function QuizCard({
                       ? "secondary"
                       : "default"
                 }
-                className="flex-shrink-0"
+                className="flex-shrink-0 self-start sm:self-auto"
               >
                 {uiDifficulty}
               </Badge>
             </div>
 
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-3">
               {(quiz.tags || []).map((tag) => (
-                <Badge key={tag} variant="outline" className="bg-muted/50 responsive-text-small">
+                <Badge key={tag} variant="outline" className="bg-muted/50 responsive-text-small text-xs sm:text-sm">
                   {tag}
                 </Badge>
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mt-4">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4 mt-3 sm:mt-4">
               <div 
-                className="metric-badge metric-badge-blue flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                className="metric-badge metric-badge-blue flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full group relative" 
                 title={`${quiz.questions.length} question${quiz.questions.length === 1 ? '' : 's'} in this quiz`}
               >
-                <Brain className="h-4 w-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">
                   {quiz.questions.length} {quiz.questions.length === 1 ? 'question' : 'questions'}
                 </span>
               </div>
               
               <div 
-                className="metric-badge metric-badge-green flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                className="metric-badge metric-badge-green flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full group relative" 
                 title={`${quiz.attempts ?? 0} user${quiz.attempts === 1 ? '' : 's'} have attempted this quiz`}
               >
-                <Users className="h-4 w-4 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-300">{quiz.attempts ?? 0} attempts</span>
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">{quiz.attempts ?? 0} attempts</span>
               </div>
               
               <div 
-                className="metric-badge metric-badge-purple flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                className="metric-badge metric-badge-purple flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full group relative" 
                 title={`Created ${formatRelativeTime(quiz.createdAt)}`}
               >
-                <Clock className="h-4 w-4 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">{formatRelativeTime(quiz.createdAt)}</span>
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-300">{formatRelativeTime(quiz.createdAt)}</span>
               </div>
               
               <div 
-                className="metric-badge metric-badge-amber flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                className="metric-badge metric-badge-amber flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full group relative" 
                 title={`Average rating: ${quiz.rating ? quiz.rating.toFixed(1) : "0.0"}/5.0`}
               >
-                <Star className="h-4 w-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-sm font-medium text-amber-700 dark:text-amber-300">{quiz.rating ? quiz.rating.toFixed(1) : "0.0"}</span>
+                <Star className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-300">{quiz.rating ? quiz.rating.toFixed(1) : "0.0"}</span>
               </div>
               
               <div 
-                className="metric-badge metric-badge-orange flex items-center gap-1 px-3 py-1.5 rounded-full group relative" 
+                className="metric-badge metric-badge-orange flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full group relative" 
                 title={`${quiz.ratingCount ?? 0} user${quiz.ratingCount === 1 ? '' : 's'} rated this quiz`}
               >
-                <div className="w-4 h-4 rounded-full bg-orange-600 dark:bg-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-orange-600 dark:bg-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                   <span className="text-xs font-bold text-white">{quiz.ratingCount ?? 0}</span>
                 </div>
-                <span className="text-sm font-medium text-orange-700 dark:text-orange-300">{quiz.ratingCount === 1 ? "rating" : "ratings"}</span>
+                <span className="text-xs sm:text-sm font-medium text-orange-700 dark:text-orange-300">{quiz.ratingCount === 1 ? "rating" : "ratings"}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col justify-between items-end gap-4 lg:min-w-0">
+          <div className="flex flex-col justify-between items-end gap-3 sm:gap-4 lg:min-w-0">
             <div className="flex items-center gap-2 w-full lg:w-auto">
               <div className="text-sm text-right min-w-0 flex-1 lg:flex-none">
                 <Link 
@@ -383,9 +373,9 @@ function QuizCard({
                 href={`/dashboard/profile/${quiz.author?._id || 'unknown'}`}
                 className="flex-shrink-0 group"
               >
-                <Avatar className="group-hover:scale-105 transition-transform duration-200 group-hover:ring-2 group-hover:ring-primary/20 author-avatar-hover">
+                <Avatar className="h-8 w-8 sm:h-10 sm:w-10 group-hover:scale-105 transition-transform duration-200 group-hover:ring-2 group-hover:ring-primary/20 author-avatar-hover">
                   <AvatarImage src={quiz.author?.avatar || "/placeholder.svg"} alt={quiz.author?.name} />
-                  <AvatarFallback>{quiz.author?.initials || "?"}</AvatarFallback>
+                  <AvatarFallback className="text-xs sm:text-sm">{quiz.author?.initials || "?"}</AvatarFallback>
                 </Avatar>
               </Link>
             </div>
@@ -396,11 +386,11 @@ function QuizCard({
                 size="sm"
                 onClick={() => onSave(quiz._id)}
                 disabled={saving}
-                className="flex-1 lg:flex-none touch-target"
+                className="flex-1 lg:flex-none touch-target min-h-[44px] sm:min-h-[40px] text-xs sm:text-sm"
               >
                 {saving ? "Saving..." : "Save"}
               </Button>
-              <Button asChild className="flex-1 lg:flex-none touch-target">
+              <Button asChild className="flex-1 lg:flex-none touch-target min-h-[44px] sm:min-h-[40px] text-xs sm:text-sm">
                 <Link href={`/dashboard/quiz/practice/${quiz._id}`}>Practice</Link>
               </Button>
             </div>
