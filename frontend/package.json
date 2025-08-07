@@ -6,7 +6,14 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "analyze": "node scripts/analyze-bundle.js",
+    "build:analyze": "ANALYZE=true next build",
+    "lighthouse": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
+    "performance:check": "npm run build && npm run lighthouse",
+    "bundle:size": "npm run build && npx @next/bundle-analyzer",
+    "performance:monitor": "next dev --turbo",
+    "test:performance": "node scripts/test-performance.js"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -66,9 +73,11 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^15.2.4",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "lighthouse": "^12.0.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

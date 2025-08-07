@@ -1,8 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import { useExploreData } from "@/hooks/use-explore-data"
 import { ExploreHeader } from "@/components/explore/explore-header"
-import { ExploreContent } from "@/components/explore/explore-content"
+import { LazyExploreContent } from "@/components/lazy-components"
+import { usePerformanceOptimization } from "@/hooks/use-performance-optimization"
+import { useEffect } from "react"
 
 // Format date to relative time
 const formatRelativeTime = (dateString: string) => {
@@ -32,21 +35,32 @@ export default function ExplorePage() {
     handleTabChange
   } = useExploreData()
 
+  const { prefetchRoute } = usePerformanceOptimization()
+
+  // Prefetch likely routes from explore
+  useEffect(() => {
+    prefetchRoute('/dashboard')
+    prefetchRoute('/dashboard/create')
+    prefetchRoute('/dashboard/library')
+  }, [prefetchRoute])
+
   return (
     <div className="w-full flex flex-col items-center">
       <ExploreHeader />
-      <ExploreContent
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        isLoading={isLoading}
-        pagedQuizzes={pagedQuizzes}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-        onSave={handleSaveQuiz}
-        savingQuizId={savingQuizId}
-        formatRelativeTime={formatRelativeTime}
-      />
+      <Suspense fallback={<div className="w-full h-96 bg-muted rounded animate-pulse" />}>
+        <LazyExploreContent
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          isLoading={isLoading}
+          pagedQuizzes={pagedQuizzes}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+          onSave={handleSaveQuiz}
+          savingQuizId={savingQuizId}
+          formatRelativeTime={formatRelativeTime}
+        />
+      </Suspense>
     </div>
   )
 }

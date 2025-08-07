@@ -1,9 +1,12 @@
 "use client"
 
 import { useDashboardData } from "@/hooks/use-dashboard-data"
-import { DashboardHeader, StatsGrid, QuizSection, MotivationSection } from "@/components/dashboard"
+import { DashboardHeader } from "@/components/dashboard"
 import { Plus, Brain, Trophy, ArrowRight } from "lucide-react"
 import { LoadingSpinner } from "@/components/ui/feedback"
+import { LazyStatsGrid, LazyQuizSection, LazyMotivationSection } from "@/components/lazy-components"
+import { usePerformanceOptimization } from "@/hooks/use-performance-optimization"
+import { useEffect } from "react"
 
 export default function DashboardPage() {
   const {
@@ -16,6 +19,17 @@ export default function DashboardPage() {
     quizError,
     isLoadingData
   } = useDashboardData()
+  
+  const { prefetchRoute } = usePerformanceOptimization()
+
+  // Prefetch likely routes from dashboard
+  useEffect(() => {
+    prefetchRoute('/dashboard/create')
+    prefetchRoute('/dashboard/library')
+    prefetchRoute('/dashboard/profile')
+    prefetchRoute('/dashboard/settings')
+    prefetchRoute('/explore')
+  }, [prefetchRoute])
 
   if (isLoading) {
     return <LoadingSpinner />
@@ -35,14 +49,14 @@ export default function DashboardPage() {
         actionIcon={Plus}
       />
 
-      {/* Modern animated stats grid */}
-      <StatsGrid stats={stats} />
+      {/* Stats Grid */}
+      <LazyStatsGrid stats={stats} />
 
       {/* Motivation Section */}
-      <MotivationSection stats={stats} />
+      <LazyMotivationSection stats={stats} />
 
       {/* Recent Quizzes Section */}
-      <QuizSection
+      <LazyQuizSection
         title="Your Recent Quizzes"
         description="Track your latest quiz creations and their performance"
         quizzes={recentQuizzes}
@@ -59,7 +73,7 @@ export default function DashboardPage() {
       />
 
       {/* Recommended Quizzes Section */}
-      <QuizSection
+      <LazyQuizSection
         title="Recommended for You"
         description="Discover quizzes tailored to your interests and learning goals"
         quizzes={recommendedQuizzes}
