@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Brain, Home, Library, LogOut, User, Settings } from "lucide-react"
+import { LogOut, User, Settings, Home, Library, Brain } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import ResponsiveNavigation from "@/components/responsive-navigation"
 
@@ -36,9 +36,9 @@ export default function SharedHeader() {
     <header className="sticky top-0 z-10 w-full py-2">
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-3xl mx-4 sm:mx-8 lg:mx-12 border border-white/30 dark:border-white/10 shadow-lg">
-          <div className="flex h-12 sm:h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex h-12 sm:h-14 items-center px-4 sm:px-6 lg:px-8">
             {/* Left: Logo or Text */}
-            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity flex-shrink-0">
               <img 
                 src="/logo.png" 
                 alt="ZART Quizzer" 
@@ -52,7 +52,98 @@ export default function SharedHeader() {
             </Link>
 
             {/* Center: Responsive Navigation */}
-            <ResponsiveNavigation />
+            <div className="flex-1 flex justify-center">
+              {/* Desktop Navigation Links */}
+              <div className="hidden lg:block">
+                {isAuthenticated && (
+                  <nav className="flex gap-2 lg:gap-6 items-center">
+                    {[
+                      { href: "/", label: "Home", icon: Home },
+                      { href: "/explore", label: "Explore", icon: Library },
+                      { href: "/dashboard", label: "Dashboard", icon: Brain },
+                    ].map(({ href, label, icon: Icon }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-200 touch-target
+                          ${pathname === href
+                            ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                            : "hover:bg-primary-50/70 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"}
+                        `}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span className="hidden xl:inline-block">{label}</span>
+                      </Link>
+                    ))}
+                  </nav>
+                )}
+              </div>
+            </div>
+
+            {/* Right: User Profile/Auth */}
+            <div className="flex-shrink-0">
+              <div className="hidden lg:block">
+                <div className="flex items-center gap-2">
+                  {isAuthenticated ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-2 transition-colors hover:text-primary touch-target">
+                          <Avatar className="h-8 w-8 border-2 border-primary-100 transition-transform hover:scale-105">
+                            <AvatarImage
+                              src={user?.profilePicture || "/placeholder.svg?height=32&width=32"}
+                              alt={user?.username || "User"}
+                            />
+                            <AvatarFallback className="bg-primary-100 text-primary-700">{getInitials()}</AvatarFallback>
+                          </Avatar>
+                          <span className="hidden sm:inline-block">{user?.username}</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/dashboard/profile" className="touch-target">
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/dashboard/settings" className="touch-target">
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Settings</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => logout()}
+                          className="cursor-pointer transition-colors hover:bg-destructive/10 hover:text-destructive touch-target"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Log out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Link href="/login">
+                        <Button variant="ghost" size="sm" className="hover:text-primary transition-colors touch-target">
+                          Log in
+                        </Button>
+                      </Link>
+                      <Link href="/register">
+                        <Button size="sm" variant="default" className="touch-target">
+                          Sign up
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Mobile menu button */}
+              <div className="lg:hidden">
+                <ResponsiveNavigation />
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,11 +1,13 @@
 "use client"
 
-import { Brain, CheckCircle, BarChart3, Clock } from "lucide-react"
+import { Brain, Clock } from "lucide-react"
 import { StatsCard } from "./stats-card"
-import { ChartCard } from "./chart-card"
 import { Section } from "@/components/section"
-import { StaggerChildren, StaggerItem } from "@/components/animations/motion"
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
+import { StaggerChildren } from "@/components/animations/motion"
+import { 
+  CompletedQuizzesCard, 
+  AverageScoreCard 
+} from "./stats-grid/index"
 import type { UserStats } from "@/types/stats"
 
 interface StatsGridProps {
@@ -13,14 +15,9 @@ interface StatsGridProps {
 }
 
 export function StatsGrid({ stats }: StatsGridProps) {
-  // Pie chart data for attempted vs completed quizzes
-  const completedQuizzes = stats?.quizzesCompleted ?? 0;
-  const attemptedQuizzes = stats?.quizzesAttempted ?? 0;
-  
-  const pieChartData = [
-    { name: 'Completed', value: completedQuizzes, color: '#8b5cf6' },
-    { name: 'Attempted', value: Math.max(attemptedQuizzes - completedQuizzes, 0), color: '#ddd6fe' },
-  ];
+  const completedQuizzes = stats?.quizzesCompleted ?? 0
+  const attemptedQuizzes = stats?.quizzesAttempted ?? 0
+  const averageScore = stats?.averageScore ?? 0
 
   // Chart data for Average Score performance over 1 week
   const scoreChartData = stats?.dailyScores ?? [
@@ -31,7 +28,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
     { day: 'Fri', score: 0, target: 85, aboveTarget: false },
     { day: 'Sat', score: 0, target: 85, aboveTarget: false },
     { day: 'Sun', score: 0, target: 85, aboveTarget: false },
-  ];
+  ]
 
   return (
     <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
@@ -67,103 +64,10 @@ export function StatsGrid({ stats }: StatsGridProps) {
 
             {/* Quizzes Completed - 70% */}
             <div className="lg:col-span-7">
-              <StaggerItem>
-                <div className="group relative h-full">
-                  {/* Glass effect background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
-                  
-                  {/* Animated border gradient */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                  
-                  {/* Main card content */}
-                  <div className="relative px-6 pt-8 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
-                    {/* Header with Icon and Title - Top Center */}
-                    <div className="flex items-center justify-center mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full blur-lg group-hover:blur-xl transition-all duration-500"></div>
-                          <div className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full border border-primary/20 group-hover:border-primary/40 transition-all duration-500 group-hover:scale-110">
-                            <CheckCircle className="h-5 w-5 text-primary group-hover:scale-110 transition-transform duration-500" />
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <h3 className="text-base font-semibold text-foreground">Quizzes Completed</h3>
-                          <p className="text-xs text-muted-foreground">Your completion overview</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Stats and Chart Section */}
-                    <div className="flex items-start justify-center pt-2 flex-1">
-                      <div className="flex-1">
-                        {/* Stats Section */}
-                        <div className="space-y-4 mb-4">
-                          <div className="text-center">
-                            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                              {completedQuizzes}
-                            </div>
-                            <p className="text-xl text-muted-foreground">Completed</p>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xl font-bold text-primary">
-                              {attemptedQuizzes}
-                            </div>
-                            <p className="text-xs text-muted-foreground">Attempted</p>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xl font-bold text-primary">
-                              {attemptedQuizzes > 0 ? Math.round((completedQuizzes / attemptedQuizzes) * 100) : 0}%
-                            </div>
-                            <p className="text-xs text-muted-foreground">Success Rate</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Chart Section */}
-                      <div className="flex-1 flex items-start justify-center">
-                        <div className="h-48 w-48">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={pieChartData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={25}
-                                outerRadius={50}
-                                paddingAngle={5}
-                                dataKey="value"
-                              >
-                                {pieChartData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                              </Pie>
-                              <Tooltip />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Legend */}
-                    <div className="flex justify-center mt-1">
-                      <div className="flex gap-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-purple-500 shadow-lg shadow-purple-500/50 rounded-full"></div>
-                          <span className="text-xs text-muted-foreground">Completed</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-purple-200 shadow-lg shadow-purple-200/50 rounded-full"></div>
-                          <span className="text-xs text-muted-foreground">Attempted</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Floating particles effect */}
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-primary/30 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="absolute bottom-4 left-4 w-1 h-1 bg-secondary/40 rounded-full animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                  </div>
-                </div>
-              </StaggerItem>
+              <CompletedQuizzesCard 
+                completedQuizzes={completedQuizzes}
+                attemptedQuizzes={attemptedQuizzes}
+              />
             </div>
           </div>
 
@@ -171,128 +75,10 @@ export function StatsGrid({ stats }: StatsGridProps) {
           <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 sm:gap-6">
             {/* Average Score - 70% */}
             <div className="lg:col-span-7">
-              <ChartCard
-                title="Average Score"
-                subtitle="Your performance overview"
-                icon={BarChart3}
-                headerContent={
-                  <div className="text-right">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      {stats?.averageScore ?? 0}
-                      <span className="text-2xl">%</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">Overall Performance</p>
-                    <h4 className="text-sm font-semibold text-foreground mt-2">Weekly Performance</h4>
-                  </div>
-                }
-              >
-                <div className="flex-1 flex flex-col items-center justify-center">
-                  <div className="h-48 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={scoreChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-                        <XAxis 
-                          dataKey="day" 
-                          stroke="#6b7280" 
-                          fontSize={12}
-                          tickLine={false}
-                          axisLine={false}
-                        />
-                        <YAxis 
-                          stroke="#6b7280" 
-                          fontSize={12}
-                          tickLine={false}
-                          axisLine={false}
-                          domain={[0, 100]}
-                          ticks={[0, 20, 40, 60, 80, 100]}
-                          tickFormatter={(value) => `${value}%`}
-                          allowDataOverflow={false}
-                          scale="linear"
-                          type="number"
-                          tickCount={6}
-                          minTickGap={10}
-                        />
-                        {/* Grid lines for each range */}
-                        <ReferenceLine y={20} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
-                        <ReferenceLine y={40} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
-                        <ReferenceLine y={60} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
-                        <ReferenceLine y={80} stroke="#374151" strokeDasharray="3 3" strokeWidth={1} opacity={0.3} />
-                        <ReferenceLine 
-                          y={85} 
-                          stroke="#3b82f6" 
-                          strokeDasharray="3 3" 
-                          strokeWidth={2}
-                          label={{ value: "Target", position: "insideTopRight", fontSize: 10, fill: "#3b82f6" }}
-                        />
-                        <Tooltip 
-                          content={({ active, payload, label }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-                                  <p className="text-sm font-medium text-foreground">{label}</p>
-                                  <p className="text-sm text-muted-foreground">Score: {payload[0].value}%</p>
-                                </div>
-                              )
-                            }
-                            return null
-                          }}
-                        />
-                        {/* Performance line with conditional colors */}
-                        <Line 
-                          type="monotone" 
-                          dataKey="score" 
-                          stroke="#10b981" 
-                          strokeWidth={3}
-                          dot={(props) => {
-                            const { cx, cy, payload } = props;
-                            const color = payload.aboveTarget ? '#f59e0b' : '#10b981';
-                            return (
-                              <circle 
-                                cx={cx} 
-                                cy={cy} 
-                                r={4} 
-                                fill={color} 
-                                stroke={color} 
-                                strokeWidth={2}
-                              />
-                            );
-                          }}
-                          activeDot={(props) => {
-                            const { cx, cy, payload } = props;
-                            const color = payload.aboveTarget ? '#f59e0b' : '#10b981';
-                            return (
-                              <circle 
-                                cx={cx} 
-                                cy={cy} 
-                                r={6} 
-                                fill="#ffffff" 
-                                stroke={color} 
-                                strokeWidth={2}
-                              />
-                            );
-                          }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                  
-                  {/* Legend */}
-                  <div className="flex justify-center gap-4 mt-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-muted-foreground">Below Target</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                      <span className="text-xs text-muted-foreground">Above Target</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="text-xs text-muted-foreground">Target (85%)</span>
-                    </div>
-                  </div>
-                </div>
-              </ChartCard>
+              <AverageScoreCard 
+                averageScore={averageScore}
+                scoreChartData={scoreChartData}
+              />
             </div>
 
             {/* Time Spent - 30% */}

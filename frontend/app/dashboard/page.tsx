@@ -3,6 +3,7 @@
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { DashboardHeader, StatsGrid, QuizSection, MotivationSection } from "@/components/dashboard"
 import { Plus, Brain, Trophy, ArrowRight } from "lucide-react"
+import { LoadingSpinner } from "@/components/ui/feedback"
 
 export default function DashboardPage() {
   const {
@@ -17,11 +18,7 @@ export default function DashboardPage() {
   } = useDashboardData()
 
   if (isLoading) {
-    return (
-      <div className="w-full flex items-center justify-center h-96">
-        <span className="text-lg text-muted-foreground">Loading...</span>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   if (!user) {

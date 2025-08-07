@@ -30,4 +30,12 @@ export { ProfileSidebar } from "./profile-sidebar"
 export { ProfileAbout } from "./profile-about"
 export { ProfileStats } from "./profile-stats"
 export { ProfileEditForm } from "./profile-edit-form"
-export { ProfileSecurity } from "./profile-security" 
+export { ProfileSecurity } from "./profile-security"
+
+// Export sub-components for better organization
+export * from "./quiz-form"
+export * from "./stats-grid"
+export * from "./quiz-card"
+export * from "./profile-edit-form"
+export * from "./library-quiz-card"
+export * from "./profile-sidebar" 

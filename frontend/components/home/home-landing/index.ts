@@ -1,0 +1,5 @@
+export { HomeLanding } from "./home-landing"
+export { HomeHero } from "./home-hero"
+export { HomeFeatures } from "./home-features"
+export { HomeGallery } from "./home-gallery"
+export { HomeShareSection } from "./home-share-section" 
