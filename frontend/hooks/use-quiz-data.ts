@@ -25,7 +25,22 @@ export function useQuizData() {
     const fetchQuiz = async () => {
       try {
         const quizData = await getQuizById(params.id)
-        setQuiz(quizData)
+        // Normalize questions to ensure `questionText` exists for all cases
+        const normalized = {
+          ...quizData,
+          questions: quizData.questions.map((q: any) => ({
+            ...q,
+            questionText:
+              q?.questionText ??
+              q?.question ??
+              q?.title ??
+              q?.text ??
+              q?.statement ??
+              q?.prompt ??
+              "",
+          })),
+        }
+        setQuiz(normalized)
         if (!quizData.timeLimit) setTimeLeft(0)
         setStartTime(Date.now())
       } catch (error) {

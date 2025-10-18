@@ -43,7 +43,12 @@ export function QuizQuestion({
             </div>
           </div>
           <Progress value={progress} className="mb-4" />
-          <CardTitle className="text-lg">{question.question}</CardTitle>
+          <div className="space-y-1 mb-2">
+            <span className="text-xs text-muted-foreground">Question</span>
+            <div className="font-medium text-base sm:text-lg whitespace-pre-wrap break-words text-card-foreground">
+              {question?.questionText ?? question?.question ?? question?.title ?? "No question text provided."}
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <RadioGroup
@@ -51,7 +56,7 @@ export function QuizQuestion({
             onValueChange={onAnswerSelect}
             className="space-y-3"
           >
-            {question.options.map((option: string, index: number) => (
+            {(question.options || []).map((option: string, index: number) => (
               <div key={index} className="flex items-center space-x-2">
                 <RadioGroupItem value={option} id={`option-${index}`} />
                 <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">

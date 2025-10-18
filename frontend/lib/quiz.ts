@@ -41,7 +41,17 @@ export const getRecentQuizAttempts = async (): Promise<RecentQuizAttempt[]> => {
 
 export const getQuizById = async (id: string): Promise<Quiz> => {
   const response = await api.get<Quiz>(`/quizzes/public/${id}`)
-  return response.data
+  const quiz = response.data
+  // Normalize questions so questionText is always present
+  const normalized: Quiz = {
+    ...quiz,
+    questions: quiz.questions.map((q: any) => ({
+      ...q,
+      questionText:
+        q?.questionText ?? q?.question ?? q?.title ?? q?.text ?? q?.statement ?? q?.prompt ?? "",
+    })),
+  }
+  return normalized
 }
 
 export const submitQuiz = async (data: QuizSubmission): Promise<QuizResult> => {
