@@ -19,6 +19,11 @@ export interface AuthResponse {
 
 let currentUserPromise: Promise<{ user: User }> | null = null
 
+// Expose a tiny helper to clear in-memory auth cache
+export const clearAuthCache = () => {
+  currentUserPromise = null
+}
+
 const getCurrentUserWithCache = async (): Promise<{ user: User }> => {
   if (currentUserPromise) {
     return currentUserPromise

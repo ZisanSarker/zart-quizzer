@@ -1,5 +1,6 @@
 import axios from "axios"
 import { refreshToken } from "./auth"
+import { clearClientSession } from "./session"
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
@@ -67,8 +68,10 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
+        // Clear client-side session artifacts and go to root.
+        try { await clearClientSession() } catch {}
         if (shouldRedirectToLogin()) {
-          window.location.href = '/login'
+          window.location.replace('/')
         }
         return Promise.reject(refreshError)
       } finally {

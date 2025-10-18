@@ -180,8 +180,8 @@ export default function ResponsiveNavigation() {
                     <span>Settings</span>
                   </Link>
                   <button
-                    onClick={() => {
-                      logout()
+                    onClick={async () => {
+                      try { await logout() } catch {}
                       setIsMobileMenuOpen(false)
                     }}
                     className="flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all duration-200 touch-target w-full text-left hover:bg-destructive/10 hover:text-destructive"

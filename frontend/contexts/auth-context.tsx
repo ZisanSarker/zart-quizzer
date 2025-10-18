@@ -1,6 +1,8 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { clearClientSession } from "@/lib/session"
 import type { User } from "@/types/user"
 import {
   getCurrentUser,
@@ -31,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   const [hasAttemptedRefresh, setHasAttemptedRefresh] = useState(false)
+  const router = useRouter()
 
   const refreshUser = useCallback(async () => {
     if (isLoading) return
@@ -103,13 +106,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleLogout = async () => {
     try {
+      // Call server to clear cookie/session
       await logout()
-      setUser(null)
-      setHasAttemptedRefresh(false)
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Logout failed")
-      throw err
+      // ignore server error; proceed to local cleanup
     }
+    // Local cleanup and redirect should happen regardless
+    try { await clearClientSession() } catch {}
+    setUser(null)
+    setHasAttemptedRefresh(false)
+    // Redirect to root and refresh to ensure UI updates everywhere
+    try {
+      router.replace('/')
+      router.refresh()
+    } catch {}
   }
 
   return (

@@ -115,7 +115,9 @@ export default function SharedHeader() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => logout()}
+                          onClick={async () => {
+                            try { await logout() } catch {}
+                          }}
                           className="cursor-pointer transition-colors hover:bg-destructive/10 hover:text-destructive touch-target"
                         >
                           <LogOut className="mr-2 h-4 w-4" />

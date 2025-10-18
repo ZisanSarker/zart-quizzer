@@ -10,7 +10,7 @@ import {
   SettingsContent, 
   DeleteAccountDialog 
 } from "@/components/settings"
-import { logout } from "@/lib/auth"
+import { logout as apiLogout } from "@/lib/auth"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -30,9 +30,9 @@ export default function SettingsPage() {
 
   const handleLogout = async () => {
     try {
-      await logout()
-      authLogout()
-      router.push("/auth/login")
+      // Call the context logout which handles session cleanup and redirect
+      await authLogout()
+      router.replace("/")
     } catch (error) {
       toast({
         title: "Error",
@@ -45,8 +45,8 @@ export default function SettingsPage() {
   const handleDeleteAccountConfirm = async () => {
     try {
       await handleDeleteAccount()
-      authLogout()
-      router.push("/auth/login")
+      await authLogout()
+      router.replace("/")
     } catch (error) {
       // Error is already handled in the hook
     } finally {

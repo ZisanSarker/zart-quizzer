@@ -1,11 +1,10 @@
-const CACHE_NAME = 'zart-quizzer-v1'
-const STATIC_CACHE = 'static-v1'
-const DYNAMIC_CACHE = 'dynamic-v1'
+const CACHE_NAME = 'zart-quizzer-v2'
+const STATIC_CACHE = 'static-v2'
+const DYNAMIC_CACHE = 'dynamic-v2'
 
 // Files to cache immediately
 const STATIC_FILES = [
   '/',
-  '/dashboard',
   '/explore',
   '/login',
   '/register',
@@ -64,8 +63,19 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Handle API requests
+  // Never cache API requests to avoid stale authenticated data
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(handleApiRequest(request))
+    event.respondWith(fetch(request).catch(async () => {
+      // If offline, try best-effort cache match, but don't populate cache
+      const cache = await caches.open(DYNAMIC_CACHE)
+      const cached = await cache.match(request)
+      return (
+        cached || new Response(
+          JSON.stringify({ error: 'Offline - Please check your connection' }),
+          { status: 503, statusText: 'Service Unavailable', headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+    }))
     return
   }
 
@@ -77,7 +87,14 @@ self.addEventListener('fetch', (event) => {
 
   // Handle navigation requests
   if (request.mode === 'navigate') {
-    event.respondWith(handleNavigation(request))
+    // Do not cache navigations to avoid serving stale authenticated pages
+    event.respondWith(
+      fetch(request).catch(async () => {
+        // Fallback to cached root page if offline
+        const cache = await caches.open(STATIC_CACHE)
+        return (await cache.match('/')) || Response.error()
+      })
+    )
     return
   }
 
@@ -101,38 +118,8 @@ self.addEventListener('fetch', (event) => {
 })
 
 // Handle API requests with caching
-async function handleApiRequest(request) {
-  const cache = await caches.open(DYNAMIC_CACHE)
-  
-  try {
-    // Try network first
-    const response = await fetch(request)
-    
-    // Cache successful API responses
-    if (response.status === 200) {
-      const responseClone = response.clone()
-      cache.put(request, responseClone)
-    }
-    
-    return response
-  } catch (error) {
-    // Fallback to cache
-    const cachedResponse = await cache.match(request)
-    if (cachedResponse) {
-      return cachedResponse
-    }
-    
-    // Return offline response for API calls
-    return new Response(
-      JSON.stringify({ error: 'Offline - Please check your connection' }),
-      {
-        status: 503,
-        statusText: 'Service Unavailable',
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
-  }
-}
+// Deprecated: API responses are no longer cached to ensure instant logout correctness
+async function handleApiRequest() { /* no-op */ }
 
 // Handle static assets
 async function handleStaticAsset(request) {
@@ -156,30 +143,7 @@ async function handleStaticAsset(request) {
 }
 
 // Handle navigation requests
-async function handleNavigation(request) {
-  const cache = await caches.open(DYNAMIC_CACHE)
-  
-  try {
-    // Try network first for navigation
-    const response = await fetch(request)
-    
-    if (response.status === 200) {
-      const responseClone = response.clone()
-      cache.put(request, responseClone)
-    }
-    
-    return response
-  } catch (error) {
-    // Fallback to cache
-    const cachedResponse = await cache.match(request)
-    if (cachedResponse) {
-      return cachedResponse
-    }
-    
-    // Return offline page
-    return cache.match('/')
-  }
-}
+async function handleNavigation() { /* no-op, handled inline above */ }
 
 // Check if request is for a static asset
 function isStaticAsset(request) {
@@ -255,6 +219,32 @@ self.addEventListener('notificationclick', (event) => {
   } else {
     event.waitUntil(
       clients.openWindow('/')
+    )
+  }
+})
+
+// Receive messages from client to clear caches on logout
+self.addEventListener('message', (event) => {
+  const data = event.data || {}
+  if (data.type === 'CLEAR_AUTH_CACHE' || data.type === 'CLEAR_ALL_CACHES') {
+    event.waitUntil(
+      (async () => {
+        try {
+          const keys = await caches.keys()
+          await Promise.all(
+            keys
+              .filter((k) => k === DYNAMIC_CACHE || k === STATIC_CACHE || /dynamic|static|zart-quizzer/i.test(k))
+              .map((k) => caches.delete(k))
+          )
+          // Optionally notify clients
+          const allClients = await self.clients.matchAll()
+          for (const client of allClients) {
+            client.postMessage({ type: 'AUTH_CACHE_CLEARED' })
+          }
+        } catch (e) {
+          // ignore
+        }
+      })()
     )
   }
 })
