@@ -8,6 +8,7 @@
     "lint": "next lint",
     "start": "next start",
     "analyze": "node scripts/analyze-bundle.js",
+    "analyze:optimizations": "node scripts/analyze-optimizations.js",
     "build:analyze": "ANALYZE=true next build",
     "lighthouse": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
     "performance:check": "npm run build && npm run lighthouse",

@@ -2,10 +2,12 @@
 
 import type React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,13 +82,13 @@ export default function ResponsiveNavigation() {
             <SheetHeader>
               <SheetTitle className="text-left">
                 <div className="flex items-center gap-2">
-                  <img 
-                    src="/logo.png" 
-                    alt="ZART Quizzer" 
+                  <Image
+                    src="/placeholder-logo.png"
+                    alt="ZART Quizzer"
+                    width={32}
+                    height={32}
                     className="h-8 w-8"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
+                    sizes="32px"
                   />
                   <span className="font-bold text-lg text-primary">ZART Quizzer</span>
                 </div>
@@ -97,13 +99,13 @@ export default function ResponsiveNavigation() {
               {/* User Profile Section */}
               {isAuthenticated && (
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
-                  <Avatar className="h-12 w-12 border-2 border-primary-100">
-                    <AvatarImage
-                      src={user?.profilePicture || "/placeholder.svg?height=48&width=48"}
-                      alt={user?.username || "User"}
-                    />
-                    <AvatarFallback className="bg-primary-100 text-primary-700 text-lg">{getInitials()}</AvatarFallback>
-                  </Avatar>
+                  <OptimizedAvatar
+                    src={user?.profilePicture || "/placeholder.svg?height=48&width=48"}
+                    alt={user?.username || "User"}
+                    size="md"
+                    fallbackText={getInitials()}
+                    className="h-12 w-12 border-2 border-primary-100"
+                  />
                   <div className="flex-1">
                     <div className="font-semibold text-foreground">{user?.username}</div>
                     <div className="text-sm text-muted-foreground">{user?.email}</div>

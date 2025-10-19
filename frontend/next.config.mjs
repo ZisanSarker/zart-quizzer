@@ -57,7 +57,25 @@ const nextConfig = {
         },
       },
     },
+    // Enable optimistic client cache
+    optimisticClientCache: true,
+    // Enable webpack build worker
+    webpackBuildWorker: true,
   },
+
+  // Compiler optimizations
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
+  // React strict mode for better error detection
+  reactStrictMode: true,
+  
+  // Production source maps (disabled for smaller bundles)
+  productionBrowserSourceMaps: false,
 
   // Server external packages
   serverExternalPackages: ['@prisma/client'],

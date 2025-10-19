@@ -1,16 +1,15 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { Suspense, useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { useSettingsData } from "@/hooks/use-settings-data"
 import { 
-  SettingsHeader, 
-  SettingsContent, 
-  DeleteAccountDialog 
+  SettingsHeader
 } from "@/components/settings"
 import { logout as apiLogout } from "@/lib/auth"
+import { LazySettingsContent, LazyDeleteAccountDialog } from "@/components/lazy-components"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -66,17 +65,19 @@ export default function SettingsPage() {
     <div className="w-full flex flex-col items-center">
       <SettingsHeader />
       
-      <SettingsContent
-        settings={settings}
-        isSaving={isSaving}
-        onSettingChange={handleSettingChange}
-        onSaveSettings={handleSaveSettings}
-        onChangePassword={handleChangePassword}
-        onLogout={handleLogout}
-        onDeleteAccount={() => setShowDeleteDialog(true)}
-      />
+  <Suspense fallback={<div className="space-y-6"><div className="h-8 bg-muted rounded w-1/3 animate-pulse" /><div className="space-y-4">{[1,2,3].map(i => (<div key={i} className="h-16 bg-muted rounded animate-pulse" />))}</div></div>}>
+        <LazySettingsContent
+          settings={settings}
+          isSaving={isSaving}
+          onSettingChange={handleSettingChange}
+          onSaveSettings={handleSaveSettings}
+          onChangePassword={handleChangePassword}
+          onLogout={handleLogout}
+          onDeleteAccount={() => setShowDeleteDialog(true)}
+        />
+      </Suspense>
 
-      <DeleteAccountDialog
+      <LazyDeleteAccountDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         onConfirm={handleDeleteAccountConfirm}

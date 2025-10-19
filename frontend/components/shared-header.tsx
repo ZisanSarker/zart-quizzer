@@ -2,20 +2,53 @@
 
 import type React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import { LogOut, User, Settings, Home, Library, Brain } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import ResponsiveNavigation from "@/components/responsive-navigation"
+
+// Lazy load dropdown menu for better performance
+const DropdownMenu = dynamic(
+  () => import('@/components/ui/dropdown-menu').then(mod => mod.DropdownMenu),
+  { ssr: false }
+)
+
+const DropdownMenuContent = dynamic(
+  () => import('@/components/ui/dropdown-menu').then(mod => mod.DropdownMenuContent),
+  { ssr: false }
+)
+
+const DropdownMenuItem = dynamic(
+  () => import('@/components/ui/dropdown-menu').then(mod => mod.DropdownMenuItem),
+  { ssr: false }
+)
+
+const DropdownMenuLabel = dynamic(
+  () => import('@/components/ui/dropdown-menu').then(mod => mod.DropdownMenuLabel),
+  { ssr: false }
+)
+
+const DropdownMenuSeparator = dynamic(
+  () => import('@/components/ui/dropdown-menu').then(mod => mod.DropdownMenuSeparator),
+  { ssr: false }
+)
+
+const DropdownMenuTrigger = dynamic(
+  () => import('@/components/ui/dropdown-menu').then(mod => mod.DropdownMenuTrigger),
+  { ssr: false }
+)
+
+const ResponsiveNavigation = dynamic(
+  () => import('@/components/responsive-navigation'),
+  {
+    loading: () => <div className="h-10 w-10" />,
+    ssr: false,
+  }
+)
 
 export default function SharedHeader() {
   const pathname = usePathname()
@@ -39,14 +72,14 @@ export default function SharedHeader() {
           <div className="flex h-12 sm:h-14 items-center px-4 sm:px-6 lg:px-8">
             {/* Left: Logo or Text */}
             <Link href="/" className="flex items-center hover:opacity-80 transition-opacity flex-shrink-0">
-              <img 
-                src="/logo.png" 
-                alt="ZART Quizzer" 
+              <Image
+                src="/placeholder-logo.png"
+                alt="ZART Quizzer"
+                width={56}
+                height={56}
+                priority
                 className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
+                sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, (max-width: 1024px) 48px, 56px"
               />
               <span className="hidden sm:inline-block font-bold text-base sm:text-lg md:text-xl text-primary font-playfair-display-sc">ZART Quizzer</span>
             </Link>
@@ -88,13 +121,13 @@ export default function SharedHeader() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="gap-2 transition-colors hover:text-primary touch-target">
-                          <Avatar className="h-8 w-8 border-2 border-primary-100 transition-transform hover:scale-105">
-                            <AvatarImage
-                              src={user?.profilePicture || "/placeholder.svg?height=32&width=32"}
-                              alt={user?.username || "User"}
-                            />
-                            <AvatarFallback className="bg-primary-100 text-primary-700">{getInitials()}</AvatarFallback>
-                          </Avatar>
+                          <OptimizedAvatar
+                            src={user?.profilePicture || "/placeholder.svg?height=32&width=32"}
+                            alt={user?.username || "User"}
+                            size="sm"
+                            fallbackText={getInitials()}
+                            className="h-8 w-8 border-2 border-primary-100 transition-transform hover:scale-105"
+                          />
                           <span className="hidden sm:inline-block">{user?.username}</span>
                         </Button>
                       </DropdownMenuTrigger>

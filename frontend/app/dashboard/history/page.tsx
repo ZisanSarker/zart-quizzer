@@ -1,18 +1,30 @@
 "use client"
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import { Brain } from "lucide-react"
-import { StaggerChildren, FadeIn } from "@/components/animations/motion"
 import { useHistoryData } from "@/hooks/use-history-data"
 import { 
   HistoryStatsCards, 
-  HistoryItem, 
-  HistoryPerformance, 
-  HistoryAchievements 
 } from "@/components/dashboard"
 import { EmptyState } from "@/components/dashboard/empty-state"
 import { PageHeader, ContentSection } from "@/components/ui/layout"
 import { LoadingSpinner, ErrorMessage } from "@/components/ui/feedback"
+import { LazyHistoryItem, LazyHistoryPerformance, LazyHistoryAchievements } from "@/components/lazy-components"
+
+// Lazy load Tabs components
+const Tabs = dynamic(() => import('@/components/ui/tabs').then(mod => mod.Tabs))
+const TabsContent = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsContent))
+const TabsList = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsList))
+const TabsTrigger = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsTrigger))
+
+const StaggerChildren = dynamic(() => import('@/components/animations/motion').then(mod => mod.StaggerChildren), {
+  ssr: false,
+})
+
+const FadeIn = dynamic(() => import('@/components/animations/motion').then(mod => mod.FadeIn), {
+  ssr: false,
+})
 
 export default function HistoryPage() {
   const {
@@ -55,11 +67,15 @@ export default function HistoryPage() {
 
           <TabsContent value="history">
             {quizHistory.length > 0 ? (
-              <StaggerChildren className="space-y-4">
-                {quizHistory.map((item) => (
-                  <HistoryItem key={item.id} quiz={item} />
-                ))}
-              </StaggerChildren>
+              <Suspense fallback={<div className="space-y-4">
+                {[1, 2, 3].map(i => (<div key={i} className="h-24 bg-muted rounded animate-pulse" />))}
+              </div>}>
+                <StaggerChildren className="space-y-4">
+                  {quizHistory.map((item) => (
+                    <LazyHistoryItem key={item.id} quiz={item} />
+                  ))}
+                </StaggerChildren>
+              </Suspense>
             ) : (
               <FadeIn>
                 <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
@@ -76,14 +92,20 @@ export default function HistoryPage() {
           </TabsContent>
 
           <TabsContent value="performance">
-            <HistoryPerformance 
-              performanceByTopic={performanceByTopic}
-              recentProgress={quizHistory.slice(0, 5)}
-            />
+            <Suspense fallback={<div className="h-96 bg-muted rounded animate-pulse" />}>
+              <LazyHistoryPerformance 
+                performanceByTopic={performanceByTopic}
+                recentProgress={quizHistory.slice(0, 5)}
+              />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="achievements">
-            <HistoryAchievements achievements={achievements} />
+            <Suspense fallback={<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map(i => (<div key={i} className="h-32 bg-muted rounded animate-pulse" />))}
+            </div>}>
+              <LazyHistoryAchievements achievements={achievements} />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </ContentSection>

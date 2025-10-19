@@ -1,11 +1,10 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useExploreData } from "@/hooks/use-explore-data"
-import { ExploreHeader } from "@/components/explore/explore-header"
-import { LazyExploreContent } from "@/components/lazy-components"
-import { usePerformanceOptimization } from "@/hooks/use-performance-optimization"
-import { useEffect } from "react"
+import { LazyExploreHeader, LazyExploreContent } from "@/components/lazy-components"
+import { preloadExploreRoutes } from "@/lib/route-preloader"
 
 // Format date to relative time
 const formatRelativeTime = (dateString: string) => {
@@ -35,18 +34,18 @@ export default function ExplorePage() {
     handleTabChange
   } = useExploreData()
 
-  const { prefetchRoute } = usePerformanceOptimization()
+  const router = useRouter()
 
   // Prefetch likely routes from explore
   useEffect(() => {
-    prefetchRoute('/dashboard')
-    prefetchRoute('/dashboard/create')
-    prefetchRoute('/dashboard/library')
-  }, [prefetchRoute])
+    preloadExploreRoutes(router)
+  }, [router])
 
   return (
     <div className="w-full flex flex-col items-center">
-      <ExploreHeader />
+      <Suspense fallback={<div className="h-32 bg-muted rounded animate-pulse w-full mb-6" />}>
+        <LazyExploreHeader />
+      </Suspense>
       <Suspense fallback={<div className="w-full h-96 bg-muted rounded animate-pulse" />}>
         <LazyExploreContent
           activeTab={activeTab}

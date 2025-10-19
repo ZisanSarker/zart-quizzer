@@ -1,13 +1,16 @@
 "use client"
 
+import { Suspense } from "react"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { useQuizResultData } from "@/hooks/use-quiz-result-data"
-import { QuizResultHeader } from "@/components/quiz/quiz-result-header"
-import { QuizResultSummary } from "@/components/quiz/quiz-result-summary"
-import { QuizResultReview } from "@/components/quiz/quiz-result-review"
-import { QuizResultFooter } from "@/components/quiz/quiz-result-footer"
+import {
+  LazyQuizResultHeader,
+  LazyQuizResultSummary,
+  LazyQuizResultReview,
+  LazyQuizResultFooter,
+} from "@/components/lazy-components"
 import Link from "next/link"
 
 export default function QuizResultPage() {
@@ -48,13 +51,23 @@ export default function QuizResultPage() {
 
   return (
     <div className="w-full">
-      <QuizResultHeader 
-        quiz={result.quizId} 
-        onShareResults={handleShareResults} 
-      />
-      <QuizResultSummary result={result} />
-      <QuizResultReview result={result} />
-      <QuizResultFooter quiz={result.quizId} />
+      <Suspense fallback={<div className="h-24 bg-muted rounded animate-pulse mb-6" />}>
+        <LazyQuizResultHeader 
+          quiz={result.quizId} 
+          onShareResults={handleShareResults} 
+        />
+      </Suspense>
+      <Suspense fallback={<div className="h-48 bg-muted rounded animate-pulse mb-6" />}>
+        <LazyQuizResultSummary result={result} />
+      </Suspense>
+      <Suspense fallback={<div className="space-y-4">
+        {[1, 2, 3].map(i => (<div key={i} className="h-32 bg-muted rounded animate-pulse" />))}
+      </div>}>
+        <LazyQuizResultReview result={result} />
+      </Suspense>
+      <Suspense fallback={<div className="h-16 bg-muted rounded animate-pulse mt-6" />}>
+        <LazyQuizResultFooter quiz={result.quizId} />
+      </Suspense>
     </div>
   )
 }

@@ -1,12 +1,19 @@
 "use client"
 
+import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import { useQuizPracticeData } from "@/hooks/use-quiz-practice-data"
-import { QuizPracticeHeader } from "@/components/quiz/quiz-practice-header"
-import { QuizPracticeQuestion } from "@/components/quiz/quiz-practice-question"
-import { QuizPracticeActions } from "@/components/quiz/quiz-practice-actions"
-import { QuizRatingModal } from "@/components/quiz/quiz-rating-modal"
-import { FadeIn } from "@/components/animations/motion"
+import { 
+  LazyQuizPracticeHeader, 
+  LazyQuizPracticeQuestion, 
+  LazyQuizPracticeActions, 
+  LazyQuizRatingModal 
+} from "@/components/lazy-components"
 import { useAuth } from "@/contexts/auth-context"
+
+const FadeIn = dynamic(() => import('@/components/animations/motion').then(mod => mod.FadeIn), {
+  ssr: false,
+})
 
 export default function QuizPracticeAllPage({ params }: { params: { id: string } }) {
   const { user } = useAuth()
@@ -53,13 +60,15 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
 
   return (
     <>
-      <QuizPracticeHeader
-        quiz={quiz}
-        showRateButton={showRateButton}
-        hasRated={hasRated}
-        onShareQuiz={handleShareQuiz}
-        onRateButtonClick={handleRateButtonClick}
-      />
+      <Suspense fallback={<div className="h-20 bg-muted rounded animate-pulse mb-6" />}>
+        <LazyQuizPracticeHeader
+          quiz={quiz}
+          showRateButton={showRateButton}
+          hasRated={hasRated}
+          onShareQuiz={handleShareQuiz}
+          onRateButtonClick={handleRateButtonClick}
+        />
+      </Suspense>
 
       <FadeIn>
         <div className="space-y-6 sm:space-y-8 max-w-3xl mx-auto">
@@ -68,27 +77,38 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
             const checked = checkedAnswers[question._id]
             const isCorrect = userAnswer === question.correctAnswer
             return (
-              <QuizPracticeQuestion
+              <Suspense 
                 key={question._id}
-                question={question}
-                index={index}
-                userAnswer={userAnswer}
-                checked={checked}
-                isCorrect={isCorrect}
-                onOptionClick={handleOptionClick}
-              />
+                fallback={<div className="space-y-4">
+                  <div className="h-6 bg-muted rounded w-3/4 animate-pulse" />
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map(i => (<div key={i} className="h-12 bg-muted rounded animate-pulse" />))}
+                  </div>
+                </div>}
+              >
+                <LazyQuizPracticeQuestion
+                  question={question}
+                  index={index}
+                  userAnswer={userAnswer}
+                  checked={checked}
+                  isCorrect={isCorrect}
+                  onOptionClick={handleOptionClick}
+                />
+              </Suspense>
             )
           })}
         </div>
       </FadeIn>
 
-      <QuizPracticeActions
-        practiceSubmitted={practiceSubmitted}
-        onResetPractice={handleResetPractice}
-        onFinishPractice={handleFinishPractice}
-      />
+      <Suspense fallback={<div className="h-16 bg-muted rounded animate-pulse mt-6" />}>
+        <LazyQuizPracticeActions
+          practiceSubmitted={practiceSubmitted}
+          onResetPractice={handleResetPractice}
+          onFinishPractice={handleFinishPractice}
+        />
+      </Suspense>
 
-      <QuizRatingModal
+      <LazyQuizRatingModal
         quizId={quiz._id}
         userId={user?._id}
         isOpen={showRatingModal}

@@ -1,15 +1,22 @@
 "use client"
 
-import { useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Suspense, useState } from "react"
+import dynamic from "next/dynamic"
 import { useProfileData } from "@/hooks/use-profile-data"
+import { LoadingSpinner } from "@/components/ui/feedback"
 import { 
-  ProfileSidebar, 
-  ProfileAbout, 
-  ProfileStats, 
-  ProfileEditForm, 
-  ProfileSecurity 
-} from "@/components/dashboard"
+  LazyProfileSidebar,
+  LazyProfileAbout,
+  LazyProfileStats,
+  LazyProfileEditForm,
+  LazyProfileSecurity,
+} from "@/components/lazy-components"
+
+// Lazy load Tabs primitives
+const Tabs = dynamic(() => import('@/components/ui/tabs').then(mod => mod.Tabs))
+const TabsContent = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsContent))
+const TabsList = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsList))
+const TabsTrigger = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsTrigger))
 
 export default function ProfilePage() {
   const [tab, setTab] = useState<"about" | "stats" | "edit">("about")
@@ -43,7 +50,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 lg:grid-cols-[1fr_2fr]">
-        <ProfileSidebar
+        <LazyProfileSidebar
           profileData={profileData}
           stats={stats}
           formData={formData}
@@ -66,25 +73,32 @@ export default function ProfilePage() {
             </TabsList>
 
             <TabsContent value="about">
-              <ProfileAbout profileData={profileData} />
+              <Suspense fallback={<div className="h-64 bg-muted rounded animate-pulse" />}>
+                <LazyProfileAbout profileData={profileData} />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="stats">
-              <ProfileStats stats={stats} />
+              <Suspense fallback={<div className="h-48 bg-muted rounded animate-pulse" />}>
+                <LazyProfileStats stats={stats} />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="edit">
-              <ProfileEditForm
+              <Suspense fallback={<div className="space-y-4">{[1,2,3,4].map(i => (<div key={i} className="h-16 bg-muted rounded animate-pulse" />))}</div>}>
+                <LazyProfileEditForm
                 formData={formData}
                 isSaving={isSaving}
                 onInputChange={handleInputChange}
                 onSave={handleSaveProfile}
                 onCancel={() => setTab("about")}
-              />
+                />
+              </Suspense>
             </TabsContent>
           </Tabs>
-
-          <ProfileSecurity />
+          <Suspense fallback={<div className="space-y-4">{[1,2,3].map(i => (<div key={i} className="h-16 bg-muted rounded animate-pulse" />))}</div>}>
+            <LazyProfileSecurity />
+          </Suspense>
         </div>
       </div>
     </>

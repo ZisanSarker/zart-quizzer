@@ -4,7 +4,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import { Brain, Clock, Star, Users } from "lucide-react"
 import type { ExploreQuiz } from "@/types/quiz"
 
@@ -131,10 +132,13 @@ export function ExploreQuizCard({
                 href={`/dashboard/profile/${quiz.author?._id || 'unknown'}`}
                 className="flex-shrink-0 group"
               >
-                <Avatar className="h-8 w-8 sm:h-10 sm:w-10 group-hover:scale-105 transition-transform duration-200 group-hover:ring-2 group-hover:ring-primary/20 author-avatar-hover">
-                  <AvatarImage src={quiz.author?.avatar || "/placeholder.svg"} alt={quiz.author?.name} />
-                  <AvatarFallback className="text-xs sm:text-sm">{quiz.author?.initials || "?"}</AvatarFallback>
-                </Avatar>
+                <OptimizedAvatar
+                  src={quiz.author?.avatar || "/placeholder.svg"}
+                  alt={quiz.author?.name || "Author"}
+                  size="sm"
+                  fallbackText={quiz.author?.initials || "?"}
+                  className="group-hover:scale-105 transition-transform duration-200 group-hover:ring-2 group-hover:ring-primary/20 author-avatar-hover h-8 w-8 sm:h-10 sm:w-10"
+                />
               </Link>
             </div>
 

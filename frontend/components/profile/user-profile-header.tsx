@@ -1,7 +1,8 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Globe, Calendar } from "lucide-react"
 import type { Profile } from "@/types/profile"
@@ -16,15 +17,13 @@ export function UserProfileHeader({ profile, isOwnProfile }: UserProfileHeaderPr
     <Card>
       <CardContent className="p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
-            <AvatarImage 
-              src={profile.userIdObj.profilePicture || "/placeholder-user.jpg"} 
-              alt={profile.userIdObj.username} 
-            />
-            <AvatarFallback className="text-lg">
-              {profile.userIdObj.username?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <OptimizedAvatar
+            src={profile.userIdObj.profilePicture || "/placeholder-user.jpg"}
+            alt={profile.userIdObj.username}
+            size="lg"
+            fallbackText={profile.userIdObj.username?.charAt(0).toUpperCase() || "?"}
+            className="h-20 w-20 sm:h-24 sm:w-24"
+          />
           
           <div className="flex-1 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">

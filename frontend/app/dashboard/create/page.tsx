@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import { generateQuiz } from "@/lib/quiz"
 import { useAuth } from "@/contexts/auth-context"
-import { QuizForm } from "@/components/dashboard/quiz-form"
+import { LazyQuizForm } from "@/components/lazy-components"
 import { PageHeader, ContentSection } from "@/components/ui/layout"
 
 export default function CreateQuizPage() {
@@ -58,10 +58,16 @@ export default function CreateQuizPage() {
       {/* Create Quiz Form Section */}
       <ContentSection>
         <div className="w-full flex flex-col items-center">
-          <QuizForm
-            onGenerate={handleGenerateQuiz}
-            isGenerating={isGenerating}
-          />
+          <Suspense fallback={<div className="space-y-4 w-full">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+            ))}
+          </div>}>
+            <LazyQuizForm
+              onGenerate={handleGenerateQuiz}
+              isGenerating={isGenerating}
+            />
+          </Suspense>
         </div>
       </ContentSection>
     </div>

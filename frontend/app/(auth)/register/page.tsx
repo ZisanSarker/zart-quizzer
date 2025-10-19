@@ -1,15 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { FadeIn, ScaleIn } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { LoginHeader } from "@/components/auth/login-header"
-import { RegisterForm } from "@/components/auth/register-form"
+import { LazyRegisterForm } from "@/components/lazy-components"
 import { RegisterSocialButtons } from "@/components/auth/register-social-buttons"
 import { RegisterFooter } from "@/components/auth/register-footer"
+
+const ScaleIn = dynamic(() => import('@/components/animations/motion').then(mod => mod.ScaleIn), {
+  ssr: false,
+})
 
 export default function RegisterPage() {
   const { register, user } = useAuth()
@@ -69,7 +73,14 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
-            <RegisterForm onSubmit={handleSubmit} isLoading={isLoading} />
+            <Suspense fallback={<div className="space-y-4">
+              <div className="h-10 bg-muted rounded animate-pulse" />
+              <div className="h-10 bg-muted rounded animate-pulse" />
+              <div className="h-10 bg-muted rounded animate-pulse" />
+              <div className="h-10 bg-muted rounded animate-pulse" />
+            </div>}>
+              <LazyRegisterForm onSubmit={handleSubmit} isLoading={isLoading} />
+            </Suspense>
 
             <div className="relative my-4 sm:my-6">
               <div className="absolute inset-0 flex items-center">

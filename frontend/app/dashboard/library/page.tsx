@@ -1,23 +1,32 @@
 "use client"
 
 import Link from "next/link"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import { Plus } from "lucide-react"
-import { StaggerChildren } from "@/components/animations/motion"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Section } from "@/components/section"
 import { useLibraryData } from "@/hooks/use-library-data"
 import { LibraryQuizCard, LibrarySkeleton, LibraryEmptyState } from "@/components/dashboard"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+
+// Lazy load heavy components
+const Tabs = dynamic(() => import('@/components/ui/tabs').then(mod => mod.Tabs))
+const TabsContent = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsContent))
+const TabsList = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsList))
+const TabsTrigger = dynamic(() => import('@/components/ui/tabs').then(mod => mod.TabsTrigger))
+
+const StaggerChildren = dynamic(() => import('@/components/animations/motion').then(mod => mod.StaggerChildren), {
+  ssr: false,
+})
+
+const AlertDialog = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialog), { ssr: false })
+const AlertDialogAction = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialogAction), { ssr: false })
+const AlertDialogCancel = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialogCancel), { ssr: false })
+const AlertDialogContent = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialogContent), { ssr: false })
+const AlertDialogDescription = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialogDescription), { ssr: false })
+const AlertDialogFooter = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialogFooter), { ssr: false })
+const AlertDialogHeader = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialogHeader), { ssr: false })
+const AlertDialogTitle = dynamic(() => import('@/components/ui/alert-dialog').then(mod => mod.AlertDialogTitle), { ssr: false })
 
 export default function LibraryPage() {
   const {

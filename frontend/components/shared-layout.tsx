@@ -2,11 +2,31 @@
 
 import type React from "react"
 import { usePathname } from "next/navigation"
-import { PageTransition } from "@/components/animations/motion"
+import dynamic from "next/dynamic"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import SharedHeader from "@/components/shared-header"
-import SharedFooter from "@/components/shared-footer"
-import SidebarLayout from "@/components/sidebar-layout"
+
+// Lazy load non-critical layout components
+const PageTransition = dynamic(
+  () => import('@/components/animations/motion').then(mod => ({ default: mod.PageTransition })),
+  { ssr: false }
+)
+
+const SharedFooter = dynamic(
+  () => import('@/components/shared-footer'),
+  {
+    loading: () => <div className="h-16 bg-muted" />,
+    ssr: true,
+  }
+)
+
+const SidebarLayout = dynamic(
+  () => import('@/components/sidebar-layout'),
+  {
+    loading: () => <div className="w-full">{null}</div>,
+    ssr: true,
+  }
+)
 
 export default function SharedLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

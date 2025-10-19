@@ -1,15 +1,19 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScaleIn } from "@/components/animations/motion"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { LoginHeader } from "@/components/auth/login-header"
-import { LoginForm } from "@/components/auth/login-form"
+import { LazyLoginForm } from "@/components/lazy-components"
 import { LoginSocialButtons } from "@/components/auth/login-social-buttons"
 import { LoginFooter } from "@/components/auth/login-footer"
+
+const ScaleIn = dynamic(() => import('@/components/animations/motion').then(mod => mod.ScaleIn), {
+  ssr: false,
+})
 
 export default function LoginPage() {
   const { login, user } = useAuth()
@@ -58,7 +62,13 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
-            <LoginForm onSubmit={handleSubmit} isLoading={false} />
+            <Suspense fallback={<div className="space-y-4">
+              <div className="h-10 bg-muted rounded animate-pulse" />
+              <div className="h-10 bg-muted rounded animate-pulse" />
+              <div className="h-10 bg-muted rounded animate-pulse" />
+            </div>}>
+              <LazyLoginForm onSubmit={handleSubmit} isLoading={false} />
+            </Suspense>
 
             <div className="relative my-4 sm:my-6">
               <div className="absolute inset-0 flex items-center">
