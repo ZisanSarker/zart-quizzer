@@ -1,4 +1,18 @@
 import { Document, Types } from 'mongoose';
+export type AuthProvider = 'local' | 'google' | 'github';
+export interface PublicUser {
+    _id: string;
+    username: string;
+    email: string;
+    profilePicture: string;
+    role: 'user' | 'admin';
+    isActive: boolean;
+    isEmailVerified: boolean;
+    lastLogin: string | null;
+    createdAt: string;
+    updatedAt: string;
+    provider: AuthProvider;
+}
 export interface IUser extends Document {
     _id: Types.ObjectId;
     username: string;
@@ -17,7 +31,6 @@ export interface IUser extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-export type AuthProvider = 'local' | 'google' | 'github';
 export interface IQuizQuestion {
     _id: Types.ObjectId;
     questionText: string;
@@ -202,7 +215,7 @@ export interface RatingStats {
 export interface RecentQuizAttempt {
     id: string;
     title: string;
-    score: number | string;
+    score: number;
     date: string;
     quizId: string;
     quizTitle: string;
@@ -252,7 +265,7 @@ export interface ExploreQuiz {
     questions: IQuizQuestion[];
     isPublic?: boolean;
     timeLimit?: boolean;
-    createdAt: Date;
+    createdAt: string;
     tags?: string[];
     attempts: number;
     rating: number;

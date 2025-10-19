@@ -283,8 +283,8 @@ const getRecentQuizAttempts = async (req, res) => {
             const quiz = attempt.quizId;
             const totalQuestions = quiz.questions.length;
             const correctAnswers = parseFloat(attempt.score.toFixed(2));
-            const percentage = ((attempt.score / totalQuestions) * 100).toFixed(0);
-            const timeTaken = attempt.timeTaken || 'N/A';
+            const percentage = Math.round((attempt.score / totalQuestions) * 100);
+            const timeTaken = typeof attempt.timeTaken === 'number' ? attempt.timeTaken : 'N/A';
             const completedAt = attempt.submittedAt.toISOString();
             return {
                 id: attempt._id,
@@ -316,7 +316,7 @@ const getRecommendedQuizzes = async (req, res) => {
             isPublic: true,
         };
         let quizzes = await quiz_model_1.default.find(filter)
-            .populate('createdBy', 'name')
+            .populate('createdBy', 'username')
             .sort({ createdAt: -1 });
         const quizIds = quizzes.map(quiz => quiz._id.toString());
         const ratingsMap = await getMultipleQuizRatings(quizIds);
@@ -324,7 +324,7 @@ const getRecommendedQuizzes = async (req, res) => {
             .map(quiz => ({
             id: quiz._id,
             title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
-            author: quiz.createdBy ? quiz.createdBy.name : 'Unknown',
+            author: quiz.createdBy ? quiz.createdBy.username : 'Unknown',
             difficulty: quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1),
             averageRating: ratingsMap[quiz._id.toString()] || 0,
         }))
@@ -354,7 +354,7 @@ const getSavedQuizzes = async (req, res) => {
         }
         const saved = await savedQuiz_model_1.default.find({ userId }).populate({
             path: 'quizId',
-            populate: { path: 'createdBy', select: 'name' },
+            populate: { path: 'createdBy', select: 'username' },
         });
         const quizzes = saved
             .map(item => item.quizId)
@@ -363,7 +363,7 @@ const getSavedQuizzes = async (req, res) => {
         const ratingsMap = await getMultipleQuizRatings(quizIds);
         const quizzesWithRatings = quizzes.map(quiz => ({
             ...quiz.toObject(),
-            author: quiz.createdBy?.name || 'Unknown',
+            author: quiz.createdBy?.username || 'Unknown',
             averageRating: ratingsMap[quiz._id.toString()] || 0
         }));
         res.status(200).json(quizzesWithRatings);

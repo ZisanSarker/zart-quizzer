@@ -1,30 +1,28 @@
-import { Request, Response } from 'express';
-import Quiz from '../models/quiz.model';
-import QuizPrompt from '../models/quizPrompt.model';
-import QuizAttempt from '../models/quizAttempt.model';
-import SavedQuiz from '../models/savedQuiz.model';
-import QuizRating from '../models/quizRating.model';
-import SearchQuery from '../models/searchQuery.model';
-import moment from 'moment';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+const Quiz = require('../models/quiz.model');
+const QuizPrompt = require('../models/quizPrompt.model');
+const QuizAttempt = require('../models/quizAttempt.model');
+const SavedQuiz = require('../models/savedQuiz.model');
+const QuizRating = require('../models/quizRating.model');
+const SearchQuery = require('../models/searchQuery.model');
+const moment = require('moment');
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
-const getMultipleQuizRatings = async (quizIds: string[]) => {
+const getMultipleQuizRatings = async (quizIds) => {
   const ratings = await QuizRating.find({ quizId: { $in: quizIds } });
-  const ratingMap: Record<string, number> = {};
+  const ratingMap = {};
   
   quizIds.forEach(quizId => {
     ratingMap[quizId] = 0;
   });
   
-  const ratingsByQuiz: Record<string, number[]> = {};
+  const ratingsByQuiz = {};
   ratings.forEach(rating => {
-    const key = rating.quizId.toString();
-    if (!ratingsByQuiz[key]) {
-      ratingsByQuiz[key] = [];
+    if (!ratingsByQuiz[rating.quizId]) {
+      ratingsByQuiz[rating.quizId] = [];
     }
-    ratingsByQuiz[key].push(rating.rating);
+    ratingsByQuiz[rating.quizId].push(rating.rating);
   });
   
   Object.keys(ratingsByQuiz).forEach(quizId => {
@@ -36,7 +34,7 @@ const getMultipleQuizRatings = async (quizIds: string[]) => {
   return ratingMap;
 };
 
-const buildPrompt = (topic: string, description: string | undefined, difficulty: string, count: number, quizType: 'multiple-choice' | 'true-false' | 'mixed') => {
+const buildPrompt = (topic, description, difficulty, count, quizType) => {
   let base = `Generate ${count} ${difficulty} level ${quizType} quiz questions on the topic "${topic}".`;
   if (description) base += `\nDescription: ${description}`;
 
@@ -103,7 +101,7 @@ Format the output in JSON like this:
   return base;
 };
 
-export const generateQuiz = async (req: Request, res: Response): Promise<void> => {
+exports.generateQuiz = async (req, res) => {
   try {
     const {
       topic,
@@ -113,7 +111,7 @@ export const generateQuiz = async (req: Request, res: Response): Promise<void> =
       quizType = 'multiple-choice',
       isPublic = false,
       timeLimit = true,
-    } = req.body as any;
+    } = req.body;
 
     const prompt = await QuizPrompt.create({
       topic,
@@ -123,9 +121,8 @@ export const generateQuiz = async (req: Request, res: Response): Promise<void> =
       quizType,
     });
 
-    if (!req.user || !(req.user as any)._id) {
-      res.status(401).json({ message: 'User not authenticated. Cannot create quiz.' });
-      return;
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "User not authenticated. Cannot create quiz." });
     }
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
@@ -136,26 +133,25 @@ export const generateQuiz = async (req: Request, res: Response): Promise<void> =
     const response = await result.response;
     const text = response.text();
 
-    let questions: any[];
+    let questions;
     try {
       const start = text.indexOf('[');
       const end = text.lastIndexOf(']');
       const jsonText = text.slice(start, end + 1);
       questions = JSON.parse(jsonText);
 
-      questions = questions.map((q: any) => ({
+      questions = questions.map(q => ({
         ...q,
         type:
           quizType === 'mixed'
             ? (q.options && q.options.length === 2 ? 'true-false' : 'multiple-choice')
             : quizType
       }));
-    } catch (jsonErr: any) {
-      res.status(500).json({
+    } catch (jsonErr) {
+      return res.status(500).json({
         message: 'Failed to parse Gemini response',
         error: jsonErr.message,
       });
-      return;
     }
 
     const quiz = await Quiz.create({
@@ -167,38 +163,36 @@ export const generateQuiz = async (req: Request, res: Response): Promise<void> =
       timeLimit,
       questions,
       promptRef: prompt._id,
-      createdBy: (req.user as any)._id,
+      createdBy: req.user._id,
     });
     res.status(201).json({ message: 'Quiz created successfully', quiz });
-    return;
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Quiz generation failed', error: err.message });
-    return;
   }
 }
 
-export const getAllQuizzes = async (_req: Request, res: Response) => {
+exports.getAllQuizzes = async (req, res) => {
   try {
     const quizzes = await Quiz.find().sort({ createdAt: -1 });
     
-    const quizIds = quizzes.map(quiz => quiz._id.toString());
+    const quizIds = quizzes.map(quiz => quiz._id);
     const ratingsMap = await getMultipleQuizRatings(quizIds);
     
     const quizzesWithRatings = quizzes.map(quiz => ({
       ...quiz.toObject(),
-      averageRating: ratingsMap[quiz._id.toString()] || 0
+      averageRating: ratingsMap[quiz._id] || 0
     }));
     
     res.status(200).json(quizzesWithRatings);
-  } catch (_err) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch quizzes' });
   }
 };
 
-export const getQuizById = async (req: Request, res: Response): Promise<void> => {
+exports.getQuizById = async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) { res.status(404).json({ message: 'Quiz not found' }); return; }
+    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
     
     const ratings = await QuizRating.find({ quizId: quiz._id });
     const averageRating = ratings.length === 0 ? 0 : Number((ratings.reduce((sum, rating) => sum + rating.rating, 0) / ratings.length).toFixed(2));
@@ -209,22 +203,20 @@ export const getQuizById = async (req: Request, res: Response): Promise<void> =>
     };
     
     res.status(200).json(quizWithRating);
-    return;
-  } catch (_err) {
+  } catch (err) {
     res.status(500).json({ message: 'Error retrieving quiz' });
-    return;
   }
 };
 
-export const submitQuiz = async (req: Request, res: Response): Promise<void> => {
+exports.submitQuiz = async (req, res) => {
   try {
-    const { quizId, userId, answers, timeTaken } = req.body as { quizId: string; userId: string; answers: { _id: string; selectedAnswer: string }[]; timeTaken?: number };
+    const { quizId, userId, answers, timeTaken } = req.body;
 
-    const quiz: any = await Quiz.findById(quizId);
-  if (!quiz) { res.status(404).json({ message: 'Quiz not found' }); return; }
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
 
     let score = 0;
-    const resultAnswers: any[] = [];
+    const resultAnswers = [];
 
     for (const userAnswer of answers) {
       const question = quiz.questions.id(userAnswer._id);
@@ -247,7 +239,7 @@ export const submitQuiz = async (req: Request, res: Response): Promise<void> => 
       quizId,
       answers: resultAnswers,
       score,
-      timeTaken: typeof timeTaken === 'number' ? timeTaken : 0,
+      timeTaken: typeof timeTaken === "number" ? timeTaken : 0,
     });
 
     res.status(201).json({
@@ -257,53 +249,47 @@ export const submitQuiz = async (req: Request, res: Response): Promise<void> => 
       result: resultAnswers,
       attemptId: attempt._id,
     });
-    return;
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ message: 'Failed to submit quiz' });
-    return;
   }
 };
 
-export const getQuizAttemptById = async (req: Request, res: Response): Promise<void> => {
+exports.getQuizAttemptById = async (req, res) => {
   try {
     const attempt = await QuizAttempt.findById(req.params.id).populate('quizId');
-    if (!attempt) { res.status(404).json({ message: 'Result not found' }); return; }
+    if (!attempt) return res.status(404).json({ message: 'Result not found' });
     res.json(attempt);
-    return;
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch result', error: err.message });
-    return;
   }
 };
 
-export const getRecentQuizAttempts = async (req: Request, res: Response): Promise<void> => {
+exports.getRecentQuizAttempts = async (req, res) => {
   try {
-    const userId = (req.user as any)?._id || req.userId;
+    const userId = req.user?._id || req.userId;
     
     if (!userId) {
-      res
+      return res
         .status(400)
         .json({ message: 'User ID not found. Authentication failed.' });
-      return;
     }
 
-    const attempts: any[] = await QuizAttempt.find({ userId })
+    const attempts = await QuizAttempt.find({ userId })
       .sort({ submittedAt: -1 })
       .populate('quizId');
 
     if (attempts.length === 0) {
-      res.status(200).json([]);
-      return;
+      return res.status(200).json([]);
     }
 
     const recentQuizzes = attempts
       .filter((attempt) => attempt.quizId)
       .map((attempt) => {
-        const quiz: any = attempt.quizId;
+        const quiz = attempt.quizId;
         const totalQuestions = quiz.questions.length;
         const correctAnswers = parseFloat(attempt.score.toFixed(2));
-  const percentage = Math.round((attempt.score / totalQuestions) * 100);
-  const timeTaken = typeof attempt.timeTaken === 'number' ? attempt.timeTaken : 'N/A';
+        const percentage = ((attempt.score / totalQuestions) * 100).toFixed(0);
+        const timeTaken = attempt.timeTaken || 'N/A';
         const completedAt = attempt.submittedAt.toISOString();
 
         return {
@@ -321,47 +307,51 @@ export const getRecentQuizAttempts = async (req: Request, res: Response): Promis
       });
     
     res.status(200).json(recentQuizzes);
-    return;
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch recent quizzes', error: err.message });
-    return;
   }
 };
 
-export const getRecommendedQuizzes = async (req: Request, res: Response) => {
+exports.getRecommendedQuizzes = async (req, res) => {
   try {
-    const userId = (req.user as any)?._id || req.userId;
+    const userId = req.user?._id || req.userId;
 
-    const filter: any = {
+    // Get all public quizzes that are not created by the current user
+    const filter = {
       createdBy: { $ne: userId },
       isPublic: true,
     };
 
-    let quizzes: any[] = await Quiz.find(filter)
-  .populate('createdBy', 'username')
+    // Get all public quizzes first
+    let quizzes = await Quiz.find(filter)
+      .populate('createdBy', 'name')
       .sort({ createdAt: -1 });
 
-    const quizIds = quizzes.map(quiz => quiz._id.toString());
+    // Get ratings for all quizzes
+    const quizIds = quizzes.map(quiz => quiz._id);
     const ratingsMap = await getMultipleQuizRatings(quizIds);
 
+    // Map quizzes with their ratings and sort by rating (highest first)
     const recommendedQuizzes = quizzes
       .map(quiz => ({
         id: quiz._id,
         title: `${quiz.topic} - ${quiz.questions[0]?.questionText || 'Untitled'}`,
-        author: quiz.createdBy ? (quiz.createdBy as any).username : 'Unknown',
+        author: quiz.createdBy ? quiz.createdBy.name : 'Unknown',
         difficulty: quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1),
-        averageRating: ratingsMap[quiz._id.toString()] || 0,
+        averageRating: ratingsMap[quiz._id] || 0,
       }))
       .sort((a, b) => {
+        // Sort by rating first (highest first)
         if (b.averageRating !== a.averageRating) {
           return b.averageRating - a.averageRating;
         }
+        // If ratings are equal, sort by creation date (newest first)
         return 0;
       })
-      .slice(0, 10);
+      .slice(0, 10); // Limit to 10 recommendations
 
     res.status(200).json(recommendedQuizzes);
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({
       message: 'Failed to fetch recommended quizzes',
       error: err.message,
@@ -369,50 +359,47 @@ export const getRecommendedQuizzes = async (req: Request, res: Response) => {
   }
 };
 
-export const getSavedQuizzes = async (req: Request, res: Response): Promise<void> => {
+exports.getSavedQuizzes = async (req, res) => {
   try {
-    const userId = (req.user as any)?._id;
+    const userId = req.user?._id;
     if (!userId) {
-      res.status(401).json({ message: 'User not authenticated' });
-      return;
+      return res.status(401).json({ message: 'User not authenticated' });
     }
     const saved = await SavedQuiz.find({ userId }).populate({
       path: 'quizId',
-  populate: { path: 'createdBy', select: 'username' },
+      populate: { path: 'createdBy', select: 'name' },
     });
     
     const quizzes = saved
       .map(item => item.quizId)
-      .filter(Boolean) as any[];
+      .filter(Boolean);
     
-    const quizIds = quizzes.map(quiz => quiz._id.toString());
+    const quizIds = quizzes.map(quiz => quiz._id);
     const ratingsMap = await getMultipleQuizRatings(quizIds);
     
     const quizzesWithRatings = quizzes.map(quiz => ({
       ...quiz.toObject(),
-  author: quiz.createdBy?.username || 'Unknown',
-      averageRating: ratingsMap[quiz._id.toString()] || 0
+      author: quiz.createdBy?.name || 'Unknown',
+      averageRating: ratingsMap[quiz._id] || 0
     }));
     
     res.status(200).json(quizzesWithRatings);
-    return;
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch saved quizzes', error: err.message });
-    return;
   }
 };
 
-export const getUserQuizzes = async (req: Request, res: Response) => {
+exports.getUserQuizzes = async (req, res) => {
   try {
     const userId = req.params.userId;
     const quizzes = await Quiz.find({ createdBy: userId });
     res.status(200).json(quizzes);
-  } catch (_err) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch user quizzes' });
   }
 };
 
-const getAttemptsAndRating = async (quizId: string) => {
+const getAttemptsAndRating = async (quizId) => {
   const attempts = await QuizAttempt.distinct('userId', { quizId }).then(list => list.length);
   const ratings = await QuizRating.find({ quizId });
   const rating = ratings.length === 0 ? 0 : Number((ratings.reduce((sum, rating) => sum + rating.rating, 0) / ratings.length).toFixed(2));
@@ -423,8 +410,8 @@ const getAttemptsAndRating = async (quizId: string) => {
   };
 };
 
-const trackSearchQuery = async (query?: string) => {
-  if (!query || query.trim().length < 2) return;
+const trackSearchQuery = async (query) => {
+  if (!query || query.trim().length < 2) return; // Don't track very short queries
   
   const trimmedQuery = query.trim().toLowerCase();
   
@@ -442,18 +429,21 @@ const trackSearchQuery = async (query?: string) => {
   }
 };
 
-export const getPublicQuizzes = async (req: Request, res: Response) => {
+exports.getPublicQuizzes = async (req, res) => {
   try {
-    const { search, category, difficulty, sort = 'recent' } = req.query as any;
+    const { search, category, difficulty, sort = 'recent' } = req.query;
     
-    if (search && (search as string).trim()) {
-      await trackSearchQuery(search as string);
+    // Track search query if provided
+    if (search && search.trim()) {
+      await trackSearchQuery(search);
     }
     
-    const filter: any = { isPublic: true };
+    // Build filter object
+    let filter = { isPublic: true };
     
-    if (search && (search as string).trim()) {
-      const searchRegex = new RegExp((search as string).trim(), 'i');
+    // Search filter
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i');
       filter.$or = [
         { topic: searchRegex },
         { description: searchRegex },
@@ -461,25 +451,28 @@ export const getPublicQuizzes = async (req: Request, res: Response) => {
       ];
     }
     
+    // Category filter
     if (category && category !== 'All Categories') {
       filter.$or = filter.$or || [];
       filter.$or.push(
-        { topic: new RegExp(category as string, 'i') },
-        { tags: new RegExp(category as string, 'i') }
+        { topic: new RegExp(category, 'i') },
+        { tags: new RegExp(category, 'i') }
       );
     }
     
+    // Difficulty filter
     if (difficulty && difficulty !== 'All Levels') {
-      const difficultyMap: Record<string, string> = {
+      const difficultyMap = {
         'Beginner': 'easy',
         'Intermediate': 'medium', 
         'Advanced': 'hard'
       };
-      const backendDifficulty = difficultyMap[difficulty as string] || (difficulty as string).toLowerCase();
+      const backendDifficulty = difficultyMap[difficulty] || difficulty.toLowerCase();
       filter.difficulty = backendDifficulty;
     }
     
-    let sortObj: any = {};
+    // Build sort object
+    let sortObj = {};
     switch (sort) {
       case 'popular':
         sortObj = { rating: -1, attempts: -1 };
@@ -493,12 +486,12 @@ export const getPublicQuizzes = async (req: Request, res: Response) => {
         break;
     }
 
-    const quizzes: any[] = await Quiz.find(filter)
+    const quizzes = await Quiz.find(filter)
       .sort(sortObj)
       .populate({ path: 'createdBy', select: 'username profilePicture _id' });
 
-    const mapped = await Promise.all(quizzes.map(async (q: any) => {
-      const { attempts, rating, ratingCount } = await getAttemptsAndRating(q._id.toString());
+    const mapped = await Promise.all(quizzes.map(async q => {
+      const { attempts, rating, ratingCount } = await getAttemptsAndRating(q._id);
       return {
         _id: q._id,
         topic: q.topic,
@@ -514,89 +507,120 @@ export const getPublicQuizzes = async (req: Request, res: Response) => {
         rating,
         ratingCount,
         author: {
-          name: q.createdBy?.username || 'Unknown',
-          avatar: q.createdBy?.profilePicture || '',
-          initials: q.createdBy?.username ? q.createdBy.username.split(' ').map((n: string) => n[0]).join('').toUpperCase() : '',
+          name: q.createdBy?.username || "Unknown",
+          avatar: q.createdBy?.profilePicture || "",
+          initials: q.createdBy?.username ? q.createdBy.username.split(" ").map(n => n[0]).join("").toUpperCase() : "",
           _id: q.createdBy?._id,
         }
       };
     }));
 
     res.status(200).json(mapped);
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch public quizzes', error: err.message });
   }
 };
 
-export const saveQuiz = async (req: Request, res: Response): Promise<void> => {
+exports.saveQuiz = async (req, res) => {
   try {
-    const userId = (req.user as any)._id;
-    const { quizId } = req.body as { quizId: string };
+    const userId = req.user._id;
+    const { quizId } = req.body;
 
-  if (!quizId) { res.status(400).json({ message: 'quizId is required' }); return; }
+    if (!quizId) return res.status(400).json({ message: 'quizId is required' });
 
     const exists = await SavedQuiz.findOne({ userId, quizId });
-  if (exists) { res.status(400).json({ message: 'Quiz already saved' }); return; }
+    if (exists) return res.status(400).json({ message: 'Quiz already saved' });
 
     await SavedQuiz.create({ userId, quizId });
     res.status(201).json({ message: 'Quiz saved' });
-    return;
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to save quiz', error: err.message });
-    return;
   }
 };
 
-export const unsaveQuiz = async (req: Request, res: Response): Promise<void> => {
+exports.unsaveQuiz = async (req, res) => {
   try {
-    const userId = (req.user as any)._id;
-    const { quizId } = req.body as { quizId: string };
+    const userId = req.user._id;
+    const { quizId } = req.body;
 
-  if (!quizId) { res.status(400).json({ message: 'quizId is required' }); return; }
+    if (!quizId) return res.status(400).json({ message: 'quizId is required' });
 
     await SavedQuiz.findOneAndDelete({ userId, quizId });
     res.status(200).json({ message: 'Quiz removed from saved' });
-    return;
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to remove saved quiz', error: err.message });
-    return;
   }
 };
 
-export const getQuizRatings = async (req: Request, res: Response) => {
+exports.getQuizRatings = async (req, res) => {
   try {
     const quizId = req.params.id;
-    const userId = req.query.user === 'true' && req.user && (req.user as any)._id ? (req.user as any)._id : null;
+    const userId = req.query.user === "true" && req.user && req.user._id ? req.user._id : null;
     
-    const ratingStats = await (async () => {
-      const ratings = await QuizRating.find({ quizId });
-      const count = ratings.length;
-      const average = count === 0 ? 0 : Number((ratings.reduce((sum, r) => sum + r.rating, 0) / count).toFixed(2));
-      let userRating: number | null = null;
-      if (userId) {
-        const userRatingDoc = await QuizRating.findOne({ quizId, userId });
-        userRating = userRatingDoc ? userRatingDoc.rating : null;
-      }
-      return { average, count, userRating };
-    })();
+    const ratingStats = await getRatingStats(quizId, userId);
     
     res.status(200).json(ratingStats);
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch ratings', error: err.message });
   }
 };
 
-export const getTrendingQuizzes = async (req: Request, res: Response) => {
+exports.getPopularSearchQueries = async (req, res) => {
   try {
-    const { limit = 3 } = req.query as any;
+    const { limit = 10 } = req.query;
     
-    const trendingQuizzes: any[] = await Quiz.find({ isPublic: true })
+    const popularQueries = await SearchQuery.find({})
+      .sort({ count: -1, lastSearched: -1 })
+      .limit(parseInt(limit))
+      .select('query count');
+    
+    const queries = popularQueries.map(q => ({
+      query: q.query,
+      count: q.count
+    }));
+    
+    res.status(200).json(queries);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch popular search queries', error: err.message });
+  }
+};
+
+exports.rateQuiz = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const userId = req.user._id;
+    const { quizId, rating } = req.body;
+    if (!quizId || !rating) return res.status(400).json({ message: 'quizId and rating required' });
+
+    const ratingDoc = await rateQuizUtil(userId, quizId, rating);
+    
+    const ratingStats = await getRatingStats(quizId);
+    
+    res.status(200).json({ 
+      message: 'Rating saved',
+      rating: ratingDoc.rating,
+      averageRating: ratingStats.average,
+      totalRatings: ratingStats.count
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to rate quiz', error: err.message });
+  }
+};
+
+exports.getTrendingQuizzes = async (req, res) => {
+  try {
+    const { limit = 3 } = req.query;
+    
+    // Get trending quizzes based on attempts and rating
+    const trendingQuizzes = await Quiz.find({ isPublic: true })
       .sort({ attempts: -1, rating: -1 })
-      .limit(parseInt(limit as string))
+      .limit(parseInt(limit))
       .populate({ path: 'createdBy', select: 'username profilePicture _id' });
 
-    const mapped = await Promise.all(trendingQuizzes.map(async (q: any) => {
-      const { attempts, rating, ratingCount } = await getAttemptsAndRating(q._id.toString());
+    const mapped = await Promise.all(trendingQuizzes.map(async q => {
+      const { attempts, rating, ratingCount } = await getAttemptsAndRating(q._id);
       return {
         _id: q._id,
         topic: q.topic,
@@ -612,30 +636,16 @@ export const getTrendingQuizzes = async (req: Request, res: Response) => {
         rating,
         ratingCount,
         author: {
-          name: q.createdBy?.username || 'Unknown',
-          avatar: q.createdBy?.profilePicture || '',
-          initials: q.createdBy?.username ? q.createdBy.username.split(' ').map((n: string) => n[0]).join('').toUpperCase() : '',
+          name: q.createdBy?.username || "Unknown",
+          avatar: q.createdBy?.profilePicture || "",
+          initials: q.createdBy?.username ? q.createdBy.username.split(" ").map(n => n[0]).join("").toUpperCase() : "",
           _id: q.createdBy?._id,
         }
       };
     }));
 
     res.status(200).json(mapped);
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ message: 'Failed to fetch trending quizzes', error: err.message });
   }
 };
-
-export const getPopularSearchQueries = async (_req: Request, res: Response) => {
-  try {
-    const queries = await SearchQuery.find()
-      .sort({ count: -1 })
-      .limit(10)
-      .select('query count');
-    
-    res.status(200).json(queries);
-  } catch (err: any) {
-    res.status(500).json({ message: 'Failed to fetch popular search queries', error: err.message });
-  }
-};
-

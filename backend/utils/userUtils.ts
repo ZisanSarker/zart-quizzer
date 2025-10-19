@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { IUser, AuthProvider } from '../types';
+import { IUser, AuthProvider, PublicUser } from '../types';
 
 export const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, 10);
@@ -15,12 +15,21 @@ export const getAuthProvider = (user: IUser): AuthProvider => {
   return 'local';
 };
 
-export const sanitizeUser = (user: IUser): Partial<IUser> => {
-  const userObj = user.toJSON ? user.toJSON() : user.toObject();
-  delete userObj.password;
-  delete userObj.passwordChangedAt;
-  delete userObj.passwordResetToken;
-  delete userObj.passwordResetExpires;
-  delete userObj.__v;
-  return userObj;
+export const sanitizeUser = (user: IUser): PublicUser => {
+  const obj: any = user.toJSON ? user.toJSON() : (user as any).toObject?.() ?? user;
+  const provider = getAuthProvider(user);
+  const sanitized: PublicUser = {
+    _id: String(obj._id),
+    username: obj.username,
+    email: obj.email,
+    profilePicture: obj.profilePicture,
+    role: obj.role,
+    isActive: obj.isActive,
+    isEmailVerified: obj.isEmailVerified,
+    lastLogin: obj.lastLogin ? new Date(obj.lastLogin).toISOString() : null,
+    createdAt: new Date(obj.createdAt).toISOString(),
+    updatedAt: new Date(obj.updatedAt).toISOString(),
+    provider,
+  };
+  return sanitized;
 };

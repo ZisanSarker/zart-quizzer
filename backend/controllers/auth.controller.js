@@ -1,71 +1,66 @@
-/// <reference path="../types/express.d.ts" />
-import { CookieOptions, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/user.model';
-import generateTokens from '../utils/generateTokens';
-import { hashPassword, comparePassword, sanitizeUser } from '../utils/userUtils';
-import validator from 'validator';
-import passport from '../config/passport';
-import { LoginRequestBody, RegisterRequestBody, PublicUser } from '../types';
+const jwt = require('jsonwebtoken');
+const User = require('../models/user.model');
+const generateTokens = require('../utils/generateTokens');
+const { hashPassword, comparePassword, sanitizeUser } = require('../utils/userUtils');
+const validator = require('validator');
+const passport = require('../config/passport');
 
-const cookieOptions = (maxAge: number): CookieOptions => ({
+const cookieOptions = (maxAge) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge,
   path: '/',
 });
 
-const validateRegistration = (username?: string, email?: string, password?: string) => {
+const validateRegistration = (username, email, password) => {
   if (!username || !email || !password) {
-    return { valid: false, message: 'Please fill in all required fields' } as const;
+    return { valid: false, message: 'Please fill in all required fields' };
   }
 
   if (!validator.isEmail(email)) {
-    return { valid: false, message: 'Please enter a valid email address' } as const;
+    return { valid: false, message: 'Please enter a valid email address' };
   }
 
   if (password.length < 8) {
-    return { valid: false, message: 'Password must be at least 8 characters long' } as const;
+    return { valid: false, message: 'Password must be at least 8 characters long' };
   }
 
   if (!/\d/.test(password)) {
-    return { valid: false, message: 'Password must include at least one number' } as const;
+    return { valid: false, message: 'Password must include at least one number' };
   }
 
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    return { valid: false, message: 'Password must include at least one special character' } as const;
+    return { valid: false, message: 'Password must include at least one special character' };
   }
 
-  return { valid: true } as const;
+  return { valid: true };
 };
 
-const validateLogin = (email?: string, password?: string) => {
+const validateLogin = (email, password) => {
   if (!email || !password) {
-    return { valid: false, message: 'Please enter both email and password' } as const;
+    return { valid: false, message: 'Please enter both email and password' };
   }
 
   if (!validator.isEmail(email)) {
-    return { valid: false, message: 'Please enter a valid email address' } as const;
+    return { valid: false, message: 'Please enter a valid email address' };
   }
 
-  return { valid: true } as const;
+  return { valid: true };
 };
 
-export const register = async (req: Request<{}, {}, RegisterRequestBody>, res: Response): Promise<void> => {
+exports.register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
     const validation = validateRegistration(username, email, password);
     if (!validation.valid) {
-      res.status(400).json({ message: validation.message });
-      return;
+      return res.status(400).json({ message: validation.message });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      res.status(400).json({ message: 'An account with this email already exists' });
-      return;
+      return res.status(400).json({ message: 'An account with this email already exists' });
     }
 
     const hashedPassword = await hashPassword(password);
@@ -73,7 +68,7 @@ export const register = async (req: Request<{}, {}, RegisterRequestBody>, res: R
       username, 
       email, 
       password: hashedPassword,
-      passwordChangedAt: new Date(Date.now() - 1000)
+      passwordChangedAt: Date.now() - 1000
     });
     const { accessToken, refreshToken } = generateTokens(newUser._id);
 
@@ -82,39 +77,34 @@ export const register = async (req: Request<{}, {}, RegisterRequestBody>, res: R
 
     console.log(`[AUTH] User registered: ${email} (ID: ${newUser._id})`);
 
-    const body: { message: string; user: PublicUser; accessToken: string; refreshToken: string } = {
+    res.status(201).json({
       message: 'Account created successfully! Welcome aboard!',
-      user: sanitizeUser(newUser as any),
+      user: sanitizeUser(newUser),
       accessToken,
       refreshToken
-    };
-    res.status(201).json(body);
-    return;
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error(`[AUTH] Registration error: ${error.message}`);
     res.status(500).json({ message: 'Unable to create account. Please try again.' });
-    return;
   }
 };
 
-export const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response): Promise<void> => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const validation = validateLogin(email, password);
     if (!validation.valid) {
-      res.status(400).json({ message: validation.message });
-      return;
+      return res.status(400).json({ message: validation.message });
     }
 
-  const user: any = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password');
     
     if (!user || !(await comparePassword(password, user.password))) {
-      res.status(401).json({ message: 'Invalid email or password' });
-      return;
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    user.lastLogin = new Date();
+    user.lastLogin = Date.now();
     await user.save();
 
     const { accessToken, refreshToken } = generateTokens(user._id);
@@ -124,62 +114,56 @@ export const login = async (req: Request<{}, {}, LoginRequestBody>, res: Respons
 
     console.log(`[AUTH] User logged in: ${email} (ID: ${user._id})`);
 
-    const body: { message: string; user: PublicUser; accessToken: string; refreshToken: string } = {
+    res.status(200).json({
       message: 'Welcome back! You have been logged in successfully.',
       user: sanitizeUser(user),
       accessToken,
       refreshToken
-    };
-    res.status(200).json(body);
-    return;
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error(`[AUTH] Login error: ${error.message}`);
     res.status(500).json({ message: 'Unable to log in. Please try again.' });
-    return;
   }
 };
 
-export const logout = (req: Request, res: Response): void => {
+exports.logout = (req, res) => {
   try {
+    // Use the same options as when setting cookies
     const clearOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
-    } as const;
-    res.clearCookie('accessToken', clearOptions as any);
-    res.clearCookie('refreshToken', clearOptions as any);
+    };
+    res.clearCookie('accessToken', clearOptions);
+    res.clearCookie('refreshToken', clearOptions);
 
-  (req as any).logout((error: any) => {
+    req.logout((error) => {
       if (error) {
         console.error(`[AUTH] Logout error: ${error.message}`);
-        res.status(500).json({ message: 'Unable to log out. Please try again.' });
-        return;
+        return res.status(500).json({ message: 'Unable to log out. Please try again.' });
       }
 
-      const userInfo = (req.user as any)?.email || 'anonymous';
+      const userInfo = req.user?.email || req.userId || 'anonymous';
       console.log(`[AUTH] User logged out: ${userInfo}`);
 
       res.status(200).json({ message: 'You have been logged out successfully.' });
-      return;
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error(`[AUTH] Logout error: ${error.message}`);
     res.status(500).json({ message: 'Unable to log out. Please try again.' });
-    return;
   }
 };
 
-export const refreshToken = (req: Request, res: Response): void => {
+exports.refreshToken = (req, res) => {
   try {
-    const refreshTokenFromClient = req.cookies?.refreshToken as string | undefined;
+    const refreshTokenFromClient = req.cookies.refreshToken;
 
     if (!refreshTokenFromClient) {
-      res.status(403).json({ message: 'Session expired. Please log in again.' });
-      return;
+      return res.status(403).json({ message: 'Session expired. Please log in again.' });
     }
 
-  const decoded = jwt.verify(refreshTokenFromClient, process.env.JWT_REFRESH_SECRET as string) as { userId: string };
+    const decoded = jwt.verify(refreshTokenFromClient, process.env.JWT_REFRESH_SECRET);
     const { accessToken, refreshToken } = generateTokens(decoded.userId);
 
     res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
@@ -188,43 +172,38 @@ export const refreshToken = (req: Request, res: Response): void => {
     console.log(`[AUTH] Tokens refreshed for user: ${decoded.userId}`);
 
     res.status(200).json({ message: 'Session refreshed successfully.' });
-    return;
-  } catch (error: any) {
+  } catch (error) {
     console.error(`[AUTH] Token refresh error: ${error.message}`);
     res.status(403).json({ message: 'Session expired. Please log in again.' });
-    return;
   }
 };
 
-export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+exports.getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
     if (!user) {
-      res.status(404).json({ message: 'User account not found.' });
-      return;
+      return res.status(404).json({ message: 'User account not found.' });
     }
 
-    res.status(200).json({ user: sanitizeUser(user as any) });
-    return;
-  } catch (error: any) {
+    res.status(200).json({ user });
+  } catch (error) {
     console.error(`[AUTH] Get current user error: ${error.message}`);
     res.status(500).json({ message: 'Unable to retrieve user information.' });
-    return;
   }
 };
 
-export const startGoogleAuth = passport.authenticate('google', {
+exports.startGoogleAuth = passport.authenticate('google', {
   scope: ['profile', 'email'],
 });
 
-export const handleGoogleCallback = [
+exports.handleGoogleCallback = [
   passport.authenticate('google', {
     failureRedirect: '/login',
-  }) as any,
-  async (req: Request, res: Response) => {
+  }),
+  async (req, res) => {
     try {
-      const user: any = req.user as any;
-      user.lastLogin = new Date();
+      const user = req.user;
+      user.lastLogin = Date.now();
       await user.save();
 
       const { accessToken, refreshToken } = generateTokens(user._id);
@@ -235,25 +214,25 @@ export const handleGoogleCallback = [
 
       const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
       res.redirect(redirectUrl);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`[AUTH] Google OAuth error: ${error.message}`);
       res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
     }
   }
 ];
 
-export const startGithubAuth = passport.authenticate('github', {
+exports.startGithubAuth = passport.authenticate('github', {
   scope: ['user:email'],
 });
 
-export const handleGithubCallback = [
+exports.handleGithubCallback = [
   passport.authenticate('github', {
     failureRedirect: '/login',
-  }) as any,
-  async (req: Request, res: Response) => {
+  }),
+  async (req, res) => {
     try {
-      const user: any = req.user as any;
-      user.lastLogin = new Date();
+      const user = req.user;
+      user.lastLogin = Date.now();
       await user.save();
 
       const { accessToken, refreshToken } = generateTokens(user._id);
@@ -264,9 +243,11 @@ export const handleGithubCallback = [
 
       const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
       res.redirect(redirectUrl);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`[AUTH] GitHub OAuth error: ${error.message}`);
       res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
     }
   },
 ];
+
+

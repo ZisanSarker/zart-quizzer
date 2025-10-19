@@ -22,13 +22,22 @@ const getAuthProvider = (user) => {
 };
 exports.getAuthProvider = getAuthProvider;
 const sanitizeUser = (user) => {
-    const userObj = user.toJSON ? user.toJSON() : user.toObject();
-    delete userObj.password;
-    delete userObj.passwordChangedAt;
-    delete userObj.passwordResetToken;
-    delete userObj.passwordResetExpires;
-    delete userObj.__v;
-    return userObj;
+    const obj = user.toJSON ? user.toJSON() : user.toObject?.() ?? user;
+    const provider = (0, exports.getAuthProvider)(user);
+    const sanitized = {
+        _id: String(obj._id),
+        username: obj.username,
+        email: obj.email,
+        profilePicture: obj.profilePicture,
+        role: obj.role,
+        isActive: obj.isActive,
+        isEmailVerified: obj.isEmailVerified,
+        lastLogin: obj.lastLogin ? new Date(obj.lastLogin).toISOString() : null,
+        createdAt: new Date(obj.createdAt).toISOString(),
+        updatedAt: new Date(obj.updatedAt).toISOString(),
+        provider,
+    };
+    return sanitized;
 };
 exports.sanitizeUser = sanitizeUser;
 //# sourceMappingURL=userUtils.js.map

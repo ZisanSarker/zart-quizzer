@@ -1,5 +1,21 @@
 import { Document, Types } from 'mongoose';
 
+// Keep backend-specific copies of public-facing types
+export type AuthProvider = 'local' | 'google' | 'github';
+export interface PublicUser {
+  _id: string;
+  username: string;
+  email: string;
+  profilePicture: string;
+  role: 'user' | 'admin';
+  isActive: boolean;
+  isEmailVerified: boolean;
+  lastLogin: string | null;
+  createdAt: string;
+  updatedAt: string;
+  provider: AuthProvider;
+}
+
 // User Types
 export interface IUser extends Document {
   _id: Types.ObjectId;
@@ -20,7 +36,7 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-export type AuthProvider = 'local' | 'google' | 'github';
+// AuthProvider and PublicUser are shared via @shared/types
 
 // Quiz Types
 export interface IQuizQuestion {
@@ -244,7 +260,7 @@ export interface RatingStats {
 export interface RecentQuizAttempt {
   id: string;
   title: string;
-  score: number | string;
+  score: number; // ensure numeric percentage for frontend alignment
   date: string;
   quizId: string;
   quizTitle: string;
@@ -299,7 +315,7 @@ export interface ExploreQuiz {
   questions: IQuizQuestion[];
   isPublic?: boolean;
   timeLimit?: boolean;
-  createdAt: Date;
+  createdAt: string;
   tags?: string[];
   attempts: number;
   rating: number;
@@ -341,3 +357,7 @@ export interface ProfileData {
   };
   stats: ProfileStats;
 }
+
+// Auth API responses
+// Use shared DTOs from @shared/types for cross-app alignment
+

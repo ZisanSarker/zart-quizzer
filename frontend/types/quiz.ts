@@ -4,6 +4,7 @@ export interface QuizQuestion {
   options: string[]
   correctAnswer: string
   explanation: string
+  type?: "multiple-choice" | "true-false"
 }
 
 export interface Quiz {
@@ -49,6 +50,28 @@ export interface QuizResult {
   attemptId?: string
 }
 
+export interface ExploreQuiz {
+  _id: string
+  topic: string
+  description?: string
+  quizType: "multiple-choice" | "true-false" | "mixed"
+  difficulty: "easy" | "medium" | "hard"
+  questions: QuizQuestion[]
+  isPublic?: boolean
+  timeLimit?: boolean
+  createdAt: string
+  attempts?: number
+  rating?: number
+  ratingCount?: number
+  tags?: string[]
+  author: {
+    name: string
+    avatar?: string
+    initials?: string
+    _id?: string
+  }
+}
+
 export interface RecentQuizAttempt {
   id: string
   title: string
@@ -58,12 +81,13 @@ export interface RecentQuizAttempt {
   quizTitle: string
   totalQuestions: number
   correctAnswers: number
-  timeTaken: number | string | 'N/A'
+  timeTaken: number | "N/A"
   completedAt: string
 }
 
 export interface RecommendedQuiz {
   id: string
+  _id?: string
   title: string
   author: string
   difficulty: string
@@ -78,33 +102,4 @@ export interface QuizAttemptResult {
   score: number
   submittedAt: string
   timeTaken?: number
-}
-
-export interface ExploreQuiz {
-  _id: string
-  topic: string
-  description?: string
-  quizType: "multiple-choice" | "true-false" | "mixed"
-  difficulty: "easy" | "medium" | "hard"
-  questions: {
-    _id: string
-    questionText: string
-    options: string[]
-    correctAnswer: string
-    explanation: string
-    type?: string
-  }[]
-  isPublic?: boolean
-  timeLimit?: boolean
-  createdAt: string
-  attempts?: number
-  rating?: number
-  ratingCount?: number
-  tags?: string[]
-  author: {
-    name: string
-    avatar?: string
-    initials?: string
-    _id?: string
-  }
 }

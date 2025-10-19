@@ -68,12 +68,13 @@ const register = async (req, res) => {
         res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
         res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
         console.log(`[AUTH] User registered: ${email} (ID: ${newUser._id})`);
-        res.status(201).json({
+        const body = {
             message: 'Account created successfully! Welcome aboard!',
             user: (0, userUtils_1.sanitizeUser)(newUser),
             accessToken,
             refreshToken
-        });
+        };
+        res.status(201).json(body);
         return;
     }
     catch (error) {
@@ -102,12 +103,13 @@ const login = async (req, res) => {
         res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
         res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
         console.log(`[AUTH] User logged in: ${email} (ID: ${user._id})`);
-        res.status(200).json({
+        const body = {
             message: 'Welcome back! You have been logged in successfully.',
             user: (0, userUtils_1.sanitizeUser)(user),
             accessToken,
             refreshToken
-        });
+        };
+        res.status(200).json(body);
         return;
     }
     catch (error) {
@@ -133,7 +135,7 @@ const logout = (req, res) => {
                 res.status(500).json({ message: 'Unable to log out. Please try again.' });
                 return;
             }
-            const userInfo = req.user?.email || req.userId || 'anonymous';
+            const userInfo = req.user?.email || 'anonymous';
             console.log(`[AUTH] User logged out: ${userInfo}`);
             res.status(200).json({ message: 'You have been logged out successfully.' });
             return;
@@ -175,7 +177,7 @@ const getCurrentUser = async (req, res) => {
             res.status(404).json({ message: 'User account not found.' });
             return;
         }
-        res.status(200).json({ user });
+        res.status(200).json({ user: (0, userUtils_1.sanitizeUser)(user) });
         return;
     }
     catch (error) {
