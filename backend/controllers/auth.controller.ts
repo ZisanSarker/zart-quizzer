@@ -228,16 +228,19 @@ export const handleGoogleCallback = [
       await user.save();
 
       const { accessToken, refreshToken } = generateTokens(user._id);
-      res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
-
+      
+      // OAuth cookies need special settings for cross-site redirects
+      // In development (HTTP), browsers may block cookies set during OAuth redirect
+      // Solution: Use URL params to pass tokens, then set cookies on the frontend
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      
       console.log(`[AUTH] Google OAuth login: ${user.email} (ID: ${user._id})`);
-
-      const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
       res.redirect(redirectUrl);
     } catch (error: any) {
       console.error(`[AUTH] Google OAuth error: ${error.message}`);
-      res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/login?error=oauth_failed`);
     }
   }
 ];
@@ -257,16 +260,19 @@ export const handleGithubCallback = [
       await user.save();
 
       const { accessToken, refreshToken } = generateTokens(user._id);
-      res.cookie('accessToken', accessToken, cookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', refreshToken, cookieOptions(7 * 24 * 60 * 60 * 1000));
-
+      
+      // OAuth cookies need special settings for cross-site redirects
+      // In development (HTTP), browsers may block cookies set during OAuth redirect
+      // Solution: Use URL params to pass tokens, then set cookies on the frontend
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      
       console.log(`[AUTH] GitHub OAuth login: ${user.email} (ID: ${user._id})`);
-
-      const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success?accessToken=${accessToken}&refreshToken=${refreshToken}`;
       res.redirect(redirectUrl);
     } catch (error: any) {
       console.error(`[AUTH] GitHub OAuth error: ${error.message}`);
-      res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/login?error=oauth_failed`);
     }
   },
 ];

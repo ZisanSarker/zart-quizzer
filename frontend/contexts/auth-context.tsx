@@ -38,9 +38,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refreshUser = useCallback(async () => {
     if (isLoading) return
     try {
+      console.log('Auth Context - Refreshing user...')
       const { user } = await getCurrentUser()
+      console.log('Auth Context - User refreshed successfully:', user?.email)
       setUser(user)
     } catch (err: any) {
+      console.log('Auth Context - Failed to refresh user:', err?.response?.status, err?.message)
       setUser(null)
     }
   }, [isLoading])
@@ -49,23 +52,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkAuth = async () => {
       if (isInitialized) return
       
+      console.log('Auth Context - Initial auth check starting...')
       try {
         const { user } = await getCurrentUser()
+        console.log('Auth Context - Initial auth check successful:', user?.email)
         setUser(user)
       } catch (err: any) {
+        console.log('Auth Context - Initial auth check failed:', err?.response?.status, err?.message)
         if ((err.response?.status === 401 || err.response?.status === 403) && !hasAttemptedRefresh) {
+          console.log('Auth Context - Attempting token refresh...')
           setHasAttemptedRefresh(true)
           try {
             await refreshToken()
             const { user } = await getCurrentUser()
+            console.log('Auth Context - Token refresh successful:', user?.email)
             setUser(user)
-          } catch {
+          } catch (refreshErr: any) {
+            console.log('Auth Context - Token refresh failed:', refreshErr?.response?.status, refreshErr?.message)
             setUser(null)
           }
         } else {
           setUser(null)
         }
       } finally {
+        console.log('Auth Context - Initial auth check completed')
         setIsLoading(false)
         setIsInitialized(true)
       }

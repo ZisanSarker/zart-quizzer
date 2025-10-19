@@ -10,6 +10,7 @@ import { Section } from "@/components/section"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
 
 // Import the Product Promotion animation
 import productPromotionAnimation from "@/public/Product Promotion.json"
@@ -18,43 +19,83 @@ export default function OAuthSuccessPage() {
   const router = useRouter()
   const params = useSearchParams()
   const { toast } = useToast()
+  const { refreshUser } = useAuth()
   const [isSuccess, setIsSuccess] = useState(false)
   const [countdown, setCountdown] = useState(3)
 
   useEffect(() => {
-    const accessToken = params.get("accessToken")
-    const refreshToken = params.get("refreshToken")
-    
-    if (accessToken && refreshToken) {
-      Cookies.set("accessToken", accessToken, { secure: true, sameSite: "strict" })
-      Cookies.set("refreshToken", refreshToken, { secure: true, sameSite: "strict" })
+    const handleOAuthSuccess = async () => {
+      const accessToken = params.get("accessToken")
+      const refreshToken = params.get("refreshToken")
       
-      // Show success state
-      setIsSuccess(true)
-      
-      // Show welcome toast with emoji
-      toast({
-        title: "Welcome back! 🎉",
-        description: "You've been logged in successfully.",
+      console.log('OAuth Success Page - Tokens received:', { 
+        hasAccessToken: !!accessToken, 
+        hasRefreshToken: !!refreshToken,
+        accessTokenLength: accessToken?.length,
+        refreshTokenLength: refreshToken?.length
       })
       
-      // Countdown timer
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            router.replace("/")
-            return 0
-          }
-          return prev - 1
+      if (accessToken && refreshToken) {
+        // Set cookies with proper security settings for both development and production
+        const isProduction = process.env.NODE_ENV === 'production'
+        const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:'
+        
+        console.log('OAuth Success Page - Setting cookies with config:', {
+          isProduction,
+          isHttps,
+          secure: isProduction || isHttps,
+          sameSite: isProduction ? "none" : "lax"
         })
-      }, 1000)
-      
-      return () => clearInterval(timer)
-    } else {
-      router.replace("/login")
+        
+        Cookies.set("accessToken", accessToken, { 
+          secure: isProduction || isHttps, 
+          sameSite: isProduction ? "none" : "lax",
+          path: "/"
+        })
+        Cookies.set("refreshToken", refreshToken, { 
+          secure: isProduction || isHttps, 
+          sameSite: isProduction ? "none" : "lax",
+          path: "/"
+        })
+        
+        console.log('OAuth Success Page - Cookies set successfully')
+        
+        // Show success state
+        setIsSuccess(true)
+        
+        // Refresh auth context to detect the new authentication
+        try {
+          await refreshUser()
+        } catch (error) {
+          console.warn('Failed to refresh user context:', error)
+        }
+        
+        // Show welcome toast with emoji
+        toast({
+          title: "Welcome back! 🎉",
+          description: "You've been logged in successfully.",
+        })
+        
+        // Countdown timer
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer)
+              router.replace("/dashboard")
+              return 0
+            }
+            return prev - 1
+          })
+        }, 1000)
+        
+        return () => clearInterval(timer)
+      } else {
+        router.replace("/login")
+      }
     }
-  }, [params, router, toast])
+
+    handleOAuthSuccess()
+  }, [params, router, toast, refreshUser])
 
   if (!isSuccess) {
     return (
