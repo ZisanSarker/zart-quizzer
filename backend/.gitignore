@@ -9,17 +9,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Process IDs
+pids/
+*.pid
+*.seed
+*.pid.lock
+
 # Environment variables (keep examples tracked)
 .env
 .env.*
 !.env.example
-
-# Next.js
-.next/
-.next/cache/
-out/
-.turbo/
-.vercel/
 
 # Coverage
 coverage/
@@ -29,6 +28,10 @@ coverage/
 .cache/
 .tmp/
 .eslintcache
+
+# Build outputs
+build/
+dist/
 
 # TypeScript build info
 *.tsbuildinfo

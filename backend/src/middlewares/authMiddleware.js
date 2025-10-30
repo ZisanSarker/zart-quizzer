@@ -5,11 +5,7 @@ const { UnauthorizedError } = require('../errors');
 
 const authMiddleware = async (req, res, next) => {
   try {
-    if (req.isAuthenticated && req.isAuthenticated()) {
-      req.userId = req.user._id || req.user.id;
-      return next();
-    }
-
+    // From here: only use JWT verification, as in rest of implementation
     const accessToken = req.cookies.accessToken;
     const authHeader = req.headers.authorization;
     const headerToken = authHeader?.split(' ')[1];
