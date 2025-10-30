@@ -29,12 +29,20 @@ app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(helmet());
 
+// Build allowed origins list from env + known local hosts
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()) : []),
   'http://localhost:3000',
   'http://192.168.0.108:3000',
   'http://192.168.1.118:3000',
 ].filter(Boolean);
+
+// Allow Vercel preview deployments for this project (e.g.,
+// https://<preview>-zisan-sarkers-projects.vercel.app)
+const allowedOriginPatterns = [
+  /^https:\/\/[a-z0-9-]+-zisan-sarkers-projects\.vercel\.app$/,
+];
 
 app.use(
   cors({
@@ -45,7 +53,7 @@ app.use(
       }
       
       // Check if origin is in allowed list
-      if (allowedOrigins.includes(origin)) {
+      if (allowedOrigins.includes(origin) || allowedOriginPatterns.some((re) => re.test(origin))) {
         return callback(null, true);
       }
       
@@ -59,6 +67,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 204,
   })
 );
 

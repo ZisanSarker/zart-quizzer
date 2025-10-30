@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import Cookies from "js-cookie"
 import { CheckCircle, Sparkles, ArrowRight, Brain, Zap } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { LottieAnimation } from "@/components/lottie-animation"
@@ -10,6 +9,7 @@ import { Section } from "@/components/section"
 import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
 
 // Import the Product Promotion animation
 import productPromotionAnimation from "@/public/Product Promotion.json"
@@ -19,16 +19,15 @@ export default function OAuthSuccessPage() {
   const params = useSearchParams()
   const { toast } = useToast()
   const [isSuccess, setIsSuccess] = useState(false)
-  const [countdown, setCountdown] = useState(3)
+  const { refreshUser } = useAuth()
 
   useEffect(() => {
+    // We rely on secure HttpOnly cookies set by the backend during OAuth callback.
+    // Never write tokens from query params to client cookies.
     const accessToken = params.get("accessToken")
     const refreshToken = params.get("refreshToken")
-    
+
     if (accessToken && refreshToken) {
-      Cookies.set("accessToken", accessToken, { secure: true, sameSite: "strict" })
-      Cookies.set("refreshToken", refreshToken, { secure: true, sameSite: "strict" })
-      
       // Show success state
       setIsSuccess(true)
       
@@ -37,20 +36,17 @@ export default function OAuthSuccessPage() {
         title: "Welcome back! 🎉",
         description: "You've been logged in successfully.",
       })
-      
-      // Countdown timer
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            router.replace("/")
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      
-      return () => clearInterval(timer)
+
+      // Ensure cookies are written, refresh user, then redirect immediately
+      const goTimer = setTimeout(async () => {
+        try {
+          await refreshUser()
+        } finally {
+          router.replace("/")
+        }
+      }, 150)
+
+      return () => clearTimeout(goTimer)
     } else {
       router.replace("/login")
     }
@@ -145,10 +141,7 @@ export default function OAuthSuccessPage() {
                   </Link>
                 </div>
 
-                {/* Countdown */}
-                <div className="mt-6 text-sm text-muted-foreground animate-fade-up animate-delay-600">
-                  Redirecting to dashboard in {countdown} seconds...
-                </div>
+                {/* Immediate redirect, no countdown */}
               </div>
             </div>
 
