@@ -71,15 +71,8 @@ export default function DashboardPage() {
     }
   }, [user])
 
-  if (isLoading) {
-    return (
-      <div className="w-full flex items-center justify-center h-96">
-        <span className="text-lg text-muted-foreground">Loading...</span>
-      </div>
-    )
-  }
-
-  if (!user) {
+  // Layout handles authentication, so we can safely assume user exists here
+  if (isLoading || !user) {
     return null
   }
 
@@ -609,7 +602,7 @@ export default function DashboardPage() {
             {recentQuizzes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recentQuizzes.slice(0, 3).map((quiz, index) => (
-                  <StaggerItem key={quiz._id}>
+                  <StaggerItem key={quiz.id}>
                     <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 h-80">
                       {/* Glass effect background */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
@@ -773,7 +766,7 @@ export default function DashboardPage() {
                         {/* Author */}
                         <div className="mb-4 flex-1">
                           <p className="text-sm text-muted-foreground line-clamp-2">
-                            By {quiz.author}
+                            By {typeof quiz.author === 'string' ? quiz.author : quiz.author.name}
                           </p>
                         </div>
 
@@ -781,7 +774,7 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div className="text-center">
                             <div className="text-xl font-bold text-primary">
-                              {quiz.averageRating.toFixed(1)}
+                              {quiz.averageRating != null ? quiz.averageRating.toFixed(1) : "N/A"}
                             </div>
                             <div className="text-xs text-muted-foreground">Rating</div>
                           </div>

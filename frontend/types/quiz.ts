@@ -65,7 +65,7 @@ export interface RecentQuizAttempt {
 export interface RecommendedQuiz {
   id: string
   title: string
-  author: string
+  author: string | { name: string; avatar?: string; initials?: string; _id?: string }
   difficulty: string
   averageRating: number
 }

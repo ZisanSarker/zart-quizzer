@@ -68,90 +68,86 @@ export default function ResponsiveNavigation() {
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <div className="hidden lg:block">
-        <div className="flex items-center gap-4">
-          {/* Desktop Nav Links */}
-          {isAuthenticated && (
-            <nav className="flex gap-2 lg:gap-6 items-center">
-              {navLinks.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-200 touch-target
-                    ${pathname === href
-                      ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                      : "hover:bg-primary-50/70 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"}
-                  `}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="hidden xl:inline-block">{label}</span>
-                </Link>
-              ))}
-            </nav>
-          )}
+      {/* Desktop Navigation - Centered nav links, right-aligned user profile */}
+      <div className="hidden lg:contents">
+        {/* Desktop Nav Links - positioned in center column by parent grid */}
+        <nav className="flex gap-2 lg:gap-6 items-center justify-center col-start-2">
+          {navLinks.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-200 touch-target
+                ${pathname === href
+                  ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                  : "hover:bg-primary-50/70 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"}
+              `}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="hidden xl:inline-block">{label}</span>
+            </Link>
+          ))}
+        </nav>
 
-          {/* Desktop Profile/Auth */}
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2 transition-colors hover:text-primary touch-target">
-                    <Avatar className="h-8 w-8 border-2 border-primary-100 transition-transform hover:scale-105">
-                      <AvatarImage
-                        src={user?.profilePicture || "/placeholder.svg?height=32&width=32"}
-                        alt={user?.username || "User"}
-                      />
-                      <AvatarFallback className="bg-primary-100 text-primary-700">{getInitials()}</AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:inline-block">{user?.username}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/profile" className="touch-target">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings" className="touch-target">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => logout()}
-                    className="cursor-pointer transition-colors hover:bg-destructive/10 hover:text-destructive touch-target"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex gap-2">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm" className="hover:text-primary transition-colors touch-target">
-                    Log in
-                  </Button>
-                </Link>
-                <Link href="/register">
-                  <Button size="sm" variant="default" className="touch-target">
-                    Sign up
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
+        {/* Desktop Profile/Auth - positioned in right column by parent grid */}
+        <div className="flex items-center gap-2 justify-end col-start-3">
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2 transition-colors hover:text-primary touch-target">
+                  <Avatar className="h-8 w-8 border-2 border-primary-100 transition-transform hover:scale-105">
+                    <AvatarImage
+                      src={user?.profilePicture || "/placeholder-user.jpg"}
+                      alt={user?.username || "User"}
+                    />
+                    <AvatarFallback className="bg-primary-100 text-primary-700">{getInitials()}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:inline-block">{user?.username}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile" className="touch-target">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings" className="touch-target">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => logout()}
+                  className="cursor-pointer transition-colors hover:bg-destructive/10 hover:text-destructive touch-target"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex gap-2">
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="hover:text-primary transition-colors touch-target">
+                  Log in
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm" variant="default" className="touch-target">
+                  Sign up
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      <div className="lg:hidden">
+      {/* Mobile Navigation - positioned in right column */}
+      <div className="lg:hidden col-start-3 flex justify-end">
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="sm" className="p-2">
@@ -162,14 +158,6 @@ export default function ResponsiveNavigation() {
             <SheetHeader>
               <SheetTitle className="text-left">
                 <div className="flex items-center gap-2">
-                  <img 
-                    src="/logo.png" 
-                    alt="ZART Quizzer" 
-                    className="h-8 w-8"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
                   <span className="font-bold text-lg text-primary">ZART Quizzer</span>
                 </div>
               </SheetTitle>
@@ -181,7 +169,7 @@ export default function ResponsiveNavigation() {
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                   <Avatar className="h-12 w-12 border-2 border-primary-100">
                     <AvatarImage
-                      src={user?.profilePicture || "/placeholder.svg?height=48&width=48"}
+                      src={user?.profilePicture || "/placeholder-user.jpg"}
                       alt={user?.username || "User"}
                     />
                     <AvatarFallback className="bg-primary-100 text-primary-700 text-lg">{getInitials()}</AvatarFallback>

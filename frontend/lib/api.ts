@@ -67,12 +67,20 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
+        isRefreshing = false
+        
+        // Only redirect if we're on a protected page
         if (shouldRedirectToLogin()) {
-          window.location.href = '/login'
+          console.log('🔄 Redirecting to login due to authentication failure')
+          setTimeout(() => {
+            window.location.href = '/login'
+          }, 100)
         }
         return Promise.reject(refreshError)
       } finally {
-        isRefreshing = false
+        if (isRefreshing) {
+          isRefreshing = false
+        }
       }
     }
 

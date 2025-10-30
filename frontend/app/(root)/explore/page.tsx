@@ -336,10 +336,10 @@ function QuizCard({
               
               <div 
                 className="metric-badge metric-badge-amber flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full group relative" 
-                title={`Average rating: ${quiz.rating ? quiz.rating.toFixed(1) : "0.0"}/5.0`}
+                title={`Average rating: ${quiz.rating != null ? quiz.rating.toFixed(1) : "0.0"}/5.0`}
               >
                 <Star className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-300">{quiz.rating ? quiz.rating.toFixed(1) : "0.0"}</span>
+                <span className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-300">{quiz.rating != null ? quiz.rating.toFixed(1) : "0.0"}</span>
               </div>
               
               <div 

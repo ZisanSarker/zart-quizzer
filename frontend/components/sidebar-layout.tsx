@@ -24,13 +24,15 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       {/* Desktop Sidebar - Fixed on left side */}
       <div className="hidden lg:block fixed left-4 top-1/2 transform -translate-y-1/2 w-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl z-50">
         <div className="flex flex-col py-4 relative">
-          {/* Floating active indicator */}
-          <div 
-            className="absolute w-12 h-12 bg-primary/20 rounded-xl transition-all duration-500 ease-out left-2"
-            style={{
-              transform: `translateY(${activeIndex * 64}px)`,
-            }}
-          />
+          {/* Floating active indicator - only show when there's an active link */}
+          {activeIndex >= 0 && (
+            <div 
+              className="absolute w-12 h-12 bg-primary/20 rounded-xl transition-all duration-500 ease-out left-2"
+              style={{
+                transform: `translateY(${activeIndex * 64}px)`,
+              }}
+            />
+          )}
           
           <ul className="flex flex-col items-center gap-4 relative z-10">
             {sidebarLinks.map(({ href, label, icon: Icon }, index) => (
