@@ -9,7 +9,6 @@ const cookieOptions = (maxAge) => ({
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge,
   path: '/',
-  ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
 });
 
 const register = async (req, res, next) => {
@@ -55,15 +54,8 @@ const login = async (req, res, next) => {
 };
 
 const logout = (req, res) => {
-  const clearOpts = {
-    path: '/',
-    ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    httpOnly: true,
-  };
-  res.clearCookie('accessToken', clearOpts);
-  res.clearCookie('refreshToken', clearOpts);
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken');
   res.status(200).json({ message: 'You have been logged out successfully.' });
 };
 
