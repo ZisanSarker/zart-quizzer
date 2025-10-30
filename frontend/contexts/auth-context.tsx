@@ -11,6 +11,7 @@ import {
   type RegisterData,
   refreshToken
 } from "@/lib/auth"
+import { clearAccessToken } from "@/lib/session"
 
 interface AuthContextType {
   user: User | null
@@ -104,6 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handleLogout = async () => {
     try {
       await logout()
+      clearAccessToken()
       setUser(null)
       setHasAttemptedRefresh(false)
     } catch (err: any) {

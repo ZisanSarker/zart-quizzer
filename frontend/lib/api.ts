@@ -1,5 +1,6 @@
 import axios from "axios"
 import { refreshToken } from "./auth"
+import { getAccessToken } from "./session"
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
@@ -35,6 +36,16 @@ const shouldRedirectToLogin = (): boolean => {
   const path = window.location.pathname
   return !isAuthPage() && path !== '/'
 }
+
+// Attach Authorization header if an in-memory access token exists.
+api.interceptors.request.use((config) => {
+  const token = getAccessToken()
+  if (token) {
+    config.headers = config.headers ?? {}
+    ;(config.headers as any)["Authorization"] = `Bearer ${token}`
+  }
+  return config
+})
 
 api.interceptors.response.use(
   (response) => response,

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { GradientButton } from "@/components/ui/gradient-button"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
+import { setAccessToken } from "@/lib/session"
 
 // Import the Product Promotion animation
 import productPromotionAnimation from "@/public/Product Promotion.json"
@@ -36,6 +37,9 @@ export default function OAuthSuccessPage() {
         title: "Welcome back! 🎉",
         description: "You've been logged in successfully.",
       })
+
+      // Temporarily attach access token in memory to avoid third-party cookie blocks
+      setAccessToken(accessToken)
 
       // Ensure cookies are written, refresh user, then redirect immediately
       const goTimer = setTimeout(async () => {
