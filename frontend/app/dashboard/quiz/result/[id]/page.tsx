@@ -208,11 +208,11 @@ export default function QuizResultPage() {
                               >
                                 <div className="flex items-start gap-2">
                                   {isCorrectOption ? (
-                                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                                    <CheckCircle className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
                                   ) : showError ? (
-                                    <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <XCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
                                   ) : (
-                                    <div className="h-5 w-5 rounded-full border border-muted-foreground flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <div className="h-5 w-5 rounded-full border border-muted-foreground flex items-center justify-center shrink-0 mt-0.5">
                                       {String.fromCharCode(65 + optionIndex)}
                                     </div>
                                   )}

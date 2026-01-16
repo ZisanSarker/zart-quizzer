@@ -88,8 +88,8 @@ export default function LibraryPage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Library Header Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -108,8 +108,8 @@ export default function LibraryPage() {
       </Section>
 
       {/* Quizzes Content Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <Tabs defaultValue="created">
             <TabsList className="grid w-full max-w-md grid-cols-2 mb-4 sm:mb-6">
               <TabsTrigger value="created" className="text-sm sm:text-base">Created by Me</TabsTrigger>

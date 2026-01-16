@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import type { User } from "@/types/user"
 import {
   getCurrentUser,
@@ -26,90 +26,90 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isInitialized, setIsInitialized] = useState(false)
-  const [hasAttemptedRefresh, setHasAttemptedRefresh] = useState(false)
 
-  const refreshUser = useCallback(async () => {
+  // React 19: Simplified effect without excessive useCallback
+  useEffect(() => {
+    let mounted = true
+
+    async function checkAuth() {
+      try {
+        const { user } = await getCurrentUser()
+        if (mounted) setUser(user)
+      } catch (err: unknown) {
+        const error = err as { response?: { status?: number } }
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          try {
+            await refreshToken()
+            const { user } = await getCurrentUser()
+            if (mounted) setUser(user)
+          } catch {
+            if (mounted) setUser(null)
+          }
+        } else {
+          if (mounted) setUser(null)
+        }
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
+    }
+
+    checkAuth()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  // React 19: Simple function, no useCallback needed
+  async function refreshUser() {
     if (isLoading) return
     try {
       const { user } = await getCurrentUser()
       setUser(user)
-    } catch (err: any) {
+    } catch {
       setUser(null)
     }
-  }, [isLoading])
+  }
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (isInitialized) return
-      
-      try {
-        const { user } = await getCurrentUser()
-        setUser(user)
-      } catch (err: any) {
-        if ((err.response?.status === 401 || err.response?.status === 403) && !hasAttemptedRefresh) {
-          setHasAttemptedRefresh(true)
-          try {
-            await refreshToken()
-            const { user } = await getCurrentUser()
-            setUser(user)
-          } catch {
-            setUser(null)
-          }
-        } else {
-          setUser(null)
-        }
-      } finally {
-        setIsLoading(false)
-        setIsInitialized(true)
-      }
-    }
-    
-    const timer = setTimeout(() => {
-      checkAuth()
-    }, 100)
-    
-    return () => clearTimeout(timer)
-  }, [isInitialized, hasAttemptedRefresh])
-
-  const handleLogin = async (data: LoginData) => {
+  // React 19: Simple async functions
+  async function handleLogin(data: LoginData) {
     setError(null)
-    setHasAttemptedRefresh(false)
     try {
       const response = await login(data)
       setUser(response.user)
       return response.user
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Login failed")
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
+      setError(error?.response?.data?.message || "Login failed")
       throw err
     }
   }
 
-  const handleRegister = async (data: RegisterData) => {
+  async function handleRegister(data: RegisterData) {
     setError(null)
-    setHasAttemptedRefresh(false)
     try {
       const response = await register(data)
       setUser(response.user)
       return response.user
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Registration failed")
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
+      setError(error?.response?.data?.message || "Registration failed")
       throw err
     }
   }
 
-  const handleLogout = async () => {
+  async function handleLogout() {
     try {
       await logout()
       clearAccessToken()
       setUser(null)
-      setHasAttemptedRefresh(false)
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Logout failed")
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
+      setError(error?.response?.data?.message || "Logout failed")
       throw err
     }
   }
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   )
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider")

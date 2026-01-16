@@ -11,7 +11,7 @@ const responsiveImageVariants = cva(
         default: "rounded-lg",
         circle: "rounded-full",
         square: "rounded-none",
-        card: "rounded-lg shadow-sm",
+        card: "rounded-lg shadow-xs",
         elevated: "rounded-lg shadow-lg",
       },
       size: {

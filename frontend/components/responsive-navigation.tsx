@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -197,7 +196,7 @@ export default function ResponsiveNavigation() {
                         : "hover:bg-primary-50/70 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"}
                     `}
                   >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <Icon className="h-5 w-5 shrink-0" />
                     <span>{label}</span>
                   </Link>
                 ))}
@@ -220,7 +219,7 @@ export default function ResponsiveNavigation() {
                           : "hover:bg-primary-50/70 hover:text-primary-700 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"}
                       `}
                     >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <Icon className="h-5 w-5 shrink-0" />
                       <span>{label}</span>
                     </Link>
                   ))}
@@ -238,7 +237,7 @@ export default function ResponsiveNavigation() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all duration-200 touch-target hover:bg-primary-50/70 hover:text-primary-700"
                   >
-                    <User className="h-5 w-5 flex-shrink-0" />
+                    <User className="h-5 w-5 shrink-0" />
                     <span>Profile</span>
                   </Link>
                   <Link
@@ -246,7 +245,7 @@ export default function ResponsiveNavigation() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all duration-200 touch-target hover:bg-primary-50/70 hover:text-primary-700"
                   >
-                    <Settings className="h-5 w-5 flex-shrink-0" />
+                    <Settings className="h-5 w-5 shrink-0" />
                     <span>Settings</span>
                   </Link>
                   <button
@@ -256,7 +255,7 @@ export default function ResponsiveNavigation() {
                     }}
                     className="flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all duration-200 touch-target w-full text-left hover:bg-destructive/10 hover:text-destructive"
                   >
-                    <LogOut className="h-5 w-5 flex-shrink-0" />
+                    <LogOut className="h-5 w-5 shrink-0" />
                     <span>Log out</span>
                   </button>
                 </div>

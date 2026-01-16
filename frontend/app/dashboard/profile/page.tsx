@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -127,7 +126,8 @@ export default function ProfilePage() {
         description: "Your profile has been updated successfully",
       })
       setTab("about")
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
       toast({
         title: "Error",
         description: error?.response?.data?.message || "Failed to update profile",

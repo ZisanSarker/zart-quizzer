@@ -1,8 +1,8 @@
-import type React from "react"
+import { type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 interface ResponsiveGridProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   cols?: {
     default: number

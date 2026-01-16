@@ -1,11 +1,11 @@
 "use client"
 
-import type React from "react"
+import { type ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Brain, Home, Plus, Library, History, Settings } from "lucide-react"
 
-export default function SidebarLayout({ children }: { children: React.ReactNode }) {
+export default function SidebarLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   const sidebarLinks = [
@@ -46,7 +46,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                         : "hover:text-primary-700 dark:hover:text-primary-300"}
                     `}
                   >
-                    <Icon className="h-6 w-6 flex-shrink-0" />
+                    <Icon className="h-6 w-6 shrink-0" />
                   </Link>
                   
                   {/* Glass effect background with text on hover */}
@@ -73,20 +73,15 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                   : "hover:text-primary-700 dark:hover:text-primary-300"}
               `}
             >
-              <Icon className="h-5 w-5 flex-shrink-0 mb-1" />
+              <Icon className="h-5 w-5 shrink-0 mb-1" />
               <span className="text-xs font-medium">{label}</span>
             </Link>
           ))}
         </div>
       </div>
 
-      {/* Add bottom padding for mobile navigation */}
-      <div className="lg:hidden pb-16">
-        {children}
-      </div>
-
-      {/* Desktop content */}
-      <div className="hidden lg:block">
+      {/* Main content with proper spacing for sidebar/bottom nav */}
+      <div className="w-full pb-20 lg:pb-0 lg:pl-24">
         {children}
       </div>
     </>

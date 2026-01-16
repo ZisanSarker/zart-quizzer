@@ -206,11 +206,12 @@ export default function SettingsPage() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
       toast({
         title: "Error",
         description:
-          error.response?.data?.message || "Failed to change password",
+          error?.response?.data?.message || "Failed to change password",
         variant: "destructive",
       });
     } finally {
@@ -250,8 +251,8 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="w-full flex flex-col items-center">
-        <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-          <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+        <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl ">
+          <div className="px-4 sm:px-6">
             <div className="flex items-center justify-center h-full">
               <div className="animate-pulse text-center">
                 <h2 className="text-2xl font-bold mb-2">Loading settings...</h2>
@@ -269,8 +270,8 @@ export default function SettingsPage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Settings Header Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -295,8 +296,8 @@ export default function SettingsPage() {
       </Section>
 
       {/* Settings Content Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <Tabs defaultValue="security" className="space-y-4 sm:space-y-6">
             <TabsList className="grid grid-cols-2 w-full overflow-x-auto">
               <TabsTrigger value="security" className="flex items-center gap-2 text-sm sm:text-base">

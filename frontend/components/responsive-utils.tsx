@@ -203,6 +203,7 @@ export const responsiveTransition = {
 // Responsive Shadow Helpers
 export const responsiveShadow = {
   none: "shadow-none",
+  xs: "shadow-xs",
   sm: "shadow-sm",
   md: "shadow-md",
   lg: "shadow-lg",
@@ -213,6 +214,7 @@ export const responsiveShadow = {
 // Responsive Border Radius Helpers
 export const responsiveBorderRadius = {
   none: "rounded-none",
+  xs: "rounded-xs",
   sm: "rounded-sm",
   md: "rounded-md",
   lg: "rounded-lg",

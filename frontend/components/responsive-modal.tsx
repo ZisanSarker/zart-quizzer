@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import { type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -24,8 +24,8 @@ import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 
 interface ResponsiveModalProps {
-  children: React.ReactNode
-  trigger?: React.ReactNode
+  children: ReactNode
+  trigger?: ReactNode
   title?: string
   description?: string
   className?: string
@@ -127,7 +127,7 @@ export function ResponsiveModal({
 }
 
 interface ResponsiveModalFooterProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }
 
@@ -155,7 +155,7 @@ export function ResponsiveModalFooter({
 }
 
 interface ResponsiveModalButtonProps {
-  children: React.ReactNode
+  children: ReactNode
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   size?: "default" | "sm" | "lg" | "icon"
   className?: string
@@ -191,7 +191,7 @@ export function ResponsiveModalButton({
 }
 
 interface ResponsiveModalContentProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   padding?: "none" | "sm" | "md" | "lg"
 }

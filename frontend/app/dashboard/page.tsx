@@ -31,7 +31,7 @@ export default function DashboardPage() {
       try {
         const data = await getMyStats()
         setStats(data)
-      } catch (error: any) {
+      } catch {
         setStatsError("Failed to fetch statistics.")
       }
     }
@@ -58,8 +58,8 @@ export default function DashboardPage() {
         })
         setRecentQuizzes(recent)
         setRecommendedQuizzes(recommended)
-      } catch (error: any) {
-        console.error('❌ Failed to fetch dashboard data:', error)
+      } catch (err: unknown) {
+        console.error('❌ Failed to fetch dashboard data:', err)
         setQuizError("Failed to fetch dashboard data.")
       }
     }
@@ -110,8 +110,8 @@ export default function DashboardPage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Dashboard Header Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl">
+        <div className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -130,8 +130,8 @@ export default function DashboardPage() {
       </Section>
 
       {/* Modern animated stats grid - Two rows layout */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl">
+        <div className="px-4 sm:px-6">
           <div className="space-y-4 sm:space-y-6">
             {/* First Row - 30% Quizzes Created / 70% Quizzes Completed */}
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 sm:gap-6">
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                     
                     {/* Animated border gradient */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xs"></div>
                     
                     {/* Main card content */}
                     <div className="relative px-6 pt-8 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
@@ -204,7 +204,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                     
                     {/* Animated border gradient */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xs"></div>
                     
                     {/* Main card content */}
                     <div className="relative px-6 pt-12 pb-12 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
@@ -308,7 +308,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                     
                     {/* Animated border gradient */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xs"></div>
                     
                     {/* Main card content */}
                     <div className="relative px-6 pt-8 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
@@ -462,7 +462,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                     
                     {/* Animated border gradient */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xs"></div>
                     
                     {/* Main card content */}
                     <div className="relative px-6 pt-8 pb-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 h-full flex flex-col">
@@ -525,8 +525,8 @@ export default function DashboardPage() {
       </Section>
 
       {/* Motivation Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl">
+        <div className="px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
             {/* Left Side - Lottie Animation */}
             <div className="flex justify-center lg:justify-start">
@@ -585,8 +585,8 @@ export default function DashboardPage() {
       </Section>
 
       {/* Recent Quizzes Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl">
+        <div className="px-4 sm:px-6">
           <div className="space-y-6">
             {/* Section Header */}
             <div className="text-center">
@@ -608,7 +608,7 @@ export default function DashboardPage() {
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                       
                       {/* Animated border gradient */}
-                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xs"></div>
                       
                       {/* Card Content */}
                       <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 h-full flex flex-col">
@@ -619,7 +619,7 @@ export default function DashboardPage() {
                               {quiz.quizTitle}
                             </h3>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                             <span className="text-xs text-muted-foreground">Completed</span>
                           </div>
@@ -655,7 +655,7 @@ export default function DashboardPage() {
                               {quiz.date}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             <Button
                               variant="outline"
                               size="sm"
@@ -714,8 +714,8 @@ export default function DashboardPage() {
       </Section>
 
       {/* Recommended Quizzes Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl">
+        <div className="px-4 sm:px-6">
           <div className="space-y-6">
             {/* Section Header */}
             <div className="text-center">
@@ -737,7 +737,7 @@ export default function DashboardPage() {
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-lg border border-white/20 group-hover:border-primary/30 transition-all duration-500"></div>
                       
                       {/* Animated border gradient */}
-                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xs"></div>
                       
                       {/* Card Content */}
                       <div className="relative p-6 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm border border-border/50 group-hover:border-primary/30 transition-all duration-500 h-full flex flex-col">
@@ -748,7 +748,7 @@ export default function DashboardPage() {
                               {quiz.title}
                             </h3>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             <span className="text-xs text-muted-foreground">Recommended</span>
                           </div>
@@ -793,7 +793,7 @@ export default function DashboardPage() {
                               Recommended for you
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             <Button
                               variant="outline"
                               size="sm"

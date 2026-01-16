@@ -1,10 +1,10 @@
 "use client"
 
-import type React from "react"
+import { type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 interface ResponsiveTableProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   mobileLayout?: "scroll" | "cards" | "stack"
 }
@@ -64,7 +64,7 @@ export function ResponsiveTable({
 }
 
 interface ResponsiveTableHeaderProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }
 
@@ -85,7 +85,7 @@ export function ResponsiveTableHeader({
 }
 
 interface ResponsiveTableBodyProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }
 
@@ -111,12 +111,12 @@ export function ResponsiveTableBody({
 }
 
 interface ResponsiveTableRowProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
-  mobileData?: Array<{ label: string; value: React.ReactNode }>
+  mobileData?: Array<{ label: string; value: ReactNode }>
   mobileTitle?: string
   mobileSubtitle?: string
-  mobileActions?: React.ReactNode
+  mobileActions?: ReactNode
 }
 
 export function ResponsiveTableRow({
@@ -155,7 +155,7 @@ export function ResponsiveTableRow({
                 )}
               </div>
               {mobileActions && (
-                <div className="flex-shrink-0 ml-2">
+                <div className="shrink-0 ml-2">
                   {mobileActions}
                 </div>
               )}
@@ -187,7 +187,7 @@ export function ResponsiveTableRow({
 }
 
 interface ResponsiveTableCellProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   align?: "left" | "center" | "right"
   mobileLabel?: string
@@ -232,7 +232,7 @@ export function ResponsiveTableCell({
 }
 
 interface ResponsiveTableHeaderCellProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   align?: "left" | "center" | "right"
 }
@@ -256,7 +256,7 @@ export function ResponsiveTableHeaderCell({
 }
 
 interface ResponsiveTableContainerProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   maxHeight?: string
 }
@@ -278,7 +278,7 @@ export function ResponsiveTableContainer({
 }
 
 interface ResponsiveTableEmptyProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }
 

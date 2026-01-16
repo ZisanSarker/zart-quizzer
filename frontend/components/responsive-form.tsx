@@ -1,12 +1,12 @@
 "use client"
 
-import type React from "react"
+import { type ReactNode, type FormEvent, type ChangeEvent, type FocusEvent } from "react"
 import { cn } from "@/lib/utils"
 
 interface ResponsiveFormProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
-  onSubmit?: (e: React.FormEvent) => void
+  onSubmit?: (e: FormEvent) => void
   method?: "GET" | "POST"
   action?: string
 }
@@ -36,7 +36,7 @@ export function ResponsiveForm({
 }
 
 interface ResponsiveFormFieldProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   label?: string
   error?: string
@@ -76,8 +76,8 @@ interface ResponsiveInputProps {
   placeholder?: string
   type?: string
   value?: string
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  onBlur?: (e: FocusEvent<HTMLInputElement>) => void
   disabled?: boolean
   required?: boolean
   min?: number
@@ -112,7 +112,7 @@ export function ResponsiveInput({
   return (
     <input
       className={cn(
-        "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         "min-h-[44px] sm:min-h-[40px]", // Better touch targets on mobile
         className
       )}
@@ -140,8 +140,8 @@ interface ResponsiveTextareaProps {
   className?: string
   placeholder?: string
   value?: string
-  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void
+  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void
+  onBlur?: (e: FocusEvent<HTMLTextAreaElement>) => void
   disabled?: boolean
   required?: boolean
   rows?: number
@@ -169,7 +169,7 @@ export function ResponsiveTextarea({
   return (
     <textarea
       className={cn(
-        "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         "min-h-[44px] sm:min-h-[40px]", // Better touch targets on mobile
         className
       )}
@@ -190,11 +190,11 @@ export function ResponsiveTextarea({
 }
 
 interface ResponsiveSelectProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   value?: string
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void
-  onBlur?: (e: React.FocusEvent<HTMLSelectElement>) => void
+  onChange?: (e: ChangeEvent<HTMLSelectElement>) => void
+  onBlur?: (e: FocusEvent<HTMLSelectElement>) => void
   disabled?: boolean
   required?: boolean
   autoComplete?: string
@@ -220,7 +220,7 @@ export function ResponsiveSelect({
   return (
     <select
       className={cn(
-        "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         "min-h-[44px] sm:min-h-[40px]", // Better touch targets on mobile
         className
       )}
@@ -241,7 +241,7 @@ export function ResponsiveSelect({
 }
 
 interface ResponsiveButtonGroupProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   direction?: "row" | "col"
   responsiveDirection?: {
@@ -287,7 +287,7 @@ export function ResponsiveButtonGroup({
 }
 
 interface ResponsiveFormSectionProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   title?: string
   description?: string

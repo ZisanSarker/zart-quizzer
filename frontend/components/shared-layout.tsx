@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import { type ReactNode } from "react"
 import { usePathname } from "next/navigation"
 import { PageTransition } from "@/components/animations/motion"
 import { LayoutWrapper } from "@/components/layout-wrapper"
@@ -8,7 +8,7 @@ import SharedHeader from "@/components/shared-header"
 import SharedFooter from "@/components/shared-footer"
 import SidebarLayout from "@/components/sidebar-layout"
 
-export default function SharedLayout({ children }: { children: React.ReactNode }) {
+export default function SharedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   
   // Check if we're in the dashboard section
@@ -27,19 +27,17 @@ export default function SharedLayout({ children }: { children: React.ReactNode }
       <SharedHeader />
       
       {/* Main content area */}
-      <main className="flex-1 flex flex-col w-full items-center justify-center overflow-auto">
-        <div className="w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 mx-auto">
-          <div className="mx-2 sm:mx-4 md:mx-6 lg:mx-8 xl:mx-12">
-            <PageTransition>
-              <LayoutWrapper>
-                {isDashboardPage ? (
-                  <SidebarLayout>{children}</SidebarLayout>
-                ) : (
-                  children
-                )}
-              </LayoutWrapper>
-            </PageTransition>
-          </div>
+      <main className="flex-1 flex flex-col w-full overflow-hidden">
+        <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8 mx-auto">
+          <PageTransition>
+            <LayoutWrapper>
+              {isDashboardPage ? (
+                <SidebarLayout>{children}</SidebarLayout>
+              ) : (
+                children
+              )}
+            </LayoutWrapper>
+          </PageTransition>
         </div>
       </main>
 

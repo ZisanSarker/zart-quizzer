@@ -1,3 +1,4 @@
+import { type ReactNode } from "react"
 import { Inter, Playfair_Display_SC } from "next/font/google"
 import { Providers } from "@/components/providers"
 import SharedLayout from "@/components/shared-layout"
@@ -18,7 +19,7 @@ export const metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <html lang="en" suppressHydrationWarning>

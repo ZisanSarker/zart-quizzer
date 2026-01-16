@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useTheme } from '@/contexts/theme-context'
+import { useTheme } from 'next-themes'
 import { Label } from './label'
 import { RadioGroup, RadioGroupItem } from './radio-group'
 import { Sun, Moon, Monitor } from 'lucide-react'

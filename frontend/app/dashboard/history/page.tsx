@@ -168,8 +168,8 @@ export default function HistoryPage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* History Header Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -181,8 +181,8 @@ export default function HistoryPage() {
       </Section>
 
       {/* Stats Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-6">
             <Card className="card-hover">
               <CardHeader className="pb-2">
@@ -230,8 +230,8 @@ export default function HistoryPage() {
       </Section>
 
       {/* Content Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <Tabs defaultValue="history">
             <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-3 mb-6">
               <TabsTrigger value="history">Quiz History</TabsTrigger>
@@ -375,7 +375,7 @@ export default function HistoryPage() {
                           <div
                             className={`flex items-center justify-center w-10 h-10 rounded-full ${getScoreBadgeColor(
                               item.score
-                            )} text-white flex-shrink-0`}
+                            )} text-white shrink-0`}
                           >
                             <span className="text-sm font-bold">{item.score}%</span>
                           </div>

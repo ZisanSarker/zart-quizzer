@@ -81,7 +81,7 @@ export default function OAuthSuccessPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-blue-50 to-purple-50 dark:from-primary-950/30 dark:via-background dark:to-background">
       <Section className="py-8 sm:py-12 lg:py-16">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="px-4 sm:px-6">
           <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
             {/* Left Side - Success Content */}
             <div className="w-full lg:w-[60%] animate-fade-up">
@@ -165,8 +165,8 @@ export default function OAuthSuccessPage() {
       </Section>
 
       {/* Additional Features Section */}
-      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <Section className="py-8 sm:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <h2 className="text-3xl font-bold text-center mb-8 animate-fade-up">
             What's Next?
           </h2>

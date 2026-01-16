@@ -1,12 +1,26 @@
 import axios from "axios"
-import { refreshToken } from "./auth"
 import { getAccessToken } from "./session"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 })
+
+// Separate axios instance for refresh token to avoid circular dependency
+const refreshApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
+})
+
+// Inline refresh token function to break circular dependency with auth.ts
+const doRefreshToken = async (): Promise<{ message: string }> => {
+  const response = await refreshApi.post<{ message: string }>("/auth/refresh-token")
+  return response.data
+}
 
 let isRefreshing = false
 let failedQueue: Array<{
@@ -73,7 +87,7 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        await refreshToken()
+        await doRefreshToken()
         processQueue(null)
         return api(originalRequest)
       } catch (refreshError) {

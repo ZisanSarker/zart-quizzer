@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import type { ChangeEvent, FormEvent } from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { GradientButton } from "@/components/ui/gradient-button"
@@ -28,7 +28,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [passwordError, setPasswordError] = useState("")
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
 
@@ -61,7 +61,7 @@ export default function RegisterPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
@@ -88,13 +88,9 @@ export default function RegisterPage() {
         description: "Welcome to ZART Quizzer. You can now log in.",
       })
       router.push("/dashboard")
-    } catch (err: any) {
-      let message = "Registration failed. Please try again."
-      if (err?.response?.data?.message) {
-        message = err.response.data.message
-      } else if (err?.message) {
-        message = err.message
-      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string }
+      const message = error?.response?.data?.message || error?.message || "Registration failed. Please try again."
       toast({
         title: "Registration failed",
         description: message,

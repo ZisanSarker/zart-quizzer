@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-
+import { type ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -12,7 +11,7 @@ export const FadeIn = ({
   className = "",
   ...props
 }: {
-  children: React.ReactNode
+  children: ReactNode
   delay?: number
   duration?: number
   className?: string
@@ -40,7 +39,7 @@ export const FadeUp = ({
   className = "",
   ...props
 }: {
-  children: React.ReactNode
+  children: ReactNode
   delay?: number
   duration?: number
   y?: number
@@ -69,7 +68,7 @@ export const SlideRight = ({
   className = "",
   ...props
 }: {
-  children: React.ReactNode
+  children: ReactNode
   delay?: number
   duration?: number
   x?: number
@@ -98,7 +97,7 @@ export const SlideLeft = ({
   className = "",
   ...props
 }: {
-  children: React.ReactNode
+  children: ReactNode
   delay?: number
   duration?: number
   x?: number
@@ -126,7 +125,7 @@ export const ScaleIn = ({
   className = "",
   ...props
 }: {
-  children: React.ReactNode
+  children: ReactNode
   delay?: number
   duration?: number
   className?: string
@@ -152,7 +151,7 @@ export const StaggerChildren = ({
   className = "",
   ...props
 }: {
-  children: React.ReactNode
+  children: ReactNode
   staggerDelay?: number
   className?: string
   [key: string]: any
@@ -183,7 +182,7 @@ export const StaggerItem = ({
   className = "",
   ...props
 }: {
-  children: React.ReactNode
+  children: ReactNode
   duration?: number
   y?: number
   className?: string
@@ -242,7 +241,7 @@ export const AnimatedCounter = ({
   )
 }
 
-export const PageTransition = ({ children }: { children: React.ReactNode }) => {
+export const PageTransition = ({ children }: { children: ReactNode }) => {
   return (
     <AnimatePresence mode="wait">
       <motion.div

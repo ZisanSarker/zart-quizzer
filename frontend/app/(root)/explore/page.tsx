@@ -77,10 +77,11 @@ export default function ExplorePage() {
         title: "Quiz saved",
         description: "The quiz has been added to your library",
       })
-    } catch (e: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
       toast({
         title: "Save failed",
-        description: e?.response?.data?.message || "Could not save the quiz.",
+        description: error?.response?.data?.message || "Could not save the quiz.",
       })
     } finally {
       setSavingQuizId(null)
@@ -132,8 +133,8 @@ export default function ExplorePage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Explore Header Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -151,8 +152,8 @@ export default function ExplorePage() {
       </Section>
 
       {/* Explore Content Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="mb-4 sm:mb-6">
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 px-2 sm:px-4 md:px-6 lg:px-8">
@@ -293,7 +294,7 @@ function QuizCard({
                       ? "secondary"
                       : "default"
                 }
-                className="flex-shrink-0 self-start sm:self-auto"
+                className="shrink-0 self-start sm:self-auto"
               >
                 {uiDifficulty}
               </Badge>
@@ -371,7 +372,7 @@ function QuizCard({
               </div>
               <Link 
                 href={`/dashboard/profile/${quiz.author?._id || 'unknown'}`}
-                className="flex-shrink-0 group"
+                className="shrink-0 group"
               >
                 <Avatar className="h-8 w-8 sm:h-10 sm:w-10 group-hover:scale-105 transition-transform duration-200 group-hover:ring-2 group-hover:ring-primary/20 author-avatar-hover">
                   <AvatarImage src={quiz.author?.avatar || "/placeholder.svg"} alt={quiz.author?.name} />

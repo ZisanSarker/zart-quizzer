@@ -64,12 +64,13 @@ function RatingStars({
         description: r === rating ? "Your rating has been updated." : "Your rating has been saved."
       })
       if (onRated) onRated(r)
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
       const errorMessage = error?.response?.data?.message || "Failed to rate"
-      toast({ 
-        title: "Rating failed", 
+      toast({
+        title: "Rating failed",
         description: errorMessage,
-        variant: "destructive" 
+        variant: "destructive"
       })
     } finally {
       setLoading(false)
@@ -410,7 +411,7 @@ export default function QuizPracticeAllPage({ params }: { params: { id: string }
                             disabled={checked}
                             onClick={() => handleOptionClick(question, option)}
                           >
-                            <span className="flex-shrink-0 mt-0.5">
+                            <span className="shrink-0 mt-0.5">
                               {checked ? (
                                 isOptionCorrect ? (
                                   <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />

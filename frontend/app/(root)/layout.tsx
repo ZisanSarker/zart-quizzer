@@ -1,11 +1,11 @@
 "use client"
 
-import type React from "react"
+import { type ReactNode } from "react"
 
-export default function RootLayout({
+export default function RootPagesLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return <>{children}</>
 }

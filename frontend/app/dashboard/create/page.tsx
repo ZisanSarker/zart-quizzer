@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -98,10 +97,11 @@ export default function CreateQuizPage() {
         description: "Your quiz is ready to be taken or shared.",
       })
       router.push(`/dashboard/quiz/preview/${response.quiz._id}`)
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
       toast({
         title: "Quiz generation failed",
-        description: error.response?.data?.message || "Please try again later",
+        description: error?.response?.data?.message || "Please try again later",
         variant: "destructive",
       })
     } finally {
@@ -112,8 +112,8 @@ export default function CreateQuizPage() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Create Quiz Header Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="animate-fade-up">
               <h1 className="responsive-heading-1 gradient-heading mb-4 sm:mb-6">
@@ -125,8 +125,8 @@ export default function CreateQuizPage() {
       </Section>
 
       {/* Create Quiz Form Section */}
-      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl mx-auto max-w-7xl">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <Section className="py-6 sm:py-8 md:py-12 bg-muted/50 rounded-3xl ">
+        <div className="px-4 sm:px-6">
           <div className="w-full flex flex-col items-center">
             <Tabs defaultValue="form" className="w-full max-w-4xl animate-fade-in">
               <TabsList className="grid w-full max-w-full sm:max-w-md grid-cols-1 mb-4 sm:mb-6 bg-muted/80">

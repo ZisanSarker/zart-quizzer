@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import type { ChangeEvent, FormEvent } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { GradientButton } from "@/components/ui/gradient-button"
 import { Input } from "@/components/ui/input"
@@ -14,8 +15,10 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 
+// Auth redirect is handled by middleware.ts
+
 export default function LoginPage() {
-  const { login, user } = useAuth()
+  const { login } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -23,23 +26,18 @@ export default function LoginPage() {
     email: "",
     password: "",
   })
+  // React 19: useTransition for non-blocking state updates
+  const [isPending, startTransition] = useTransition()
   const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    // Only redirect if user is already logged in
-    if (user) {
-      router.replace("/dashboard")
-    }
-  }, [user, router])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    
+
     if (!formData.email || !formData.password) {
       toast({
         title: "Missing information",
@@ -56,14 +54,12 @@ export default function LoginPage() {
         title: "Logged in successfully",
         description: "Welcome back! Redirecting...",
       })
-      router.push("/dashboard")
-    } catch (err: any) {
-      let message = "Failed to log in. Please try again."
-      if (err?.response?.data?.message) {
-        message = err.response.data.message
-      } else if (err?.message) {
-        message = err.message
-      }
+      startTransition(() => {
+        router.push("/dashboard")
+      })
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string }
+      const message = error?.response?.data?.message || error?.message || "Failed to log in. Please try again."
       toast({
         title: "Login failed",
         description: message,
@@ -73,6 +69,8 @@ export default function LoginPage() {
       setIsLoading(false)
     }
   }
+
+  const isSubmitting = isLoading || isPending
 
   return (
     <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6 bg-gradient-to-b from-primary-50 to-background dark:from-primary-950/30 dark:to-background">
@@ -103,7 +101,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 min-h-[44px] sm:min-h-[40px] text-sm sm:text-base"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
               </FadeUp>
               <FadeUp delay={0.2} className="space-y-2">
@@ -122,12 +120,12 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   className="transition-all duration-300 focus:border-primary-300 focus:ring-primary-200 min-h-[44px] sm:min-h-[40px] text-sm sm:text-base"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
               </FadeUp>
               <FadeUp delay={0.3}>
-                <GradientButton type="submit" className="w-full min-h-[44px] sm:min-h-[40px] text-sm sm:text-base" disabled={isLoading}>
-                  {isLoading ? (
+                <GradientButton type="submit" className="w-full min-h-[44px] sm:min-h-[40px] text-sm sm:text-base" disabled={isSubmitting}>
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
                     </>
@@ -155,7 +153,7 @@ export default function LoginPage() {
                   toast({ title: "Redirecting...", description: "Opening Google login." })
                   window.location.href = getGoogleAuthUrl()
                 }}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Google
@@ -167,7 +165,7 @@ export default function LoginPage() {
                   toast({ title: "Redirecting...", description: "Opening GitHub login." })
                   window.location.href = getGithubAuthUrl()
                 }}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub

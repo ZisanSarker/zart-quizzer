@@ -1,8 +1,8 @@
-import type React from "react"
+import { type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 interface ResponsiveContainerProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl" | "full"
   padding?: "none" | "sm" | "md" | "lg" | "xl"
@@ -58,7 +58,7 @@ export function ResponsiveContainer({
 }
 
 interface ResponsiveSectionProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   padding?: "none" | "sm" | "md" | "lg" | "xl"
   background?: "none" | "muted" | "primary" | "secondary"
@@ -104,7 +104,7 @@ export function ResponsiveSection({
 }
 
 interface ResponsiveGridProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   cols?: {
     default: number
@@ -122,6 +122,61 @@ interface ResponsiveGridProps {
   minWidth?: string
 }
 
+// Static class mappings for Tailwind JIT compatibility
+const gridColsMap: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+}
+
+const smGridColsMap: Record<number, string> = {
+  1: "sm:grid-cols-1",
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-4",
+  5: "sm:grid-cols-5",
+  6: "sm:grid-cols-6",
+}
+
+const mdGridColsMap: Record<number, string> = {
+  1: "md:grid-cols-1",
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-3",
+  4: "md:grid-cols-4",
+  5: "md:grid-cols-5",
+  6: "md:grid-cols-6",
+}
+
+const lgGridColsMap: Record<number, string> = {
+  1: "lg:grid-cols-1",
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+  5: "lg:grid-cols-5",
+  6: "lg:grid-cols-6",
+}
+
+const xlGridColsMap: Record<number, string> = {
+  1: "xl:grid-cols-1",
+  2: "xl:grid-cols-2",
+  3: "xl:grid-cols-3",
+  4: "xl:grid-cols-4",
+  5: "xl:grid-cols-5",
+  6: "xl:grid-cols-6",
+}
+
+const xl2GridColsMap: Record<number, string> = {
+  1: "2xl:grid-cols-1",
+  2: "2xl:grid-cols-2",
+  3: "2xl:grid-cols-3",
+  4: "2xl:grid-cols-4",
+  5: "2xl:grid-cols-5",
+  6: "2xl:grid-cols-6",
+}
+
 export function ResponsiveGrid({
   children,
   className,
@@ -131,25 +186,25 @@ export function ResponsiveGrid({
   gapY,
   autoFit = false,
   autoFill = false,
-  minWidth = "min-w-[250px]",
 }: ResponsiveGridProps) {
   const getGridCols = () => {
+    // Use CSS custom properties for auto-fit/auto-fill (these work inline)
     if (autoFit) {
-      return `grid-cols-[repeat(auto-fit,minmax(${minWidth},1fr))]`
+      return "grid-cols-[repeat(auto-fit,minmax(250px,1fr))]"
     }
-    
+
     if (autoFill) {
-      return `grid-cols-[repeat(auto-fill,minmax(${minWidth},1fr))]`
+      return "grid-cols-[repeat(auto-fill,minmax(200px,1fr))]"
     }
 
     const colClasses = []
 
-    colClasses.push(`grid-cols-${cols.default}`)
-    if (cols.sm) colClasses.push(`sm:grid-cols-${cols.sm}`)
-    if (cols.md) colClasses.push(`md:grid-cols-${cols.md}`)
-    if (cols.lg) colClasses.push(`lg:grid-cols-${cols.lg}`)
-    if (cols.xl) colClasses.push(`xl:grid-cols-${cols.xl}`)
-    if (cols["2xl"]) colClasses.push(`2xl:grid-cols-${cols["2xl"]}`)
+    if (cols.default && gridColsMap[cols.default]) colClasses.push(gridColsMap[cols.default])
+    if (cols.sm && smGridColsMap[cols.sm]) colClasses.push(smGridColsMap[cols.sm])
+    if (cols.md && mdGridColsMap[cols.md]) colClasses.push(mdGridColsMap[cols.md])
+    if (cols.lg && lgGridColsMap[cols.lg]) colClasses.push(lgGridColsMap[cols.lg])
+    if (cols.xl && xlGridColsMap[cols.xl]) colClasses.push(xlGridColsMap[cols.xl])
+    if (cols["2xl"] && xl2GridColsMap[cols["2xl"]]) colClasses.push(xl2GridColsMap[cols["2xl"]])
 
     return colClasses.join(" ")
   }
@@ -162,9 +217,11 @@ export function ResponsiveGrid({
   }
 
   return (
-    <div 
+    <div
       className={cn(
-        `grid ${getGridCols()} ${getGapClasses()}`,
+        "grid",
+        getGridCols(),
+        getGapClasses(),
         className
       )}
     >
@@ -174,7 +231,7 @@ export function ResponsiveGrid({
 }
 
 interface ResponsiveFlexProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   direction?: "row" | "col" | "row-reverse" | "col-reverse"
   responsiveDirection?: {
